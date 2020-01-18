@@ -1,6 +1,7 @@
 package client;
 
-import shared.messages.KVMessage;
+import shared.messages.*;
+import java.lang.UnsupportedOperationException;
 
 public class KVStore implements KVCommInterface {
 	/**
@@ -9,7 +10,7 @@ public class KVStore implements KVCommInterface {
 	 * @param port the port of the KVServer
 	 */
 	public KVStore(String address, int port) {
-		// TODO Auto-generated method stub
+		// throw new NotImplementedException("KVStore Constructor");
 	}
 
 	@Override
@@ -24,13 +25,25 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public KVMessage put(String key, String value) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO: validate input
+
+		KVClientRequestMessage message = new KVPutMessage(key, value);
+		KVServerResponseMessage response = send(message);
+
+		return response;
 	}
 
 	@Override
 	public KVMessage get(String key) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO: validate input
+
+		KVClientRequestMessage message = new KVGetMessage(key);
+		KVServerResponseMessage response = send(message);
+
+		return response;
+	}
+
+	private KVServerResponseMessage send(KVClientRequestMessage requestMessage) throws Exception {
+		throw new UnsupportedOperationException("send");
 	}
 }
