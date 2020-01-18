@@ -61,7 +61,14 @@ public class KVStore implements KVCommInterface {
 	private KVServerResponseMessage send(KVClientRequestMessage requestMessage) throws Exception {
 		// Inside here will be the actual marshalling of the message, and 
 		// sending to the server.
-		throw new UnsupportedOperationException("send");
+
+		byte[] messageBytes = requestMessage.convertToBytes();
+
+		// Should probably trycatch?
+		byte[] response = sendBytes(messageBytes);
+		
+		// TODO deserialize response.
+		return null; // For now.
 	}
 	
 	//WARNING: NOT CONFIRMED WORKING
