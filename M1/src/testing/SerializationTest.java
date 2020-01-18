@@ -64,5 +64,15 @@ public class SerializationTest extends TestCase {
         }
     }
 
+    public void testServerResponseMessage() {
+        KVMessage.StatusType type = KVMessage.StatusType.PUT_SUCCESS;
+        String responseText = "hello world!";
+        KVServerResponseMessage responseObj = new KVServerResponseMessage(type, responseText);
+        byte[] bytes = responseObj.convertToBytes();
+        KVServerResponseMessage reconstructed = KVServerResponseMessage.Deserialize(bytes);
+        assertTrue(reconstructed.getStatus() == type);
+        assertTrue(reconstructed.getResponseMessage().equals(responseText));
+    }
+
 }
 
