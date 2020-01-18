@@ -10,6 +10,9 @@ public class KVClient implements IKVClient {
 
     @Override
     public KVCommInterface getStore(){
+        
+        // This will return a new KVStore
+
         // TODO Auto-generated method stub
         return null;
     }

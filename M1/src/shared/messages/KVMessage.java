@@ -31,7 +31,11 @@ public interface KVMessage {
 	 * response types and error types associated to the message.
 	 */
 	public StatusType getStatus();
-	
+
+	/**
+	 * @return the KV message serialized to JSON.
+	 */
+	public byte[] convertToBytes();
 }
 
 

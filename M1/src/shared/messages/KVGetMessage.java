@@ -1,10 +1,13 @@
 package shared.messages;
 
+import shared.Serializer;
+
 public final class KVGetMessage extends KVClientRequestMessage {
     private String _key;
 
     // For now, public constructor
-    public KVGetMessage(String key){
+    public KVGetMessage(String key) {
+        super(RequestType.GET);
         this._key = key;
     }
 
@@ -15,6 +18,17 @@ public final class KVGetMessage extends KVClientRequestMessage {
 
     @Override
     public String getValue() {
-        throw new java.lang.UnsupportedOperationException("getValue");
+        throw new java.lang.UnsupportedOperationException("getStatus");
+    }
+
+    @Override
+    public byte[] convertToBytes(){
+        Serializer serializer = new Serializer();
+
+        serializer
+            .writeByte(getType().val)
+            .writeString(getKey());
+
+        return serializer.toByteArray();
     }
 }

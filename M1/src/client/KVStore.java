@@ -1,6 +1,7 @@
 package client;
 
 import shared.messages.*;
+import shared.Utils;
 import java.lang.UnsupportedOperationException;
 
 public class KVStore implements KVCommInterface {
@@ -25,7 +26,8 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public KVMessage put(String key, String value) throws Exception {
-		// TODO: validate input
+		Utils.validateKey(key);
+		Utils.validateValue(value);
 
 		KVClientRequestMessage message = new KVPutMessage(key, value);
 		KVServerResponseMessage response = send(message);
@@ -33,9 +35,10 @@ public class KVStore implements KVCommInterface {
 		return response;
 	}
 
+
 	@Override
 	public KVMessage get(String key) throws Exception {
-		// TODO: validate input
+		Utils.validateKey(key);
 
 		KVClientRequestMessage message = new KVGetMessage(key);
 		KVServerResponseMessage response = send(message);
@@ -44,6 +47,8 @@ public class KVStore implements KVCommInterface {
 	}
 
 	private KVServerResponseMessage send(KVClientRequestMessage requestMessage) throws Exception {
+		// Inside here will be the actual marshalling of the message, and 
+		// sending to the server.
 		throw new UnsupportedOperationException("send");
 	}
 }
