@@ -4,6 +4,7 @@ import shared.comms.*;
 import shared.messages.*;
 import shared.Deserializer;
 import shared.Serializer;
+import server.*;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,6 +26,8 @@ public class ClientConnection implements Runnable {
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 	
 	private ICommChannel commChannel;
+	private IServerStore serverStore;
+
 	private Socket clientSocket;
 	private InputStream input;
 	private OutputStream output;
@@ -33,10 +36,15 @@ public class ClientConnection implements Runnable {
 	 * Constructs a new CientConnection object for a given TCP socket.
 	 * @param clientSocket the Socket object for the client connection.
 	 */
-	public ClientConnection(Socket clientSocket) {
+	public ClientConnection(Socket clientSocket, IServerStore serverStore) {
 		if (clientSocket == null)
 			throw new NullPointerException("client socket is null");
+		if (serverStore == null)
+			throw new IllegalArgumentException("server store is null");
+
 		this.clientSocket = clientSocket;
+		this.serverStore = serverStore;
+
 		this.isOpen = true;
 		try {
 			this.commChannel = new CommChannel(clientSocket);
@@ -60,18 +68,20 @@ public class ClientConnection implements Runnable {
 					byte[] requestBytes = commChannel.recvBytes();
 					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
 
-					switch (request.getType()) {
-						case PUT:
-						 	// TODO put stuff
-							logger.info("PUT: " + request.getKey() + ", " + request.getValue());
-							break;
-						case GET:
-							// TODO get stuff
-							logger.info("GET: " + request.getKey());
-							break;
-						default:
-							logger.error("Received invalid request from client");
-							break;
+					KVClientRequestMessage.RequestType requestType = request.getType();
+					if (requestType == KVClientRequestMessage.RequestType.PUT) {
+							if (request.getValue().equals("null")) {
+								logger.info("DELETE: " + request.getKey());
+								serverStore.delete(request.getKey());
+							} else {
+								logger.info("PUT: " + request.getKey() + ", " + request.getValue());
+								serverStore.put(request.getKey(), request.getValue());
+							}
+					} else if (requestType == KVClientRequestMessage.RequestType.GET) {
+						logger.info("GET: " + request.getKey());
+						String result = serverStore.get(request.getKey());
+					} else {
+						logger.error("Received invalid request from client");
 					}
 
 					// This is a dummy response for now

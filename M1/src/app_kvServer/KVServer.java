@@ -8,6 +8,10 @@ import java.io.IOException;
 
 import logger.LogSetup;
 
+import server.*;
+
+import shared.Utils;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -19,6 +23,8 @@ public class KVServer implements IKVServer {
 	private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;
+
+	private IServerStore serverStore;
 
 	private static Logger logger = Logger.getRootLogger();
 
@@ -35,6 +41,9 @@ public class KVServer implements IKVServer {
 	public KVServer(int port, int cacheSize, String strategy){
 		this._port = port;
 		this._cacheSize = cacheSize;
+
+		// Change this once a real implementation exists.
+		this.serverStore = new ServerStoreDumb();
 		
 		switch (strategy.toLowerCase()) {
 			case "fifo":
@@ -86,23 +95,25 @@ public class KVServer implements IKVServer {
 
 	@Override
     public String getKV(String key) throws Exception{
-		// TODO Auto-generated method stub
-		return "";
+		Utils.validateKey(key);
+		return this.serverStore.get(key);
 	}
 
 	@Override
     public void putKV(String key, String value) throws Exception{
-		// TODO Auto-generated method stub
+		Utils.validateKey(key);
+		Utils.validateValue(value);
+		this.serverStore.put(key, value);
 	}
 
 	@Override
     public void clearCache(){
-		// TODO Auto-generated method stub
+		this.serverStore.clearCache();
 	}
 
 	@Override
     public void clearStorage(){
-		// TODO Auto-generated method stub
+		this.serverStore.clearStorage();
 	}
 
 	@Override
@@ -114,7 +125,12 @@ public class KVServer implements IKVServer {
 	        while(isRunning()){
 	            try {
 	                Socket client = serverSocket.accept();                
-	                ClientConnection connection = new ClientConnection(client);
+	                
+	                ClientConnection connection = new ClientConnection(
+	                	client,
+	                	this.serverStore
+                	);
+
 	                new Thread(connection).start();
 	                
 	                logger.info("Connected to " 
