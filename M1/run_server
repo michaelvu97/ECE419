@@ -1,0 +1,3 @@
+#!/bin/csh
+
+java -cp m1-server.jar app_kvServer.KVServer
