@@ -66,6 +66,7 @@ public class KVStore implements KVCommInterface {
 			return response;
 		} 
 		catch (Exception e){
+			// TODO
 			return null;
 		}
 	}
@@ -81,6 +82,7 @@ public class KVStore implements KVCommInterface {
 			return response;
 		}
 		catch (Exception e){
+			// TODO
 			return null;
 		}
 	}

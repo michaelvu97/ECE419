@@ -2,9 +2,9 @@ package app_kvServer;
 
 public class KVServer implements IKVServer {
 	
-	int port;
-	int cacheSize;
-	String strategy;
+	private int _port;
+	private int _cacheSize;
+	private IKVServer.CacheStrategy _strategy;
 
 	/**
 	 * Start KV Server at given port
@@ -17,9 +17,23 @@ public class KVServer implements IKVServer {
 	 *           and "LFU".
 	 */
 	public KVServer(int port, int cacheSize, String strategy){
-		this.port = port;
-		this.cacheSize = cacheSize;
-		this.strategy = strategy;
+		this._port = port;
+		this._cacheSize = cacheSize;
+		
+		switch (strategy.toLowerCase()) {
+			case "fifo":
+				_strategy = IKVServer.CacheStrategy.FIFO;
+				break;
+			case "lru":
+				_strategy = IKVServer.CacheStrategy.LRU;
+				break;
+			case "lfu":
+				_strategy = IKVServer.CacheStrategy.LFU;
+				break;
+			default:
+				System.out.println("Invalid cache strategy: \"" + strategy + "\"");
+				break;
+		}
 	}
 	
 	@Override
@@ -80,6 +94,7 @@ public class KVServer implements IKVServer {
 	@Override
     public void run(){
 		// TODO Auto-generated method stub
+		System.out.println("Server running");
 	}
 
 	@Override
@@ -90,5 +105,15 @@ public class KVServer implements IKVServer {
 	@Override
     public void close(){
 		// TODO Auto-generated method stub
+	}
+
+	public static void main(String[] args) {
+		// TODO get args from args
+		try {
+			IKVServer kvServer = new KVServer(3000, 1000, "FIFO");
+			kvServer.run();
+		} finally {
+			System.out.println("Server exited");
+		}
 	}
 }
