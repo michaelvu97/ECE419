@@ -1,0 +1,3 @@
+#!/bin/csh
+
+java -cp m1-client.jar app_kvClient.ui.Application
