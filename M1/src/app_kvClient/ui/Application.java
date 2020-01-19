@@ -20,13 +20,13 @@ public class Application implements ClientSocketListener {
 	private static final String PROMPT = "KVClient> ";
 	private BufferedReader stdin;
 	private KVClient client = null;
-	private boolean stop = false;
+	private boolean running = true;
 	
 	private String serverAddress;
 	private int serverPort;
 	
 	public void run() {
-		while(!stop) {
+		while(running) {
 			stdin = new BufferedReader(new InputStreamReader(System.in));
 			System.out.print(PROMPT);
 			
@@ -34,7 +34,7 @@ public class Application implements ClientSocketListener {
 				String cmdLine = stdin.readLine();
 				this.handleCommand(cmdLine);
 			} catch (IOException e) {
-				stop = true;
+				running = false;
 				printError("CLI does not respond - Application terminated ");
 			}
 		}
@@ -45,7 +45,7 @@ public class Application implements ClientSocketListener {
 
 		// quit
 		if(tokens[0].equals("quit")) {	
-			stop = true;
+			running = false;
 			disconnect();
 			System.out.println(PROMPT + "Application exit!");
 		} 
@@ -104,7 +104,11 @@ public class Application implements ClientSocketListener {
 		} 
 		// logLevel <level>
 		else if (tokens[0].equals("logLevel")){
-			//TODO: set logger level to specified level.
+			if (tokens.length >= 2) {
+				setLevel(tokens[1]);
+			} else {
+				printError("Incorrect Number of Arguments");
+			}
 		}
 		// known command
 		else {
@@ -119,20 +123,15 @@ public class Application implements ClientSocketListener {
 		try {
 			client.newConnection(address, port);
 			client.addListener(this);
+		} catch (IOException e) {
+			printError("Could not establish connection!");
+			logger.warn("Could not establish connection!", e);
 		}
-		catch (Exception e){
-			printError("Unknown Host!");
-			logger.info("Unknown Host!", e);
-		}
-		// catch (IOException e) {
-		// 	printError("Could not establish connection!");
-		// 	logger.warn("Could not establish connection!", e);
-		// }
 	}
 	
 	private void disconnect() {
 		if(client != null) {
-			client.closeConnection();
+			client.disconnect();
 			client = null;
 		}
 	}
@@ -222,6 +221,7 @@ public class Application implements ClientSocketListener {
      */
     public static void main(String[] args) {
     	try {
+    		// TODO log level?
 			new LogSetup("logs/client.log", Level.OFF);
 			Application app = new Application();
 			app.run();
