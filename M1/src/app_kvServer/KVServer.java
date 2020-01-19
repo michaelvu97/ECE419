@@ -42,7 +42,7 @@ public class KVServer implements IKVServer {
 	
 	@Override
 	public int getPort(){
-		return this.port;
+		return this._port;
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class KVServer implements IKVServer {
 
 	@Override
     public int getCacheSize(){
-		return this.cacheSize;
+		return this._cacheSize;
 	}
 
 	@Override
