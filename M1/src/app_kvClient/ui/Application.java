@@ -116,9 +116,9 @@ public class Application implements ClientSocketListener {
 	private void connect(String address, int port) 
 			throws UnknownHostException, IOException {
 		client = new KVClient();
-		client.addListener(this);
 		try {
-			client.newConnection(address,port);
+			client.newConnection(address, port);
+			client.addListener(this);
 		}
 		catch (Exception e){
 			printError("Unknown Host!");
