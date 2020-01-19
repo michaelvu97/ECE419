@@ -3,6 +3,7 @@ package app_kvServer;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.net.BindException;
+import java.net.InetAddress;
 
 import java.io.IOException;
 
@@ -153,7 +154,9 @@ public class KVServer implements IKVServer {
 		
 		try {
 			serverSocket = new ServerSocket(_port);
-			logger.info("Server listening on port: " + serverSocket.getLocalPort());    
+			// _hostName = serverSocket.getInetAddress().getHostName();
+			_hostName = InetAddress.getLocalHost().getHostAddress();
+			logger.info("Server " + _hostName + " listening on port: " + serverSocket.getLocalPort());    
             return true;
 		}
 		catch (IOException e) {
