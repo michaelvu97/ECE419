@@ -85,7 +85,7 @@ public interface KVMessage {
 	/**
 	 * @return the KV message serialized to JSON.
 	 */
-	public byte[] convertToBytes();
+	public byte[] serialize();
 }
 
 

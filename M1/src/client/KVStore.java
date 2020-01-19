@@ -78,8 +78,8 @@ public class KVStore implements KVCommInterface {
 			Utils.validateKey(key);
 			Utils.validateValue(value);
 
-			KVClientRequestMessage message = new KVPutMessage(key, value);
-			KVServerResponseMessage response = send(message);
+			KVClientRequestMessage message = KVClientRequestMessage.PUT(key, value);
+			KVServerResponseMessage response = sendRequest(message);
 
 			return response;
 		} 
@@ -94,8 +94,8 @@ public class KVStore implements KVCommInterface {
 		try {
 			Utils.validateKey(key);
 
-			KVClientRequestMessage message = new KVGetMessage(key);
-			KVServerResponseMessage response = send(message);
+			KVClientRequestMessage message = KVClientRequestMessage.GET(key);
+			KVServerResponseMessage response = sendRequest(message);
 
 			return response;
 		}
@@ -105,22 +105,20 @@ public class KVStore implements KVCommInterface {
 		}
 	}
 
-	private KVServerResponseMessage send(KVClientRequestMessage requestMessage) throws IOException {
+	private KVServerResponseMessage sendRequest(KVClientRequestMessage requestMessage) throws IOException {
 		// Inside here will be the actual marshalling of the message, and 
 		// sending to the server.
 
-		byte[] messageBytes = requestMessage.convertToBytes();
+		byte[] messageBytes = requestMessage.serialize();
 
 		_commChannel.sendBytes(messageBytes);
 
 		// Should probably trycatch?
 		byte[] response = _commChannel.recvBytes();
 
-		KVServerResponseMessage responseObj = 
-				KVServerResponseMessage.Deserialize(response);
+		KVServerResponseMessage responseObj = KVServerResponseMessage.Deserialize(response);
 
-		logger.info("Received server response: " + responseObj.getStatus() + ", "
-			+ responseObj.getResponseMessage());
+		logger.info("Received server response: " + responseObj.toString());
 
 		return responseObj;
 	}

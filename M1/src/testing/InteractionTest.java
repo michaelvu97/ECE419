@@ -40,22 +40,6 @@ public class InteractionTest extends TestCase {
 
 		assertTrue(ex == null && response.getStatus() == StatusType.PUT_SUCCESS);
 	}
-	
-	@Test
-	public void testPutDisconnected() {
-		kvClient.disconnect();
-		String key = "foo";
-		String value = "bar";
-		Exception ex = null;
-
-		try {
-			kvClient.put(key, value);
-		} catch (Exception e) {
-			ex = e;
-		}
-
-		assertNotNull(ex);
-	}
 
 	@Test
 	public void testUpdate() {
@@ -130,5 +114,20 @@ public class InteractionTest extends TestCase {
 	}
 	
 
+	@Test
+	public void testPutDisconnected() {
+		kvClient.disconnect();
+		String key = "foo";
+		String value = "bar";
+		Exception ex = null;
+
+		try {
+			kvClient.put(key, value);
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertNotNull(ex);
+	}
 
 }

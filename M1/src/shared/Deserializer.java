@@ -46,6 +46,9 @@ public class Deserializer {
         // Read int
         int length = getInt();
 
+        if (length == 0)
+            return null;
+
         byte[] strBytes = new byte[length];
 
         for (int i = 0; i < length; i++) {
