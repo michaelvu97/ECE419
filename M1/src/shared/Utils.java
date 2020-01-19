@@ -16,4 +16,11 @@ public final class Utils {
         if (value.length() > 120000)
             throw new IllegalArgumentException("value length must be <= 120000");
     }
+
+    public static void validateResponseMessage(String res) throws IllegalArgumentException {
+        if (res == null)
+            throw new IllegalArgumentException("res is null");
+        if (res.length() == 0)
+            throw new IllegalArgumentException("res is empty");
+    }
 }

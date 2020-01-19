@@ -11,7 +11,57 @@ public interface KVMessage {
 		PUT_UPDATE, 	/* Put - request successful, i.e. value updated */
 		PUT_ERROR, 		/* Put - request not successful */
 		DELETE_SUCCESS, /* Delete - request successful */
-		DELETE_ERROR 	/* Delete - request successful */
+		DELETE_ERROR; 	/* Delete - request successful */
+
+		public byte toByte(){
+			switch (this) {
+				case GET:
+					return 0;
+				case GET_ERROR:
+					return 1;
+				case GET_SUCCESS:
+					return 2;
+				case PUT:
+					return 3;
+				case PUT_SUCCESS:
+					return 4;
+				case PUT_UPDATE:
+					return 5;
+				case PUT_ERROR:
+					return 6;
+				case DELETE_SUCCESS:
+					return 7;
+				case DELETE_ERROR:
+					return 8;
+                default:                
+                    throw new IllegalArgumentException("s out of range");
+            }
+		}
+
+		public static StatusType FromByte(byte b){
+            switch (b) {
+				case 0:
+					return GET;
+				case 1:
+					return GET_ERROR;
+				case 2:
+					return GET_SUCCESS;
+				case 3:
+					return PUT;
+				case 4:
+					return PUT_SUCCESS;
+				case 5:
+					return PUT_UPDATE;
+				case 6:
+					return PUT_ERROR;
+				case 7:
+					return DELETE_SUCCESS;
+				case 8:
+					return DELETE_ERROR;
+                default:                
+                    throw new IllegalArgumentException("b out of range");
+            }
+        }
 	}
 
 	/**

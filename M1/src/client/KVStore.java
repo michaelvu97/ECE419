@@ -99,8 +99,7 @@ public class KVStore implements KVCommInterface {
 		// Should probably trycatch?
 		byte[] response = sendBytes(messageBytes);
 		
-		// TODO deserialize response.
-		return null; // For now.
+		return KVServerResponseMessage.Deserialize(response);
 	}
 	
 	//WARNING: NOT CONFIRMED WORKING
@@ -128,7 +127,11 @@ public class KVStore implements KVCommInterface {
 		logger.info("'Message sent, awaiting response'");
 		
 		//get input_size as the first 4 bytes of the message
-		int responseSize = (int) input.read();
+		int responseSize = ((int) input.read())<<24;
+		responseSize += ((int) input.read())<<16;
+		responseSize += ((int) input.read())<<8;
+		responseSize += ((int) input.read());
+
 		//check if the message is of size 0 or too big. if so, return NULL 
 		if(responseSize <1){
 			logger.error("'Message size incorrect from server'");
