@@ -42,7 +42,7 @@ public abstract class KVClientRequestMessage implements KVMessage {
      * Decodes a client request object from a string, and creates a 
      * KVClientRequestMessage.
      */
-    public static KVClientRequestMessage Deserialize(byte[] clientRequestBytes) throws Exception {
+    public static KVClientRequestMessage Deserialize(byte[] clientRequestBytes) {
         if (clientRequestBytes == null || clientRequestBytes.length == 0)
             throw new IllegalArgumentException("clientRequestBytes");
 
