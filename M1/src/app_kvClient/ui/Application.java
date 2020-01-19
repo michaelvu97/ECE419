@@ -115,10 +115,19 @@ public class Application implements ClientSocketListener {
 
 	private void connect(String address, int port) 
 			throws UnknownHostException, IOException {
-		// sofia
 		client = new KVClient();
 		client.addListener(this);
-		client.newConnection(address,port);
+		try {
+			client.newConnection(address,port);
+		}
+		catch (Exception e){
+			printError("Unknown Host!");
+			logger.info("Unknown Host!", e);
+		}
+		// catch (IOException e) {
+		// 	printError("Could not establish connection!");
+		// 	logger.warn("Could not establish connection!", e);
+		// }
 	}
 	
 	private void disconnect() {

@@ -39,15 +39,10 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public void connect() {
-		try {
-			clientSocket = new Socket(address, port);
-			listeners = new HashSet<ClientSocketListener>();
-			logger.info("Connection established");
-		}
-		catch (Exception e) {
-			//TODO
-		}
+	public void connect() throws UnknownHostException, IOException {
+		clientSocket = new Socket(address, port);
+		listeners = new HashSet<ClientSocketListener>();
+		logger.info("Connection established");
 	}
 
 	@Override

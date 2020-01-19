@@ -9,7 +9,7 @@ public class KVClient implements IKVClient {
 	private KVStore clientStore = null;
 
     @Override
-    public void newConnection(String hostname, int port) {
+    public void newConnection (String hostname, int port) throws Exception {
 		clientStore = new KVStore(hostname, port);
 		clientStore.connect();
 	}
@@ -22,12 +22,12 @@ public class KVClient implements IKVClient {
         return null;
     }
 
-    public void put(String key, String value) {
+    public void put(String key, String value){
         clientStore.put(key, value);
         //add a lil print message for testing
     }
 
-    public void get(String key) {
+    public void get(String key){
         clientStore.get(key);
         //add a lil print message for testing
     }
