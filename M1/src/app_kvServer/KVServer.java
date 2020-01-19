@@ -1,6 +1,11 @@
 package app_kvServer;
 
 public class KVServer implements IKVServer {
+	
+	int port;
+	int cacheSize;
+	String strategy;
+
 	/**
 	 * Start KV Server at given port
 	 * @param port given port for storage server to operate
@@ -11,14 +16,15 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */
-	public KVServer(int port, int cacheSize, String strategy) {
-		// TODO Auto-generated method stub
+	public KVServer(int port, int cacheSize, String strategy){
+		this.port = port;
+		this.cacheSize = cacheSize;
+		this.strategy = strategy;
 	}
 	
 	@Override
 	public int getPort(){
-		// TODO Auto-generated method stub
-		return -1;
+		return this.port;
 	}
 
 	@Override
@@ -35,8 +41,7 @@ public class KVServer implements IKVServer {
 
 	@Override
     public int getCacheSize(){
-		// TODO Auto-generated method stub
-		return -1;
+		return this.cacheSize;
 	}
 
 	@Override
