@@ -53,6 +53,63 @@ public class ClientConnection implements Runnable {
 			logger.error("Failed to establish client comm channel", ioe);
 		}
 	}
+
+	private KVServerResponseMessage handleRequest(KVClientRequestMessage request) {
+		if (request == null)
+			throw new IllegalArgumentException("request is null");
+
+		KVClientRequestMessage.RequestType requestType = request.getType();
+
+		if (requestType == KVClientRequestMessage.RequestType.PUT) {
+
+			if (request.getValue().equals("null")) {
+				return handleDelete((KVPutMessage) request);
+			} else {
+				return handlePut((KVPutMessage) request);
+			}
+
+		} else if (requestType == KVClientRequestMessage.RequestType.GET) {
+			return handleGet((KVGetMessage) request);
+		} else {
+			throw new IllegalArgumentException("request is not valid");
+		}
+	}
+
+	private KVServerResponseMessage handleGet(KVGetMessage getMessage) {
+		String key = getMessage.getKey();
+
+		String result = serverStore.get(key);
+		if (result != null) {
+			return new KVServerResponseMessage(KVMessage.StatusType.GET_SUCCESS, "SUCCESS<" + key + ","+ result + ">");
+		} else {
+			return new KVServerResponseMessage(KVMessage.StatusType.GET_ERROR, "GET_ERROR<" + key + ">");
+		}
+	}
+
+	private KVServerResponseMessage handlePut(KVPutMessage putMessage) {
+		String key = putMessage.getKey();
+		String value = putMessage.getValue();
+
+		IServerStore.PutResult putResult = serverStore.put(key, value);
+		if (putResult == IServerStore.PutResult.INSERTED) {
+			return new KVServerResponseMessage(KVMessage.StatusType.PUT_SUCCESS, "PUT_SUCCESS<" + key + "," + value + ">");
+		} else if (putResult == IServerStore.PutResult.UPDATED) {
+			return new KVServerResponseMessage(KVMessage.StatusType.PUT_UPDATE, "PUT_UPDATE<" + key + "," + value + ">");
+		} else {
+			return new KVServerResponseMessage(KVMessage.StatusType.PUT_ERROR, "PUT_ERROR<" + key + "," + value + ">");
+		}
+	}
+
+	private KVServerResponseMessage handleDelete(KVPutMessage deleteMessage) {
+		String key = deleteMessage.getKey();
+
+		boolean success = serverStore.delete(key);
+		if (success) {
+			return new KVServerResponseMessage(KVMessage.StatusType.DELETE_SUCCESS, "DELETE_SUCCESS<" + key + ">");
+		} else {
+			return new KVServerResponseMessage(KVMessage.StatusType.DELETE_ERROR, "DELETE_ERROR<" + key + ">");
+		}
+	}
 	
 	/**
 	 * Initializes and starts the client connection. 
@@ -67,26 +124,9 @@ public class ClientConnection implements Runnable {
 
 					byte[] requestBytes = commChannel.recvBytes();
 					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
-
-					KVClientRequestMessage.RequestType requestType = request.getType();
-					if (requestType == KVClientRequestMessage.RequestType.PUT) {
-							if (request.getValue().equals("null")) {
-								logger.info("DELETE: " + request.getKey());
-								serverStore.delete(request.getKey());
-							} else {
-								logger.info("PUT: " + request.getKey() + ", " + request.getValue());
-								serverStore.put(request.getKey(), request.getValue());
-							}
-					} else if (requestType == KVClientRequestMessage.RequestType.GET) {
-						logger.info("GET: " + request.getKey());
-						String result = serverStore.get(request.getKey());
-					} else {
-						logger.error("Received invalid request from client");
-					}
-
-					// This is a dummy response for now
-					KVServerResponseMessage response = new KVServerResponseMessage(KVMessage.StatusType.GET_SUCCESS, "boi you got it");
-
+					
+					KVServerResponseMessage response = handleRequest(request);
+					logger.info("Sending response: " + response.getStatus() + ", " + response.getResponseMessage());
 					commChannel.sendBytes(response.convertToBytes());
 
 				} catch (IOException ioe){
