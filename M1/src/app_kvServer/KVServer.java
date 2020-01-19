@@ -1,6 +1,12 @@
 package app_kvServer;
 
+import java.net.Socket;
 import java.net.ServerSocket;
+import java.net.BindException;
+
+import java.io.IOException;
+
+import org.apache.log4j.Logger;
 
 public class KVServer implements IKVServer {
 	
@@ -9,6 +15,8 @@ public class KVServer implements IKVServer {
 	private boolean running;
     private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
+
+	private static Logger logger = Logger.getRootLogger();
 
 	/**
 	 * Start KV Server at given port
@@ -54,7 +62,7 @@ public class KVServer implements IKVServer {
 	@Override
     public CacheStrategy getCacheStrategy(){
 		// TODO Auto-generated method stub
-		return IKVServer.CacheStrategy.None;
+		return this._strategy;
 	}
 
 	@Override
@@ -104,16 +112,14 @@ public class KVServer implements IKVServer {
 	        while(isRunning()){
 	            try {
 	                Socket client = serverSocket.accept();                
-	                ClientConnection connection = 
-	                		new ClientConnection(client);
+	                ClientConnection connection = new ClientConnection(client);
 	                new Thread(connection).start();
 	                
 	                logger.info("Connected to " 
 	                		+ client.getInetAddress().getHostName() 
 	                		+  " on port " + client.getPort());
 	            } catch (IOException e) {
-	            	logger.error("Error! " +
-	            			"Unable to establish connection. \n", e);
+	            	logger.error("Error! " + "Unable to establish connection. \n", e);
 	            }
 	        }
         }
@@ -128,15 +134,14 @@ public class KVServer implements IKVServer {
 		logger.info("Initialize server ...");
 		
 		try {
-			serverSocket = new ServerSocket(port);
-			 logger.info("Server listening on port: " 
-            		+ serverSocket.getLocalPort());    
+			serverSocket = new ServerSocket(_port);
+			logger.info("Server listening on port: " + serverSocket.getLocalPort());    
             return true;
 		}
 		catch (IOException e) {
         	logger.error("Error! Cannot open server socket:");
             if(e instanceof BindException){
-            	logger.error("Port " + port + " is already bound!");
+            	logger.error("Port " + _port + " is already bound!");
             }
             return false;
         }
