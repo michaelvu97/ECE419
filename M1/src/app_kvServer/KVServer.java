@@ -149,14 +149,22 @@ public class KVServer implements IKVServer {
         }
 	}
 
+    // Abruptly stop the server without any additional actions
+    // NOTE: this includes performing saving to storage.
 	@Override
-    public void kill(){
-		// TODO Auto-generated method stub
+    public void kill() {
+   		try {
+			serverSocket.close();
+			logger.info("Server socket is closed.");
+		} catch (IOException e) {
+			logger.error("Error! " + "Unable to close socket on port: " + _port, e);
+		}
 	}
 
+    // Gracefully stop the server, can perform any additional actions.
 	@Override
-    public void close(){
-		// TODO Auto-generated method stub
+    public void close() {
+		// TODO last.
 	}
 
 	public static void main(String[] args) {

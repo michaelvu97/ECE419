@@ -46,8 +46,24 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public void disconnect() {
-		// TODO Auto-generated method stub
+	public synchronized void disconnect() {
+		logger.info("trying to close connection ...");
+		try {
+			tearDownConnection();
+			for(ClientSocketListener listener : listeners) {
+				listener.handleStatus(SocketStatus.DISCONNECTED);
+			}
+		} catch (IOException ioe) {
+			logger.error("Unable to close connection.");
+		}
+	}
+
+	private void tearDownConnection() throws IOException {
+		if (clientSocket != null) {
+			clientSocket.close();
+			clientSocket = null;
+			logger.info("Connection closed!");
+		}
 	}
 
 	public void addListener(ClientSocketListener listener){
