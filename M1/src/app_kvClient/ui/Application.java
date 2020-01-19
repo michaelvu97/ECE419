@@ -17,7 +17,7 @@ import client.ClientSocketListener;
 public class Application implements ClientSocketListener {
 
 	private static Logger logger = Logger.getRootLogger();
-	private static final String PROMPT = "EchoClient> ";
+	private static final String PROMPT = "KVClient> ";
 	private BufferedReader stdin;
 	private KVClient client = null;
 	private boolean stop = false;
@@ -43,11 +43,14 @@ public class Application implements ClientSocketListener {
 	private void handleCommand(String cmdLine) {
 		String[] tokens = cmdLine.split("\\s+");
 
+		// quit
 		if(tokens[0].equals("quit")) {	
 			stop = true;
 			disconnect();
 			System.out.println(PROMPT + "Application exit!");
-		} else if (tokens[0].equals("connect")){
+		} 
+		// connect <address> <port>
+		else if (tokens[0].equals("connect")){
 			if(tokens.length == 3) {
 				try{
 					serverAddress = tokens[1];
@@ -67,7 +70,7 @@ public class Application implements ClientSocketListener {
 				printError("Invalid number of parameters!");
 			}
 		} 
-
+		// put <key> <value>
 		else if (tokens[0].equals("put")) {
 			
 			if(client == null){
@@ -79,6 +82,7 @@ public class Application implements ClientSocketListener {
 			else {
 				printError("Incorrect Number of Arguments");
 			}
+		// get <key>
 		} else if (tokens[0].equals("get")) {
 			if(client == null){
 				printError("Connection Not Yet Established");
@@ -89,31 +93,21 @@ public class Application implements ClientSocketListener {
 			else {
 				printError("Incorrect Number of Arguments");
 			}
-
-		} else if (tokens[0].equals("connect")){
-			if(tokens.length == 3) {
-				try{
-					serverAddress = tokens[1];
-					serverPort = Integer.parseInt(tokens[2]);
-					connect(serverAddress, serverPort);
-				} catch(NumberFormatException nfe) {
-					printError("No valid address. Port must be a number!");
-					logger.info("Unable to parse argument <port>", nfe);
-				} catch (UnknownHostException e) {
-					printError("Unknown Host!");
-					logger.info("Unknown Host!", e);
-				} catch (IOException e) {
-					printError("Could not establish connection!");
-					logger.warn("Could not establish connection!", e);
-				}
-			} else {
-				printError("Invalid number of parameters!");
-			}
-		} else if (tokens[0].equals("disconnect")) {
+		}
+		// disconnect 
+		else if (tokens[0].equals("disconnect")) {
 			disconnect();
-		} else if (tokens[0].equals("help")) {
+		}
+		// help 
+		else if (tokens[0].equals("help")) {
 			printHelp();
-		} else {
+		} 
+		// logLevel <level>
+		else if (tokens[0].equals("logLevel")){
+			//TODO: set logger level to specified level.
+		}
+		// known command
+		else {
 			printError("Unknown command");
 			printHelp();
 		}
