@@ -1,6 +1,9 @@
 package app_kvServer;
 
-import shared.messages.KVClientRequestMessage;
+import shared.comms.*;	
+import shared.messages.*;
+import shared.Deserializer;
+import shared.Serializer;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,9 +14,7 @@ import org.apache.log4j.*;
 /**
  * Represents a connection end point for a particular client that is 
  * connected to the server. This class is responsible for message reception 
- * and sending. 
- * The class also implements the echo functionality. Thus whenever a message 
- * is received it is going to be echoed back to the client.
+ * and sending.
  */
 public class ClientConnection implements Runnable {
 
@@ -23,6 +24,7 @@ public class ClientConnection implements Runnable {
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 	
+	private ICommChannel commChannel;
 	private Socket clientSocket;
 	private InputStream input;
 	private OutputStream output;
@@ -32,8 +34,16 @@ public class ClientConnection implements Runnable {
 	 * @param clientSocket the Socket object for the client connection.
 	 */
 	public ClientConnection(Socket clientSocket) {
+		if (clientSocket == null)
+			throw new NullPointerException("client socket is null");
 		this.clientSocket = clientSocket;
 		this.isOpen = true;
+		try {
+			this.commChannel = new CommChannel(clientSocket);
+		} catch (IOException ioe) {
+			this.isOpen = false;
+			logger.error("Failed to establish client comm channel", ioe);
+		}
 	}
 	
 	/**
@@ -41,28 +51,39 @@ public class ClientConnection implements Runnable {
 	 * Loops until the connection is closed or aborted by the client.
 	 */
 	public void run() {
+		logger.info("Client connection thread started");
 		try {
-			output = clientSocket.getOutputStream();
-			input = clientSocket.getInputStream();
-					
 			while(isOpen) { 
-			/*
+
 				try {
-					//TODO: functionality while client connection is running;
-					// serving put and get requests and sending responses.
-					KVClientRequestMessage latestMsg = receiveMessage();
-					sendMessage(latestMsg);
-						
-				} catch (IOException ioe) {
-					logger.error("Error! Connection lost!");
+
+					byte[] requestBytes = commChannel.recvBytes();
+					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
+
+					switch (request.getType()) {
+						case PUT:
+						 	// TODO put stuff
+							logger.info("PUT: " + request.getKey() + ", " + request.getValue());
+							break;
+						case GET:
+							// TODO get stuff
+							logger.info("GET: " + request.getKey());
+							break;
+						default:
+							logger.error("Received invalid request from client");
+							break;
+					}
+
+					// This is a dummy response for now
+					KVServerResponseMessage response = new KVServerResponseMessage(KVMessage.StatusType.GET_SUCCESS, "boi you got it");
+
+					commChannel.sendBytes(response.convertToBytes());
+
+				} catch (IOException ioe){
+					logger.error("Error! Connection could not be established!", ioe);
 					isOpen = false;
-				} 
-			*/		
+				}
 			}
-			
-		} catch (IOException ioe) {
-			logger.error("Error! Connection could not be established!", ioe);
-			
 		} finally {
 			try {
 				if (clientSocket != null) {
@@ -75,92 +96,4 @@ public class ClientConnection implements Runnable {
 			}
 		}
 	}
-	
-	/**
-	 * Method sends a TextMessage using this socket.
-	 * @param msg the message that is to be sent.
-	 * @throws IOException some I/O error regarding the output stream 
-	 */
-	public void sendMessage(/*send_message_type msg*/) throws IOException {
-		// TODO sending responses to client
-
-		// byte[] msgBytes = msg.getMsgBytes();
-		// output.write(msgBytes, 0, msgBytes.length);
-		// output.flush();
-		// logger.info("SEND \t<" 
-		// 		+ clientSocket.getInetAddress().getHostAddress() + ":" 
-		// 		+ clientSocket.getPort() + ">: '" 
-		// 		+ msg.getMsg() +"'");
-    }
-	
-	
-	private KVClientRequestMessage receiveMessage() throws IOException {
-		return null;
-		// TODO recieving messages from client
-		
-// 		int index = 0;
-// 		byte[] msgBytes = null, tmp = null;
-// 		byte[] bufferBytes = new byte[BUFFER_SIZE];
-		
-// 		/* read first char from stream */
-// 		byte read = (byte) input.read();	
-// 		boolean reading = true;
-		
-// //		logger.info("First Char: " + read);
-// //		Check if stream is closed (read returns -1)
-// //		if (read == -1){
-// //			TextMessage msg = new TextMessage("");
-// //			return msg;
-// //		}
-
-// 		while(/*read != 13  && */ read != 10 && read !=-1 && reading) {/* CR, LF, error */
-// 			/* if buffer filled, copy to msg array */
-// 			if(index == BUFFER_SIZE) {
-// 				if(msgBytes == null){
-// 					tmp = new byte[BUFFER_SIZE];
-// 					System.arraycopy(bufferBytes, 0, tmp, 0, BUFFER_SIZE);
-// 				} else {
-// 					tmp = new byte[msgBytes.length + BUFFER_SIZE];
-// 					System.arraycopy(msgBytes, 0, tmp, 0, msgBytes.length);
-// 					System.arraycopy(bufferBytes, 0, tmp, msgBytes.length,
-// 							BUFFER_SIZE);
-// 				}
-
-// 				msgBytes = tmp;
-// 				bufferBytes = new byte[BUFFER_SIZE];
-// 				index = 0;
-// 			} 
-			
-// 			/* only read valid characters, i.e. letters and constants */
-// 			bufferBytes[index] = read;
-// 			index++;
-			
-// 			/* stop reading is DROP_SIZE is reached */
-// 			if(msgBytes != null && msgBytes.length + index >= DROP_SIZE) {
-// 				reading = false;
-// 			}
-			
-// 			/* read next char from stream */
-// 			read = (byte) input.read();
-// 		}
-		
-// 		if(msgBytes == null){
-// 			tmp = new byte[index];
-// 			System.arraycopy(bufferBytes, 0, tmp, 0, index);
-// 		} else {
-// 			tmp = new byte[msgBytes.length + index];
-// 			System.arraycopy(msgBytes, 0, tmp, 0, msgBytes.length);
-// 			System.arraycopy(bufferBytes, 0, tmp, msgBytes.length, index);
-// 		}
-		
-// 		msgBytes = tmp;
-		
-// 		/* build final String */
-// 		TextMessage msg = new TextMessage(msgBytes);
-// 		logger.info("RECEIVE \t<" 
-// 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
-// 				+ clientSocket.getPort() + ">: '" 
-// 				+ msg.getMsg().trim() + "'");
-// 		return msg;
-    }
 }
