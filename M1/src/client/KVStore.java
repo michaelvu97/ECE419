@@ -61,9 +61,9 @@ public class KVStore implements KVCommInterface {
 	}
 
 	private void tearDownConnection() throws IOException {
-		if (clientSocket != null) {
-			clientSocket.close();
-			clientSocket = null;
+		if (_clientSocket != null) {
+			_clientSocket.close();
+			_clientSocket = null;
 			logger.info("Connection closed!");
 		}
 	}
