@@ -11,11 +11,17 @@ public class CommChannel implements ICommChannel {
     private Socket _socket;
     private Logger _logger = Logger.getRootLogger();
 
-    public CommChannel(Socket socket) {
+    private OutputStream _output;
+    private InputStream _input;
+
+
+    public CommChannel(Socket socket) throws IOException {
         if (socket == null)
             throw new IllegalArgumentException("Socket may not be null");
-        
+
         _socket = socket;
+        _input = _socket.getInputStream();
+        _output = _socket.getOutputStream();
     }
 
     @Override

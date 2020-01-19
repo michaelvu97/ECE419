@@ -2,6 +2,10 @@ package shared;
 
 public final class Utils {
 
+    public static boolean containsNewline(String str) {
+        return str.contains("\n");
+    }
+
     public static void validateKey(String key) throws IllegalArgumentException {
         if (key == null || key.length() == 0)
             throw new IllegalArgumentException("key");
