@@ -108,10 +108,16 @@ public class KVServer implements IKVServer {
 	}
 
 	public static void main(String[] args) {
-		// TODO get args from args
 		try {
-			IKVServer kvServer = new KVServer(3000, 1000, "FIFO");
-			kvServer.run();
+			if(args.length != 1) {
+				System.out.println("Error! Invalid number of arguments!");
+				System.out.println("Usage: Server <port>!");
+			} else {
+				int port = Integer.parseInt(args[0]);
+				IKVServer kvServer = new KVServer(port, 1000, "FIFO");
+				kvServer.run();
+			}
+
 		} finally {
 			System.out.println("Server exited");
 		}
