@@ -7,11 +7,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.UnsupportedOperationException;
+import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 
+import client.ClientSocketListener.SocketStatus;
+
 public class KVStore implements KVCommInterface {
+	
+	int port;
+	String address; 
+
+ 	private InputStream input;	
+	private OutputStream output;
+	private Socket clientSocket;
+ 	private Logger logger = Logger.getRootLogger();
+ 	private Set<ClientSocketListener> listeners;
+
 	/**
 	 * Initialize KVStore with address and port of KVServer
 	 * @param address the address of the KVServer
@@ -19,12 +34,20 @@ public class KVStore implements KVCommInterface {
 	 */
 
 	public KVStore(String address, int port) {
-		// throw new NotImplementedException("KVStore Constructor");
+		this.port = port;
+		this.address = address;
 	}
 
 	@Override
-	public void connect() throws Exception {
-		// TODO Auto-generated method stub
+	public void connect() {
+		try {
+			clientSocket = new Socket(address, port);
+			listeners = new HashSet<ClientSocketListener>();
+			logger.info("Connection established");
+		}
+		catch (Exception e) {
+			//TODO
+		}
 	}
 
 	@Override
@@ -32,31 +55,40 @@ public class KVStore implements KVCommInterface {
 		// TODO Auto-generated method stub
 	}
 
-	@Override
-	public KVMessage put(String key, String value) throws Exception {
-		Utils.validateKey(key);
-		Utils.validateValue(value);
-
-		KVClientRequestMessage message = new KVPutMessage(key, value);
-		KVServerResponseMessage response = send(message);
-
-		return response;
+	public void addListener(ClientSocketListener listener){
+		listeners.add(listener);
 	}
 
-
 	@Override
-	public KVMessage get(String key) throws Exception {
-		Utils.validateKey(key);
+	public KVMessage put(String key, String value) {
+		try {
+			Utils.validateKey(key);
+			Utils.validateValue(value);
 
-		KVClientRequestMessage message = new KVGetMessage(key);
-		KVServerResponseMessage response = send(message);
+			KVClientRequestMessage message = new KVPutMessage(key, value);
+			KVServerResponseMessage response = send(message);
 
-		return response;
+			return response;
+		} 
+		catch (Exception e){
+			return null;
+		}
 	}
 
-	private Logger logger = Logger.getRootLogger();
-	private OutputStream output;
- 	private InputStream input;	
+	@Override
+	public KVMessage get(String key){
+		try {
+			Utils.validateKey(key);
+
+			KVClientRequestMessage message = new KVGetMessage(key);
+			KVServerResponseMessage response = send(message);
+
+			return response;
+		}
+		catch (Exception e){
+			return null;
+		}
+	}
 
 	private KVServerResponseMessage send(KVClientRequestMessage requestMessage) throws Exception {
 		// Inside here will be the actual marshalling of the message, and 

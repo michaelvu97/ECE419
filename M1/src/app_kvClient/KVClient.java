@@ -1,37 +1,43 @@
 package app_kvClient;
 
 import client.KVCommInterface;
+import client.ClientSocketListener;
+import client.KVStore;
 
 public class KVClient implements IKVClient {
+
+	private KVStore clientStore = null;
+
     @Override
-    public void newConnection(String hostname, int port){
-        // TODO Auto-generated method stub
-    }
+    public void newConnection(String hostname, int port) {
+		clientStore = new KVStore(hostname, port);
+		clientStore.connect();
+	}
 
     @Override
     public KVCommInterface getStore(){
-        
-        // This will return a new KVStore
-
-        // TODO Auto-generated method stub
+        if (clientStore != null) {
+        	return clientStore;
+        }
         return null;
     }
 
-    //passes put request to kvstore object
-    public void put(String key, String value){
-        //clientStore.get(key,value);
+    public void put(String key, String value) {
+        clientStore.put(key, value);
         //add a lil print message for testing
     }
 
-    //passes get request to kvstore object
-    public void get(String key){
-        //clientStore.put(key,value);
+    public void get(String key) {
+        clientStore.get(key);
         //add a lil print message for testing
     }
 
-    //passes disconnect request to kvstore object
     public void closeConnection(){
-        //clientStore.disconnect();
+        clientStore.disconnect();
         //add a lil print message for testing
+    }
+
+    public void addListener(ClientSocketListener listener){
+    	clientStore.addListener(listener);
     }
 }

@@ -66,20 +66,27 @@ public class Application implements ClientSocketListener {
 			} else {
 				printError("Invalid number of parameters!");
 			}
-		} else if (tokens[0].equals("put")) {
+		} 
+
+		else if (tokens[0].equals("put")) {
+			
 			if(client == null){
 				printError("Connection Not Yet Established");
-			} else if(tokens.length >= 3) {
+			} 
+			else if(tokens.length >= 3) {
 				client.put(tokens[1],tokens[2]);
-			} else {
+			} 
+			else {
 				printError("Incorrect Number of Arguments");
 			}
 		} else if (tokens[0].equals("get")) {
 			if(client == null){
 				printError("Connection Not Yet Established");
-			} else if(tokens.length >= 2) {
+			} 
+			else if(tokens.length >= 2) {
 				client.get(tokens[1]);
-			} else {
+			} 
+			else {
 				printError("Incorrect Number of Arguments");
 			}
 
@@ -116,7 +123,7 @@ public class Application implements ClientSocketListener {
 			throws UnknownHostException, IOException {
 		// sofia
 		client = new KVClient();
-		//client.addListener(this);
+		client.addListener(this);
 		client.newConnection(address,port);
 	}
 	
