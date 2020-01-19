@@ -6,6 +6,9 @@ import java.net.BindException;
 
 import java.io.IOException;
 
+import logger.LogSetup;
+
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class KVServer implements IKVServer {
@@ -13,8 +16,9 @@ public class KVServer implements IKVServer {
 	private int _port;
 	private int _cacheSize;
 	private boolean running;
-    private ServerSocket serverSocket;
+	private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
+	private String _hostName = null;
 
 	private static Logger logger = Logger.getRootLogger();
 
@@ -55,13 +59,11 @@ public class KVServer implements IKVServer {
 
 	@Override
     public String getHostname(){
-		// TODO Auto-generated method stub
-		return null;
+		return this._hostName;
 	}
 
 	@Override
     public CacheStrategy getCacheStrategy(){
-		// TODO Auto-generated method stub
 		return this._strategy;
 	}
 
@@ -159,6 +161,7 @@ public class KVServer implements IKVServer {
 
 	public static void main(String[] args) {
 		try {
+			new LogSetup("logs/server.log", Level.ALL);
 			if(args.length != 1) {
 				System.out.println("Error! Invalid number of arguments!");
 				System.out.println("Usage: Server <port>!");
@@ -168,7 +171,11 @@ public class KVServer implements IKVServer {
 				kvServer.run();
 			}
 
-		} finally {
+		} catch (IOException ioe)
+		{
+			System.out.println("Could not start server, " + ioe);
+		}
+		finally {
 			System.out.println("Server exited");
 		}
 	}

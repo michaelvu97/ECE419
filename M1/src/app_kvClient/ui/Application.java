@@ -222,7 +222,7 @@ public class Application implements ClientSocketListener {
     public static void main(String[] args) {
     	try {
     		// TODO log level?
-			new LogSetup("logs/client.log", Level.OFF);
+			new LogSetup("logs/client.log", Level.ALL);
 			Application app = new Application();
 			app.run();
 		} catch (IOException e) {
