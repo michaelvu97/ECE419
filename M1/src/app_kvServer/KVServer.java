@@ -1,9 +1,13 @@
 package app_kvServer;
 
+import java.net.ServerSocket;
+
 public class KVServer implements IKVServer {
 	
 	private int _port;
 	private int _cacheSize;
+	private boolean running;
+    private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
 
 	/**
@@ -93,8 +97,49 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void run(){
-		// TODO Auto-generated method stub
-		System.out.println("Server running");
+
+    	running = initializeServer();
+
+  		if(serverSocket != null){
+	        while(isRunning()){
+	            try {
+	                Socket client = serverSocket.accept();                
+	                ClientConnection connection = 
+	                		new ClientConnection(client);
+	                new Thread(connection).start();
+	                
+	                logger.info("Connected to " 
+	                		+ client.getInetAddress().getHostName() 
+	                		+  " on port " + client.getPort());
+	            } catch (IOException e) {
+	            	logger.error("Error! " +
+	            			"Unable to establish connection. \n", e);
+	            }
+	        }
+        }
+        logger.info("Server socket is null.");
+	}
+
+	private boolean isRunning() {
+        return this.running;
+    }
+
+	private boolean initializeServer() {
+		logger.info("Initialize server ...");
+		
+		try {
+			serverSocket = new ServerSocket(port);
+			 logger.info("Server listening on port: " 
+            		+ serverSocket.getLocalPort());    
+            return true;
+		}
+		catch (IOException e) {
+        	logger.error("Error! Cannot open server socket:");
+            if(e instanceof BindException){
+            	logger.error("Port " + port + " is already bound!");
+            }
+            return false;
+        }
 	}
 
 	@Override
