@@ -21,11 +21,16 @@ public class ServerStoreDumb implements IServerStore {
     }
     
     @Override        
-    public boolean put(String key, String value) {
+    public IServerStore.PutResult put(String key, String value) {
+        IServerStore.PutResult result = IServerStore.PutResult.FAILED;
         synchronized(_lock) {
+            if (_map.containsKey(key))
+                result = IServerStore.PutResult.UPDATED;
+            else
+                result = IServerStore.PutResult.INSERTED;
             _map.put(key, value);
         }
-        return true;
+        return result;
     }
     
     @Override        

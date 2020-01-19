@@ -8,10 +8,16 @@ public interface IServerStore {
      */
     public String get(String key);
     
+    public enum PutResult {
+        INSERTED,
+        UPDATED,
+        FAILED
+    }
+
     /**
      * @return operation success.
      */
-    public boolean put(String key, String value);
+    public PutResult put(String key, String value);
 
     /**
      * @return operation success.
