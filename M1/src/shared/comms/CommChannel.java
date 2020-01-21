@@ -63,7 +63,7 @@ public class CommChannel implements ICommChannel {
         messageSize |= ((int) _input.read());
 
         if (messageSize < 0)
-            return null;
+            throw new IOException("Unexpected end of stream");
 
         _logger.debug("Read header, size=" + messageSize);
 

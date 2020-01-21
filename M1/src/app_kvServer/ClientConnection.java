@@ -121,11 +121,6 @@ public class ClientConnection implements Runnable {
 				try {
 
 					byte[] requestBytes = commChannel.recvBytes();
-					if (requestBytes == null) {
-						isOpen = false;
-						logger.debug("Comm channel read is empty, connection may be closed");
-						break;
-					}
 					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
 					
 					KVServerResponseMessage response = handleRequest(request);
@@ -133,7 +128,10 @@ public class ClientConnection implements Runnable {
 					commChannel.sendBytes(response.serialize());
 
 				} catch (IOException ioe){
-					logger.error("Error! Connection could not be established!", ioe);
+					logger.error("Unexpectely lost connection to client", ioe);
+					isOpen = false;
+				} catch (Deserializer.DeserializationException dse) {
+					logger.error("Received invalid message from client", dse);
 					isOpen = false;
 				}
 			}
