@@ -2,6 +2,8 @@ package testing;
 
 import java.net.UnknownHostException;
 
+import org.junit.Test;
+
 import shared.Serializer;
 import shared.Deserializer;
 
@@ -12,6 +14,7 @@ import junit.framework.TestCase;
 
 public class SerializationTest extends TestCase {
 
+    @Test
     public void testBasic() {
         int integer = 4;
         String s = "abcde1234";
@@ -39,6 +42,7 @@ public class SerializationTest extends TestCase {
         }
     }
 
+    @Test
     public void testClientGetMessage () {
         String key = "this is a key";
         KVMessage m = KVClientRequestMessage.GET(key);
@@ -53,6 +57,7 @@ public class SerializationTest extends TestCase {
         }
     }
     
+        @Test
     public void testClientPutMessage () {
         String key = "this is a key";
         String value = "this is a value";
@@ -69,6 +74,7 @@ public class SerializationTest extends TestCase {
         }
     }
 
+    @Test
     public void testServerResponseMessage() {
         KVMessage.StatusType type = KVMessage.StatusType.PUT_SUCCESS;
         String responseKey = "hello world!";
