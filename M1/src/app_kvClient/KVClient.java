@@ -24,12 +24,12 @@ public class KVClient implements IKVClient {
         return null;
     }
 
-    public void put(String key, String value){
+    public void put(String key, String value) throws Exception {
         clientStore.put(key, value);
         //add a lil print message for testing
     }
 
-    public void get(String key){
+    public void get(String key) throws Exception {
         clientStore.get(key);
         //add a lil print message for testing
     }

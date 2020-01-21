@@ -40,7 +40,8 @@ public class KVServerResponseMessage extends KVMessageBase {
         return new KVServerResponseMessage(StatusType.DELETE_ERROR, key, null);
     }
 
-    public static KVServerResponseMessage Deserialize(byte[] bytes) {
+    public static KVServerResponseMessage Deserialize(byte[] bytes)
+            throws Deserializer.DeserializationException {
         return (KVServerResponseMessage) KVMessageBase.Deserialize(bytes);
     }
 

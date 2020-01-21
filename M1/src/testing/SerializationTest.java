@@ -28,11 +28,15 @@ public class SerializationTest extends TestCase {
 
         Deserializer d = new Deserializer(bytes);
 
-        assertTrue(d.getInt() == integer);
-        assertTrue(d.getString().equals(s));
-        assertTrue(d.getInt() == integer2);
-        assertTrue(d.getByte() == b);
-        assertTrue(d.getString() == null);
+        try {
+            assertTrue(d.getInt() == integer);
+            assertTrue(d.getString().equals(s));
+            assertTrue(d.getInt() == integer2);
+            assertTrue(d.getByte() == b);
+            assertTrue(d.getString() == null);
+        } catch (Exception e1) {
+            assertTrue(false);
+        }
     }
 
     public void testClientGetMessage () {
@@ -72,10 +76,14 @@ public class SerializationTest extends TestCase {
 
         KVServerResponseMessage responseObj = new KVServerResponseMessage(type, responseKey, responseValue);
         byte[] bytes = responseObj.serialize();
-        KVMessage reconstructed = KVServerResponseMessage.Deserialize(bytes);
-        assertTrue(reconstructed.getStatus() == type);
-        assertTrue(reconstructed.getKey().equals(responseKey));
-        assertTrue(reconstructed.getValue().equals(responseValue));
+        try {
+            KVMessage reconstructed = KVServerResponseMessage.Deserialize(bytes);
+            assertTrue(reconstructed.getStatus() == type);
+            assertTrue(reconstructed.getKey().equals(responseKey));
+            assertTrue(reconstructed.getValue().equals(responseValue));
+        } catch (shared.Deserializer.DeserializationException dse) {
+            assertTrue(false);
+        }
     }
 
 }

@@ -128,7 +128,10 @@ public class ClientConnection implements Runnable {
 					commChannel.sendBytes(response.serialize());
 
 				} catch (IOException ioe){
-					logger.error("Error! Connection could not be established!", ioe);
+					logger.error("Unexpectely lost connection to client", ioe);
+					isOpen = false;
+				} catch (Deserializer.DeserializationException dse) {
+					logger.error("Received invalid message from client", dse);
 					isOpen = false;
 				}
 			}
@@ -136,6 +139,7 @@ public class ClientConnection implements Runnable {
 			try {
 				if (clientSocket != null) {
 					clientSocket.close();
+					logger.info("Client disconnected, socket closed");
 				}
 			} catch (IOException ioe) {
 				logger.error("Error! Unable to tear down connection!", ioe);
