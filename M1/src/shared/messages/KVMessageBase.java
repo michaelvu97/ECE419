@@ -47,7 +47,11 @@ public abstract class KVMessageBase implements KVMessage {
             .toByteArray();
     }
 
-    public static KVMessage Deserialize(byte[] serializedBytes) {
+    /**
+     * Attempts to deserialize a byte stream.
+     */
+    public static KVMessage Deserialize(byte[] serializedBytes) 
+            throws Deserializer.DeserializationException {
         Deserializer d = new Deserializer(serializedBytes);
 
         KVMessage.StatusType type = KVMessage.StatusType.FromByte(d.getByte());

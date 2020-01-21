@@ -121,6 +121,11 @@ public class ClientConnection implements Runnable {
 				try {
 
 					byte[] requestBytes = commChannel.recvBytes();
+					if (requestBytes == null) {
+						isOpen = false;
+						logger.debug("Comm channel read is empty, connection may be closed");
+						break;
+					}
 					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
 					
 					KVServerResponseMessage response = handleRequest(request);
@@ -136,6 +141,7 @@ public class ClientConnection implements Runnable {
 			try {
 				if (clientSocket != null) {
 					clientSocket.close();
+					logger.info("Client disconnected, socket closed");
 				}
 			} catch (IOException ioe) {
 				logger.error("Error! Unable to tear down connection!", ioe);

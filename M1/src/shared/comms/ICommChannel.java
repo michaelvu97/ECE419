@@ -18,7 +18,8 @@ public interface ICommChannel {
     /**
      * Blocks and reads the next message from the input stream. Comm header
      * bytes will be removed.
-     * @return the original message (the bytes message from sendBytes).
+     * @return the original message (the bytes message from sendBytes). Returns
+     * null if the stream has ended.
      */
     public byte[] recvBytes() throws IOException;
 }

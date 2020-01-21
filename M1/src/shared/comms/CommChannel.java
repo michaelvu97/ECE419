@@ -62,6 +62,9 @@ public class CommChannel implements ICommChannel {
         messageSize |= ((int) _input.read()) << 8;
         messageSize |= ((int) _input.read());
 
+        if (messageSize < 0)
+            return null;
+
         _logger.debug("Read header, size=" + messageSize);
 
         // Check if the message is of size 0 or too big. if so, return NULL 

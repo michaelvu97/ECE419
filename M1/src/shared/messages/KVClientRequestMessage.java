@@ -36,7 +36,8 @@ public class KVClientRequestMessage extends KVMessageBase {
         return new KVClientRequestMessage(KVMessage.StatusType.PUT, key, value);
     }
 
-    public static KVClientRequestMessage Deserialize(byte[] bytes) {
+    public static KVClientRequestMessage Deserialize(byte[] bytes) throws
+            Deserializer.DeserializationException {
         return (KVClientRequestMessage) KVMessageBase.Deserialize(bytes);
     }
 }
