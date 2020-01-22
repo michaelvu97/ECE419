@@ -79,4 +79,49 @@ public class KVMessageTest extends TestCase {
         }
     }
 
+    @Test
+    public void testConstructorExceptions() {
+
+        String key = "key";
+        String value = "value";
+
+        Exception e = null;
+
+        // GET value        
+        try {
+            KVMessage req = new KVMessageImpl(KVMessage.StatusType.GET, key, value);
+        } catch (Exception e1){
+            e = e1;
+        }
+
+        assertTrue(e != null);
+        e = null;
+
+        // GET key
+        try {
+            KVMessage req = new KVMessageImpl(KVMessage.StatusType.GET, null, null);
+        } catch (Exception e1) {
+            e = e1;
+        }
+        assertTrue(e != null);
+        e = null;
+
+        // PUT key
+        try {
+            KVMessage req = new KVMessageImpl(KVMessage.StatusType.PUT, null, null);
+        } catch (Exception e1) {
+            e = e1;
+        }
+        assertTrue(e != null);
+        e = null;
+
+        try {
+            KVMessage req = new KVMessageImpl(KVMessage.StatusType.PUT, null, value);
+        } catch (Exception e1) {
+            e = e1;
+        }
+        assertTrue(e != null);
+        e = null;
+    }
+
 }
