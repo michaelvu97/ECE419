@@ -10,7 +10,11 @@ public class DiskStorageTest extends TestCase {
 	private DiskStorage diskStorage; 
 		
 	public void setUp() {
-		diskStorage = new DiskStorage();
+		diskStorage = new DiskStorage("TEST_STORAGE");
+	}
+
+	public void tearDown() {
+		diskStorage.deleteFile();
 	}
 
 	@Test

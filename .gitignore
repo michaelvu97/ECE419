@@ -24,4 +24,4 @@ hs_err_pid*
 
 *.MF
 /M1/bin
-/M1/src/storage/disk_storage.txt
+/M1/src/storage/*.diskstorage

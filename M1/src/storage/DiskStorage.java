@@ -10,11 +10,32 @@ import org.apache.log4j.Logger;
 public class DiskStorage implements IDiskStorage {
 	
     private Logger logger = Logger.getRootLogger();
-	private String _path = "./src/storage/disk_storage.txt";
-    private String _tempFilePath = "./src/storage/temp_storage.txt";
+	private static String BASE_PATH = "./src/storage/";
+    private static String BASE_TEMP_FILE_PATH = "./src/storage/";
+
+    private String _id;
+    private String _storagePath;
+    private String _tempStoragePath;
+
+    private static boolean ALLOW_DEFAULT = true;
+
+    public DiskStorage(String id) {
+        if (id == null || id.length() == 0) {
+            if (ALLOW_DEFAULT) {
+                _id = "DEFAULT";
+            } else {
+                throw new IllegalArgumentException("id is null, and ALLOW_DEFAULT is not enabled");
+            }
+        } else {
+            _id = id;
+        }
+
+        _storagePath = BASE_PATH + _id + ".diskstorage";
+        _tempStoragePath = BASE_TEMP_FILE_PATH + _id + ".diskstorage";
+    }
 
     private void createNewFile() {
-        File file = new File(_path);
+        File file = new File(_storagePath);
         try {
             if (!file.exists()){
                 file.createNewFile();
@@ -30,7 +51,7 @@ public class DiskStorage implements IDiskStorage {
 		int lineRet = 0;
     	    		
     	try { 
-    		BufferedReader br = new BufferedReader(new FileReader(_path));
+    		BufferedReader br = new BufferedReader(new FileReader(_storagePath));
     		while ((line = br.readLine()) != null) {
     			if(lineNum % 2 != 0 && line.equals(key)) {
     				lineRet = lineNum;
@@ -56,7 +77,7 @@ public class DiskStorage implements IDiskStorage {
         // CASE 1: replace a line with the new value.
     	if (lineNum > 0) { 
             opType = 2;
-    		Path path = Paths.get(_path);
+    		Path path = Paths.get(_storagePath);
     		
             try {
     			List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
@@ -72,7 +93,7 @@ public class DiskStorage implements IDiskStorage {
             opType = 1;
 
 			try {
-                BufferedWriter bw = new BufferedWriter(new FileWriter(_path, true));
+                BufferedWriter bw = new BufferedWriter(new FileWriter(_storagePath, true));
                 bw.write(key);
                 bw.newLine();
                 bw.write(value);
@@ -94,7 +115,7 @@ public class DiskStorage implements IDiskStorage {
         createNewFile();
             
         try {
-            BufferedReader br = new BufferedReader(new FileReader(_path));
+            BufferedReader br = new BufferedReader(new FileReader(_storagePath));
             while ((line = br.readLine()) != null) {
                 if(lineNum % 2 != 0 && line.equals(key)) {
                     value = br.readLine();
@@ -112,13 +133,14 @@ public class DiskStorage implements IDiskStorage {
     public void deleteFromFile(String key) {
         int lineNum = 1;
         String currLine;
-    	File tempFile = new File(_tempFilePath);
+    	File tempFile = new File(_tempStoragePath);
 
         createNewFile();
 
     	try {
-	    	BufferedReader br = new BufferedReader(new FileReader(_path));
-	    	BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
+            // TODO: close the reader/writers using 'finally'
+	    	BufferedReader br = new BufferedReader(new FileReader(_storagePath));
+	    	BufferedWriter bw = new BufferedWriter(new FileWriter(_tempStoragePath));
 
 	    	while((currLine = br.readLine()) != null) {
 	    		if (!currLine.equals(key)) {
@@ -133,10 +155,10 @@ public class DiskStorage implements IDiskStorage {
 	    	br.close();
 
 	    	// delete old file.
-	    	Path oldDiskStorageFile = Paths.get(_path);
+	    	Path oldDiskStorageFile = Paths.get(_storagePath);
 	    	Files.delete(oldDiskStorageFile);
 	    	// rename new file to disk_storage.
-	    	File newName = new File(_path);
+	    	File newName = new File(_storagePath);
 	    	tempFile.renameTo(newName);
 
     	} 
@@ -150,7 +172,7 @@ public class DiskStorage implements IDiskStorage {
 
     @Override
     public void deleteFile() {
-        File file = new File(_path);
+        File file = new File(_storagePath);
         if (file.exists()) {
             file.delete();
         }  
