@@ -28,10 +28,9 @@ public class ClientConnection implements Runnable {
 	private ICommChannel commChannel;
 	private IServerStore serverStore;
 
+	// Null when the socket is closed.
 	private Socket clientSocket;
-	private InputStream input;
-	private OutputStream output;
-	
+
 	/**
 	 * Constructs a new CientConnection object for a given TCP socket.
 	 * @param clientSocket the Socket object for the client connection.
@@ -50,6 +49,7 @@ public class ClientConnection implements Runnable {
 			this.commChannel = new CommChannel(clientSocket);
 		} catch (IOException ioe) {
 			this.isOpen = false;
+			this.clientSocket = null;
 			logger.error("Failed to establish client comm channel", ioe);
 		}
 	}
@@ -58,57 +58,87 @@ public class ClientConnection implements Runnable {
 		if (request == null)
 			throw new IllegalArgumentException("request is null");
 
-		KVClientRequestMessage.RequestType requestType = request.getType();
+		KVMessage.StatusType requestType = request.getStatus();
 
-		if (requestType == KVClientRequestMessage.RequestType.PUT) {
+		if (requestType == KVMessage.StatusType.PUT) {
 
 			if (request.getValue().equals("null")) {
-				return handleDelete((KVPutMessage) request);
+				return handleDelete(request);
 			} else {
-				return handlePut((KVPutMessage) request);
+				return handlePut(request);
 			}
 
-		} else if (requestType == KVClientRequestMessage.RequestType.GET) {
-			return handleGet((KVGetMessage) request);
+		} else if (requestType == KVMessage.StatusType.GET) {
+			return handleGet(request);
 		} else {
-			throw new IllegalArgumentException("request is not valid");
+			throw new IllegalArgumentException("request is not valid: " + request);
 		}
 	}
 
-	private KVServerResponseMessage handleGet(KVGetMessage getMessage) {
+	private KVServerResponseMessage handleGet(KVMessage getMessage) {
 		String key = getMessage.getKey();
 
 		String result = serverStore.get(key);
 		if (result != null) {
-			return new KVServerResponseMessage(KVMessage.StatusType.GET_SUCCESS, "SUCCESS<" + key + ","+ result + ">");
+			return KVServerResponseMessage.GET_SUCCESS(key,  result);
 		} else {
-			return new KVServerResponseMessage(KVMessage.StatusType.GET_ERROR, "GET_ERROR<" + key + ">");
+			return KVServerResponseMessage.GET_ERROR(key);
 		}
 	}
 
-	private KVServerResponseMessage handlePut(KVPutMessage putMessage) {
+	private KVServerResponseMessage handlePut(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
 
 		IServerStore.PutResult putResult = serverStore.put(key, value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
-			return new KVServerResponseMessage(KVMessage.StatusType.PUT_SUCCESS, "PUT_SUCCESS<" + key + "," + value + ">");
+			return KVServerResponseMessage.PUT_SUCCESS(key, value);
 		} else if (putResult == IServerStore.PutResult.UPDATED) {
-			return new KVServerResponseMessage(KVMessage.StatusType.PUT_UPDATE, "PUT_UPDATE<" + key + "," + value + ">");
+			return KVServerResponseMessage.PUT_UPDATE(key, value);
 		} else {
-			return new KVServerResponseMessage(KVMessage.StatusType.PUT_ERROR, "PUT_ERROR<" + key + "," + value + ">");
+			return KVServerResponseMessage.PUT_ERROR(key, value);
 		}
 	}
 
-	private KVServerResponseMessage handleDelete(KVPutMessage deleteMessage) {
+	private KVServerResponseMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
 
 		boolean success = serverStore.delete(key);
 		if (success) {
-			return new KVServerResponseMessage(KVMessage.StatusType.DELETE_SUCCESS, "DELETE_SUCCESS<" + key + ">");
+			return KVServerResponseMessage.DELETE_SUCCESS(key);
 		} else {
-			return new KVServerResponseMessage(KVMessage.StatusType.DELETE_ERROR, "DELETE_ERROR<" + key + ">");
+			return KVServerResponseMessage.DELETE_ERROR(key);
 		}
+	}
+
+	/**
+	 * Completes any pending request, disconnects the client, and then returns.
+	 * Will block the caller until finished.
+	 */
+	public void stop() {
+		logger.info("Stopping client connection thread.");
+		this.isOpen = false;
+
+		int millisSlept = 0;
+		int sleepTimeoutMillis = 5000;
+
+		while (clientSocket != null) {
+			try {
+				Thread.sleep(100);
+			} catch (Exception e) {
+				logger.warn("Thread stop sleep error", e);
+				break;
+			}
+			millisSlept += 100;
+			if (millisSlept < sleepTimeoutMillis) {
+				logger.error("Thread stop timed out");
+				break;
+			}
+		}
+
+		// At this point, the socket is either closed or closing it has timed
+		// out.
+		return;
 	}
 	
 	/**
@@ -126,23 +156,27 @@ public class ClientConnection implements Runnable {
 					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
 					
 					KVServerResponseMessage response = handleRequest(request);
-					logger.info("Sending response: " + response.getStatus() + ", " + response.getResponseMessage());
-					commChannel.sendBytes(response.convertToBytes());
+					logger.info("Sending response: " + response);
+					commChannel.sendBytes(response.serialize());
 
 				} catch (IOException ioe){
-					logger.error("Error! Connection could not be established!", ioe);
+					logger.error("Unexpectely lost connection to client", ioe);
+					isOpen = false;
+				} catch (Deserializer.DeserializationException dse) {
+					logger.error("Received invalid message from client", dse);
 					isOpen = false;
 				}
 			}
 		} finally {
 			try {
 				if (clientSocket != null) {
-					input.close();
-					output.close();
 					clientSocket.close();
+					logger.info("Client disconnected, socket closed");
 				}
 			} catch (IOException ioe) {
 				logger.error("Error! Unable to tear down connection!", ioe);
+			} finally {
+				clientSocket = null;
 			}
 		}
 	}

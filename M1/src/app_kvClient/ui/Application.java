@@ -77,7 +77,16 @@ public class Application implements ClientSocketListener {
 				printError("Connection Not Yet Established");
 			} 
 			else if(tokens.length >= 3) {
-				client.put(tokens[1],tokens[2]);
+				// Join all remaning arguments (to allow for spaces in values)
+				String value = tokens[2];
+				for (int i = 3; i < tokens.length; i++) {
+					value += " " + tokens[i];
+				}
+				try {
+					client.put(tokens[1], value);
+				} catch (Exception e) {
+					printError("PUT Error: " + e.toString());
+				}
 			} 
 			else {
 				printError("Incorrect Number of Arguments");
@@ -88,7 +97,11 @@ public class Application implements ClientSocketListener {
 				printError("Connection Not Yet Established");
 			} 
 			else if(tokens.length >= 2) {
-				client.get(tokens[1]);
+				try {
+					client.get(tokens[1]);
+				} catch (Exception e) {
+					printError("GET Error: " + e.toString());
+				}
 			} 
 			else {
 				printError("Incorrect Number of Arguments");

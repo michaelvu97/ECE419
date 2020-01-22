@@ -2,77 +2,42 @@ package shared.messages;
 
 import shared.Deserializer;
 
-public abstract class KVClientRequestMessage implements KVMessage {
+public class KVClientRequestMessage extends KVMessageBase {
 
-    public enum RequestType {
-        PUT((byte) 0),
-        GET((byte) 1);
-        
-        public final byte val;
-
-        public static RequestType FromByte(byte b){
-            
-            switch (b) {
-                case 0:
-                    return PUT;
-                case 1:
-                    return GET;
-                default:                
-                    throw new IllegalArgumentException("b out of range");
-            }
-        }
-
-        private RequestType(byte val){
-            this.val = val;
-        }
-    }
-
-    private RequestType _type;
-
-    public RequestType getType() {
-        return this._type;
-    }
-
-    protected KVClientRequestMessage(RequestType type)
+    protected KVClientRequestMessage(KVMessage.StatusType type, String key, String value)
     {
-        this._type = type;
-    }
+        super(type, key, value);
 
-    /**
-     * Decodes a client request object from a string, and creates a 
-     * KVClientRequestMessage.
-     */
-    public static KVClientRequestMessage Deserialize(byte[] clientRequestBytes) {
-        if (clientRequestBytes == null || clientRequestBytes.length == 0)
-            throw new IllegalArgumentException("clientRequestBytes");
-
-        Deserializer deserializer = new Deserializer(clientRequestBytes);
-
-        // First byte is the method type
-        RequestType requestType = RequestType.FromByte(deserializer.getByte());
-        KVClientRequestMessage result = null;
-
-        switch (requestType) {
-            case GET:
-                // Decode the key.
-                result = new KVGetMessage(deserializer.getString());
-                break;
-            case PUT:
-                // Decode the key and value
-                result = new KVPutMessage(
-                    deserializer.getString(), 
-                    deserializer.getString()
-                );
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid request type");
+        // Validate type
+        if (getStatus() != KVMessage.StatusType.PUT && getStatus() != KVMessage.StatusType.GET) {
+            throw new IllegalArgumentException("type :" + type + " is not allowed");
         }
 
-        return result;
+        if (getStatus() == KVMessage.StatusType.GET) {
+            if (getValue() != null)
+                throw new IllegalArgumentException("Value cannot be set for GET requests");
+            if (getKey() == null)
+                throw new IllegalArgumentException("Key cannot be null for GET requests");
+        }
+
+        if (getStatus() == KVMessage.StatusType.PUT) {
+            if (getKey() == null)
+                throw new IllegalArgumentException("Key cannot be null for PUT requests");
+            if (getValue() == null)
+                throw new IllegalArgumentException("Value cannot be null for PUT requests");
+        }
     }
 
-    @Override
-    public StatusType getStatus(){
-        throw new java.lang.UnsupportedOperationException("getStatus");
+    public static KVClientRequestMessage GET(String key) {
+        return new KVClientRequestMessage(KVMessage.StatusType.GET, key, null);
+    }
+
+    public static KVClientRequestMessage PUT(String key, String value) {
+        return new KVClientRequestMessage(KVMessage.StatusType.PUT, key, value);
+    }
+
+    public static KVClientRequestMessage Deserialize(byte[] bytes) throws
+            Deserializer.DeserializationException {
+        return (KVClientRequestMessage) KVMessageBase.Deserialize(bytes);
     }
 }

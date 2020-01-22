@@ -33,7 +33,10 @@ public class Serializer {
 
     public Serializer writeString(String str) {
         if (str == null)
-            throw new IllegalArgumentException("str is null");
+        {
+            writeInt(0);
+            return this;
+        }
 
         writeInt(str.length());
 

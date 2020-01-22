@@ -73,54 +73,63 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public KVMessage put(String key, String value) {
+	public KVMessage put(String key, String value) throws Exception {
 		try {
 			Utils.validateKey(key);
 			Utils.validateValue(value);
 
-			KVClientRequestMessage message = new KVPutMessage(key, value);
-			KVServerResponseMessage response = send(message);
+			KVClientRequestMessage message = KVClientRequestMessage.PUT(key, value);
+			KVServerResponseMessage response = sendRequest(message);
 
 			return response;
 		} 
-		catch (Exception e){
-			// TODO
-			return null;
+		catch (IOException ioe){
+			logger.error("PUT failed I/O", ioe);
+			throw ioe;
+		}
+		catch (shared.Deserializer.DeserializationException dse) {
+			logger.error("PUT failed, invalid server response", dse);
+			throw dse;
 		}
 	}
 
 	@Override
-	public KVMessage get(String key){
+	public KVMessage get(String key) throws Exception {
 		try {
 			Utils.validateKey(key);
 
-			KVClientRequestMessage message = new KVGetMessage(key);
-			KVServerResponseMessage response = send(message);
+			KVClientRequestMessage message = KVClientRequestMessage.GET(key);
+			KVServerResponseMessage response = sendRequest(message);
 
 			return response;
 		}
-		catch (Exception e){
-			// TODO
-			return null;
+		catch (IOException ioe){
+			logger.error("GET failed I/O", ioe);
+			throw ioe;
+		}
+		catch (shared.Deserializer.DeserializationException dse) {
+			logger.error("GET failed, invalid server response", dse);
+			throw dse;
 		}
 	}
 
-	private KVServerResponseMessage send(KVClientRequestMessage requestMessage) throws IOException {
+	private KVServerResponseMessage sendRequest(KVClientRequestMessage requestMessage) 
+			throws IOException, shared.Deserializer.DeserializationException {
 		// Inside here will be the actual marshalling of the message, and 
 		// sending to the server.
 
-		byte[] messageBytes = requestMessage.convertToBytes();
+		byte[] messageBytes = requestMessage.serialize();
 
 		_commChannel.sendBytes(messageBytes);
 
 		// Should probably trycatch?
 		byte[] response = _commChannel.recvBytes();
 
-		KVServerResponseMessage responseObj = 
-				KVServerResponseMessage.Deserialize(response);
+		KVServerResponseMessage responseObj = null;
+		
+		responseObj = KVServerResponseMessage.Deserialize(response);
 
-		logger.info("Received server response: " + responseObj.getStatus() + ", "
-			+ responseObj.getResponseMessage());
+		logger.info("Received server response: " + responseObj.toString());
 
 		return responseObj;
 	}

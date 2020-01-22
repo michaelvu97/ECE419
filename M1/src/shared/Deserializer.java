@@ -2,6 +2,12 @@ package shared;
 
 public class Deserializer {
 
+    public class DeserializationException extends Exception {
+        public DeserializationException(String exceptionStr) {
+            super(exceptionStr);
+        }
+    }
+
     private byte[] _arr;
 
     private int _position = 0;
@@ -10,7 +16,7 @@ public class Deserializer {
         return this._arr.length;
     }
 
-    public Deserializer(byte[] byteArray){
+    public Deserializer(byte[] byteArray) {
         if (byteArray == null)
             throw new IllegalArgumentException("byteArray is null");
 
@@ -21,9 +27,9 @@ public class Deserializer {
         return totalLength() - this._position;
     }
 
-    public int getInt() {
+    public int getInt() throws DeserializationException {
         if (remainingBytes() < 4)
-            throw new IllegalArgumentException("Reached end of deserializer array");
+            throw new DeserializationException("Reached end of deserializer array");
 
         int result = 
             ((_arr[_position] & 0xFF) << 24)
@@ -36,15 +42,18 @@ public class Deserializer {
         return result;
     }
 
-    public byte getByte() {
+    public byte getByte() throws DeserializationException {
         if (remainingBytes() <= 0)
-            throw new IllegalArgumentException("reached end of deserializer");
+            throw new DeserializationException("reached end of deserializer");
         return _arr[_position++];
     }
 
-    public String getString() {
+    public String getString() throws DeserializationException {
         // Read int
         int length = getInt();
+
+        if (length == 0)
+            return null;
 
         byte[] strBytes = new byte[length];
 

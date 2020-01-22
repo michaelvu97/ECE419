@@ -3,8 +3,12 @@ package app_kvServer;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.net.BindException;
+import java.net.InetAddress;
 
 import java.io.IOException;
+
+import java.util.Set;
+import java.util.HashSet;
 
 import logger.LogSetup;
 
@@ -25,6 +29,8 @@ public class KVServer implements IKVServer {
 	private String _hostName = null;
 
 	private IServerStore serverStore;
+
+	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
 	private static Logger logger = Logger.getRootLogger();
 
@@ -131,6 +137,8 @@ public class KVServer implements IKVServer {
 	                	this.serverStore
                 	);
 
+                	clientConnections.add(connection);
+
 	                new Thread(connection).start();
 	                
 	                logger.info("Connected to " 
@@ -153,7 +161,9 @@ public class KVServer implements IKVServer {
 		
 		try {
 			serverSocket = new ServerSocket(_port);
-			logger.info("Server listening on port: " + serverSocket.getLocalPort());    
+			// _hostName = serverSocket.getInetAddress().getHostName();
+			_hostName = InetAddress.getLocalHost().getHostAddress();
+			logger.info("Server " + _hostName + " listening on port: " + serverSocket.getLocalPort());    
             return true;
 		}
 		catch (IOException e) {
@@ -181,6 +191,16 @@ public class KVServer implements IKVServer {
 	@Override
     public void close() {
 		// TODO last.
+
+    	// Do not accept new connections
+		this.running = false;
+
+		// Stop all existing connections
+		for (ClientConnection conn : clientConnections) {
+			conn.stop();
+		}
+
+		// TODO Clear/flush cache?
 	}
 
 	public static void main(String[] args) {
@@ -198,8 +218,7 @@ public class KVServer implements IKVServer {
 		} catch (IOException ioe)
 		{
 			System.out.println("Could not start server, " + ioe);
-		}
-		finally {
+		} finally {
 			System.out.println("Server exited");
 		}
 	}

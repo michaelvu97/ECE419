@@ -15,6 +15,9 @@ public final class Utils {
 
         if (containsNewline(key))
             throw new IllegalArgumentException("key cannot contain carriage return characters");
+
+        if (key.contains(" "))
+            throw new IllegalArgumentException("key cannot contain spaces");
     }
 
     public static void validateValue(String value) throws IllegalArgumentException {
