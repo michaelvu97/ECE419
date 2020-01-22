@@ -78,8 +78,8 @@ public class KVStore implements KVCommInterface {
 			Utils.validateKey(key);
 			Utils.validateValue(value);
 
-			KVClientRequestMessage message = KVClientRequestMessage.PUT(key, value);
-			KVServerResponseMessage response = sendRequest(message);
+			KVMessage message = new KVMessageImpl(KVMessage.StatusType.PUT, key, value);
+			KVMessage response = sendRequest(message);
 
 			return response;
 		} 
@@ -98,8 +98,8 @@ public class KVStore implements KVCommInterface {
 		try {
 			Utils.validateKey(key);
 
-			KVClientRequestMessage message = KVClientRequestMessage.GET(key);
-			KVServerResponseMessage response = sendRequest(message);
+			KVMessage message = new KVMessageImpl(KVMessage.StatusType.GET, key, null);
+			KVMessage response = sendRequest(message);
 
 			return response;
 		}
@@ -113,7 +113,7 @@ public class KVStore implements KVCommInterface {
 		}
 	}
 
-	private KVServerResponseMessage sendRequest(KVClientRequestMessage requestMessage) 
+	private KVMessage sendRequest(KVMessage requestMessage) 
 			throws IOException, shared.Deserializer.DeserializationException {
 		// Inside here will be the actual marshalling of the message, and 
 		// sending to the server.
@@ -125,9 +125,7 @@ public class KVStore implements KVCommInterface {
 		// Should probably trycatch?
 		byte[] response = _commChannel.recvBytes();
 
-		KVServerResponseMessage responseObj = null;
-		
-		responseObj = KVServerResponseMessage.Deserialize(response);
+		KVMessage responseObj = KVMessageImpl.Deserialize(response);
 
 		logger.info("Received server response: " + responseObj.toString());
 

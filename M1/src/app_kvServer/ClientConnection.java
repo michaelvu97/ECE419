@@ -54,7 +54,7 @@ public class ClientConnection implements Runnable {
 		}
 	}
 
-	private KVServerResponseMessage handleRequest(KVClientRequestMessage request) {
+	private KVMessage handleRequest(KVMessage request) {
 		if (request == null)
 			throw new IllegalArgumentException("request is null");
 
@@ -75,39 +75,39 @@ public class ClientConnection implements Runnable {
 		}
 	}
 
-	private KVServerResponseMessage handleGet(KVMessage getMessage) {
+	private KVMessage handleGet(KVMessage getMessage) {
 		String key = getMessage.getKey();
 
 		String result = serverStore.get(key);
 		if (result != null) {
-			return KVServerResponseMessage.GET_SUCCESS(key,  result);
+			return new KVMessageImpl(KVMessage.StatusType.GET_SUCCESS, key, result);
 		} else {
-			return KVServerResponseMessage.GET_ERROR(key);
+			return new KVMessageImpl(KVMessage.StatusType.GET_ERROR, key, null);
 		}
 	}
 
-	private KVServerResponseMessage handlePut(KVMessage putMessage) {
+	private KVMessage handlePut(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
 
 		IServerStore.PutResult putResult = serverStore.put(key, value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
-			return KVServerResponseMessage.PUT_SUCCESS(key, value);
+			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
 		} else if (putResult == IServerStore.PutResult.UPDATED) {
-			return KVServerResponseMessage.PUT_UPDATE(key, value);
+			return new KVMessageImpl(KVMessage.StatusType.PUT_UPDATE, key, value);
 		} else {
-			return KVServerResponseMessage.PUT_ERROR(key, value);
+			return new KVMessageImpl(KVMessage.StatusType.PUT_ERROR, key, value);
 		}
 	}
 
-	private KVServerResponseMessage handleDelete(KVMessage deleteMessage) {
+	private KVMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
 
 		boolean success = serverStore.delete(key);
 		if (success) {
-			return KVServerResponseMessage.DELETE_SUCCESS(key);
+			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key, null);
 		} else {
-			return KVServerResponseMessage.DELETE_ERROR(key);
+			return new KVMessageImpl(KVMessage.StatusType.DELETE_ERROR, key, null);
 		}
 	}
 
@@ -153,9 +153,10 @@ public class ClientConnection implements Runnable {
 				try {
 
 					byte[] requestBytes = commChannel.recvBytes();
-					KVClientRequestMessage request = KVClientRequestMessage.Deserialize(requestBytes);
 					
-					KVServerResponseMessage response = handleRequest(request);
+					KVMessage request = KVMessageImpl.Deserialize(requestBytes);
+					KVMessage response = handleRequest(request);
+
 					logger.info("Sending response: " + response);
 					commChannel.sendBytes(response.serialize());
 

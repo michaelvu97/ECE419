@@ -43,54 +43,45 @@ public class SerializationTest extends TestCase {
     }
 
     @Test
-    public void testClientGetMessage () {
-        String key = "this is a key";
-        KVMessage m = KVClientRequestMessage.GET(key);
-        byte[] bytes = m.serialize();
+    public void testClientRequests() {
+        String key = "this-is-a-key";
+        String value = "this-is-the-value";
+
+        /**
+         * Correct client request creation
+         */
+        KVMessage putReq = new KVMessageImpl(KVMessage.StatusType.PUT, key, value);
+
+        assertTrue(putReq.getStatus() == KVMessage.StatusType.PUT);
+        assertTrue(putReq.getKey().equals(key));
+        assertTrue(putReq.getValue().equals(value));
+
         try {
-            KVMessage m2 = KVClientRequestMessage.Deserialize(bytes);
-            assertTrue(m2 != null);
-            assertTrue(m2.getStatus() == KVMessage.StatusType.GET);
-            assertTrue(m2.getKey().equals(key));
-        } catch (Exception e) {
+            KVMessage m2 = KVMessageImpl.Deserialize(putReq.serialize());
+
+            assertTrue(m2.getStatus() == putReq.getStatus());
+            assertTrue(m2.getKey() == putReq.getKey());
+            assertTrue(m2.getValue() == putReq.getValue());
+        } catch (Exception e1) {
             assertTrue(false);
         }
-    }
-    
-        @Test
-    public void testClientPutMessage () {
-        String key = "this is a key";
-        String value = "this is a value";
-        KVMessage m = KVClientRequestMessage.PUT(key, value);
-        byte[] bytes = m.serialize();
+
+        KVMessage getReq = new KVMessageImpl(KVMessage.StatusType.GET, key, null);
+
+        assertTrue(getReq.getStatus() == KVMessage.StatusType.PUT);
+        assertTrue(getReq.getKey().equals(key));
+        assertTrue(getReq.getValue() == null);
+
         try {
-            KVMessage m2 = KVClientRequestMessage.Deserialize(bytes);
-            assertTrue(m2 != null);
-            assertTrue(m2.getStatus() == KVMessage.StatusType.PUT);
-            assertTrue(m2.getKey().equals(key));
-            assertTrue(m2.getValue().equals(value));
-        } catch (Exception e) {
+            KVMessage m3 = KVMessageImpl.Deserialize(getReq.serialize());
+
+            assertTrue(m3.getStatus() == getReq.getStatus());
+            assertTrue(m3.getKey() == getReq.getKey());
+            assertTrue(m3.getValue() == getReq.getValue());
+        } catch (Exception e1) {
             assertTrue(false);
         }
+
     }
-
-    @Test
-    public void testServerResponseMessage() {
-        KVMessage.StatusType type = KVMessage.StatusType.PUT_SUCCESS;
-        String responseKey = "hello world!";
-        String responseValue = " value ";
-
-        KVServerResponseMessage responseObj = new KVServerResponseMessage(type, responseKey, responseValue);
-        byte[] bytes = responseObj.serialize();
-        try {
-            KVMessage reconstructed = KVServerResponseMessage.Deserialize(bytes);
-            assertTrue(reconstructed.getStatus() == type);
-            assertTrue(reconstructed.getKey().equals(responseKey));
-            assertTrue(reconstructed.getValue().equals(responseValue));
-        } catch (shared.Deserializer.DeserializationException dse) {
-            assertTrue(false);
-        }
-    }
-
 }
 

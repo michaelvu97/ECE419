@@ -1,19 +1,34 @@
 package shared.messages;
 
-import shared.Serializer;
 import shared.Deserializer;
+import shared.Serializer;
 
-public abstract class KVMessageBase implements KVMessage {
+public class KVMessageImpl implements KVMessage {
 
     private String _key = null;
     private String _value = null;
     private KVMessage.StatusType _type;
 
-    protected KVMessageBase(KVMessage.StatusType type, String key, String value) {
+    public KVMessageImpl(KVMessage.StatusType type, String key, String value) {
         _type = type;
         _key = key;
         _value = value;
-        // Errors are not checked here, please override in implementation.
+        
+        if (getStatus() == KVMessage.StatusType.GET) {
+            if (getValue() != null)
+                throw new IllegalArgumentException("Value cannot be set for GET requests");
+            if (getKey() == null)
+                throw new IllegalArgumentException("Key cannot be null for GET requests");
+        }
+
+        if (getStatus() == KVMessage.StatusType.PUT) {
+            if (getKey() == null)
+                throw new IllegalArgumentException("Key cannot be null for PUT requests");
+            if (getValue() == null)
+                throw new IllegalArgumentException("Value cannot be null for PUT requests");
+        }
+
+        // TODO?: checks for server reponses validity.
     }
 
     public String toString() {
@@ -38,6 +53,7 @@ public abstract class KVMessageBase implements KVMessage {
         return _type;
     }
 
+    @Override
     public byte[] serialize() {
         return 
             new Serializer()
@@ -58,13 +74,6 @@ public abstract class KVMessageBase implements KVMessage {
         String key = d.getString();
         String value = d.getString();
 
-        if (type == KVMessage.StatusType.PUT) {
-            return KVClientRequestMessage.PUT(key, value);
-        }
-        if (type == KVMessage.StatusType.GET) {
-            return KVClientRequestMessage.GET(key);
-        }
-
-        return new KVServerResponseMessage(type, key, value);
+        return new KVMessageImpl(type, key, value);
     }
 }
