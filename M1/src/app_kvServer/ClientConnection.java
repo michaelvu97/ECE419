@@ -28,8 +28,9 @@ public class ClientConnection implements Runnable {
 	private ICommChannel commChannel;
 	private IServerStore serverStore;
 
+	// Null when the socket is closed.
 	private Socket clientSocket;
-	
+
 	/**
 	 * Constructs a new CientConnection object for a given TCP socket.
 	 * @param clientSocket the Socket object for the client connection.
@@ -48,6 +49,7 @@ public class ClientConnection implements Runnable {
 			this.commChannel = new CommChannel(clientSocket);
 		} catch (IOException ioe) {
 			this.isOpen = false;
+			this.clientSocket = null;
 			logger.error("Failed to establish client comm channel", ioe);
 		}
 	}
@@ -108,6 +110,36 @@ public class ClientConnection implements Runnable {
 			return KVServerResponseMessage.DELETE_ERROR(key);
 		}
 	}
+
+	/**
+	 * Completes any pending request, disconnects the client, and then returns.
+	 * Will block the caller until finished.
+	 */
+	public void stop() {
+		logger.info("Stopping client connection thread.");
+		this.isOpen = false;
+
+		int millisSlept = 0;
+		int sleepTimeoutMillis = 5000;
+
+		while (clientSocket != null) {
+			try {
+				Thread.sleep(100);
+			} catch (Exception e) {
+				logger.warn("Thread stop sleep error", e);
+				break;
+			}
+			millisSlept += 100;
+			if (millisSlept < sleepTimeoutMillis) {
+				logger.error("Thread stop timed out");
+				break;
+			}
+		}
+
+		// At this point, the socket is either closed or closing it has timed
+		// out.
+		return;
+	}
 	
 	/**
 	 * Initializes and starts the client connection. 
@@ -143,6 +175,8 @@ public class ClientConnection implements Runnable {
 				}
 			} catch (IOException ioe) {
 				logger.error("Error! Unable to tear down connection!", ioe);
+			} finally {
+				clientSocket = null;
 			}
 		}
 	}
