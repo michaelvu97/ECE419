@@ -17,11 +17,10 @@ public class KVClient implements IKVClient {
 	}
 
     @Override
-    public KVCommInterface getStore(){
-        if (clientStore != null) {
-        	return clientStore;
-        }
-        return null;
+    public KVCommInterface getStore() {
+        if (clientStore == null)
+            throw new IllegalStateException("Connection must be established before accessing store");
+        return clientStore;
     }
 
     public void put(String key, String value) throws Exception {

@@ -161,8 +161,10 @@ public class KVServer implements IKVServer {
 		
 		try {
 			serverSocket = new ServerSocket(_port);
-			// _hostName = serverSocket.getInetAddress().getHostName();
-			_hostName = InetAddress.getLocalHost().getHostAddress();
+			
+			_port = serverSocket.getLocalPort();
+			_hostName = serverSocket.getInetAddress().getHostName();
+
 			logger.info("Server " + _hostName + " listening on port: " + serverSocket.getLocalPort());    
             return true;
 		}
