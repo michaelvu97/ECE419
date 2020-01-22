@@ -43,9 +43,6 @@ public class KVServer implements IKVServer {
 		this._port = port;
 		this._cacheSize = cacheSize;
 
-		// Change this once a real implementation exists.
-		this.serverStore = new ServerStoreDumb();
-		
 		switch (strategy.toLowerCase()) {
 			case "fifo":
 				_strategy = IKVServer.CacheStrategy.FIFO;
@@ -60,6 +57,9 @@ public class KVServer implements IKVServer {
 				System.out.println("Invalid cache strategy: \"" + strategy + "\"");
 				break;
 		}
+
+		// Change this once a real implementation exists.
+		this.serverStore = new ServerStoreDumb(cacheSize,strategy);
 	}
 	
 	@Override

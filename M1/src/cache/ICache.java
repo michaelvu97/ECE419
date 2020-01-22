@@ -16,4 +16,9 @@ public interface ICache {
 	* Remove a key from the cahce, if it exists
 	**/
 	public void remove(String key);
+
+	/**
+	* Completely 
+	**/
+	public void clear();
 }

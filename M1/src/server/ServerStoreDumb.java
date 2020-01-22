@@ -3,7 +3,7 @@ package server;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
-
+import cache.*;
 /**
  * A dumb, only in memory k-v store. Thread-safe (but not fast).
  */
@@ -13,10 +13,18 @@ public class ServerStoreDumb implements IServerStore {
 
     private Map<String, String> _map = new HashMap<String, String>();
 
+    private ICache _cache;
+
+    public ServerStoreDumb(int cacheSize, String strategy){
+        this._cache = new Cache(cacheSize,strategy); 
+    }
+
     @Override    
     public String get(String key) {
         synchronized(_lock) {
-            return _map.get(key);
+            String value = _cache.get(key);
+            if (value == null) value = _map.get(key);
+            return value;
         }
     }
     
@@ -29,6 +37,7 @@ public class ServerStoreDumb implements IServerStore {
             else
                 result = IServerStore.PutResult.INSERTED;
             _map.put(key, value);
+            _cache.put(key,value);
         }
         return result;
     }
@@ -47,7 +56,9 @@ public class ServerStoreDumb implements IServerStore {
     
     @Override        
     public void clearCache() {
-        // No-op
+        synchronized(_lock) {
+            _cache.clear();
+        }
     }
     
     @Override        
@@ -66,6 +77,9 @@ public class ServerStoreDumb implements IServerStore {
     
     @Override        
     public boolean inCache(String key) {
-        return false;
+        synchronized(_lock) {
+            if(_cache.get(key) == null) return false;
+            else return true;
+        }
     }
 }
