@@ -3,7 +3,7 @@ package shared.messages;
 import shared.Deserializer;
 import shared.Serializer;
 
-public class KVMessageImpl implements KVMessage {
+public final class KVMessageImpl implements KVMessage {
 
     private String _key = null;
     private String _value = null;
