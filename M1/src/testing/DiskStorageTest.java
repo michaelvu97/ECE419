@@ -123,18 +123,18 @@ public class DiskStorageTest extends TestCase {
 		String valueA = "ValueA";
 		String keyB = "KeyB";
 		String valueB = "ValueB";
-		String keyC = "KeyC";
-		String valueC = "ValueC";
+		boolean deleted = false;
 
 		try {
 			writeA = diskStorage.put(keyA, valueA); 
 			writeB = diskStorage.put(keyB, valueB); 
-			assertTrue(diskStorage.delete(keyB));
-			writeC = diskStorage.put(keyC, valueC); 
+			deleted = diskStorage.delete(keyB);
+			writeC = diskStorage.put(keyB, valueB); 
 		} catch (Exception e) {
 			ex = e;
 		}
 		
+		assertTrue(deleted);
 		assertTrue(ex == null);
 		assertTrue(writeA == 1);
 		assertTrue(writeB == 1);
@@ -155,5 +155,27 @@ public class DiskStorageTest extends TestCase {
 		} finally {
 			d.clear();
 		}
+	}
+
+	@Test 
+	public void testPersistency() {
+		DiskStorage diskP = new DiskStorage("PERSISTENCY_TEST_STORAGE");
+
+		try {
+			diskP.clear();
+			assertTrue(diskP.put("k1","v1")== 1);
+			assertTrue(diskP.put("k2","v2")== 1);
+			assertTrue(diskP.put("k3","v3")== 1);
+			assertTrue(diskP.get("k2").equals("v2"));
+
+			diskP = null;
+			diskP = new DiskStorage("PERSISTENCY_TEST_STORAGE");
+
+			assertTrue(diskP.get("k1").equals("v1"));
+			assertTrue(diskP.get("k2").equals("v2"));
+			assertTrue(diskP.get("k3").equals("v3"));
+		} finally {
+            diskP.clear();
+        }		
 	}
 }
