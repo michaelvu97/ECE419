@@ -12,33 +12,42 @@ public class KVClient implements IKVClient {
 
     @Override
     public void newConnection (String hostname, int port) throws IOException {
+        // TODO: check that the connection doesn't already exist?
 		clientStore = new KVStore(hostname, port);
 		clientStore.connect();
 	}
 
     @Override
-    public KVCommInterface getStore() {
-        if (clientStore == null)
-            throw new IllegalStateException("Connection must be established before accessing store");
+    public KVCommInterface getStore() throws IllegalStateException {
+        ValidateConnectionEstablished();
         return clientStore;
     }
 
-    public void put(String key, String value) throws Exception {
+    public void put(String key, String value) throws Exception, IllegalStateException {
+        ValidateConnectionEstablished();
         clientStore.put(key, value);
-        //add a lil print message for testing
     }
 
-    public void get(String key) throws Exception {
+    public void get(String key) throws Exception, IllegalStateException {
+        ValidateConnectionEstablished();
         clientStore.get(key);
-        //add a lil print message for testing
     }
 
-    public void disconnect(){
+    public void disconnect() throws IllegalStateException {
+        ValidateConnectionEstablished();
         clientStore.disconnect();
-        //add a lil print message for testing
     }
 
-    public void addListener(ClientSocketListener listener){
+    public void addListener(ClientSocketListener listener) throws IllegalStateException {
+        ValidateConnectionEstablished();
     	clientStore.addListener(listener);
+    }
+
+    private void ValidateConnectionEstablished() throws IllegalStateException {
+        if (clientStore == null) {
+            throw new IllegalStateException(
+                "Connection must be established before accessing store"
+            );
+        }
     }
 }

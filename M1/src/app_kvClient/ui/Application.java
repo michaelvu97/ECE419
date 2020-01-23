@@ -156,19 +156,19 @@ public class Application implements ClientSocketListener {
 		sb.append("::::::::::::::::::::::::::::::::");
 		sb.append("::::::::::::::::::::::::::::::::\n");
 		sb.append(PROMPT).append("connect <host> <port>");
-		sb.append("\t establishes a connection to a server\n");
-		sb.append(PROMPT).append("send <text message>");
-		sb.append("\t\t sends a text message to the server \n");
+		sb.append("\t\t establishes a connection to a server\n");
+		sb.append(PROMPT).append("get <key>");
+		sb.append("\t\t\t retrieves a tuple from the server based on <key>\n");
+		sb.append(PROMPT).append("put <key> <value>");
+		sb.append("\t\t inserts a new KV tuple into the server. If <value> == \"null\", the tuple is deleted from the server.\n");
 		sb.append(PROMPT).append("disconnect");
 		sb.append("\t\t\t disconnects from the server \n");
-		
 		sb.append(PROMPT).append("logLevel");
 		sb.append("\t\t\t changes the logLevel \n");
 		sb.append(PROMPT).append("\t\t\t\t ");
 		sb.append("ALL | DEBUG | INFO | WARN | ERROR | FATAL | OFF \n");
-		
 		sb.append(PROMPT).append("quit ");
-		sb.append("\t\t\t exits the program");
+		sb.append("\t\t\t\t exits the program");
 		System.out.println(sb.toString());
 	}
 	

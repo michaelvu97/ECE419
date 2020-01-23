@@ -10,12 +10,12 @@ public interface KVCommInterface {
 	 * @throws Exception
 	 *             if connection could not be established.
 	 */
-	public void connect() throws Exception;
+	public void connect() throws Exception, IllegalStateException;
 
 	/**
 	 * disconnects the client from the currently connected server.
 	 */
-	public void disconnect();
+	public void disconnect() throws IllegalStateException;
 
 	/**
 	 * Inserts a key-value pair into the KVServer.
@@ -29,7 +29,8 @@ public interface KVCommInterface {
 	 *             if put command cannot be executed (e.g. not connected to any
 	 *             KV server).
 	 */
-	public KVMessage put(String key, String value) throws Exception;
+	public KVMessage put(String key, String value) throws Exception,
+			IllegalStateException;
 
 	/**
 	 * Retrieves the value for a given key from the KVServer.
@@ -41,5 +42,5 @@ public interface KVCommInterface {
 	 *             if put command cannot be executed (e.g. not connected to any
 	 *             KV server).
 	 */
-	public KVMessage get(String key) throws Exception;
+	public KVMessage get(String key) throws Exception, IllegalStateException;
 }
