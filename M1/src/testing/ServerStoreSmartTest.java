@@ -38,6 +38,15 @@ public class ServerStoreSmartTest extends TestCase {
         assertTrue(serverStore.delete("a"));
         assertNull(serverStore.get("a"));
         assertTrue(serverStore.put("a", "b") == IServerStore.PutResult.INSERTED);
+
+        Exception e = null;
+        try {
+            // Not allowed to put a null value directly, must use delete instead.
+            serverStore.put("c", null);
+        } catch (Exception e1) {
+            e = e1;
+        }
+        assertNotNull(e);
     }
 
     @Test

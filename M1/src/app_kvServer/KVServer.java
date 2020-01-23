@@ -24,7 +24,7 @@ public class KVServer implements IKVServer {
 	
 	private int _port;
 	private int _cacheSize;
-	private boolean running;
+	private boolean running = false;
 	private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;

@@ -49,6 +49,9 @@ public class ServerStoreSmart implements IServerStore {
     
     @Override        
     public IServerStore.PutResult put(String key, String value) {
+        if (value == null)
+            throw new IllegalArgumentException("Value cannot be null");
+        
         IServerStore.PutResult result = IServerStore.PutResult.FAILED;
         synchronized(_lock) {
             IServerStore.PutResult cacheResult = _cache.put(key, value);

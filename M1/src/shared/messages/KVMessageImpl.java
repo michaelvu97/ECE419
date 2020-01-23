@@ -24,8 +24,6 @@ public final class KVMessageImpl implements KVMessage {
         if (getStatus() == KVMessage.StatusType.PUT) {
             if (getKey() == null)
                 throw new IllegalArgumentException("Key cannot be null for PUT requests");
-            if (getValue() == null)
-                throw new IllegalArgumentException("Value cannot be null for PUT requests");
         }
 
         // TODO?: checks for server reponses validity.
