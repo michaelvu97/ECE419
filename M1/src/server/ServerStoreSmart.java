@@ -25,7 +25,9 @@ public class ServerStoreSmart implements IServerStore {
             String value = _cache.get(key);
             if (value == null) {
                 value = _disk.get(key);
-                _cache.put(key, value);
+                if(value != null){
+                    _cache.put(key, value);
+                }
             }
             return value;
         }
