@@ -7,6 +7,9 @@ import java.nio.file.*;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Implementation of IDiskStorage. This class is not thread safe.
+ */
 public class DiskStorage implements IDiskStorage {
 	
     private Logger logger = Logger.getRootLogger();

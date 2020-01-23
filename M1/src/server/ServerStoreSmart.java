@@ -6,7 +6,9 @@ import storage.*;
 
 import app_kvServer.IKVServer;
 
-
+/**
+ * Implementation of IServerStore. This class is not thread safe.
+ */
 public class ServerStoreSmart implements IServerStore {
     
     private Object _lock = new Object();
