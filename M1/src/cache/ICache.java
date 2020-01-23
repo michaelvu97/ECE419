@@ -18,7 +18,7 @@ public interface ICache {
 	public void delete(String key);
 
 	/**
-	* Completely 
+	* Completely clear cache
 	**/
 	public void clear();
 }

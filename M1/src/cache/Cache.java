@@ -45,8 +45,8 @@ public class Cache implements ICache {
 		}
 	}
 
-	cacheEntry lastEntry = new cacheEntry(null,null);
-	cacheEntry firstEntry = new cacheEntry(null,null);
+	cacheEntry lastEntry = new cacheEntry(null,"last!");
+	cacheEntry firstEntry = new cacheEntry(null,"first!");
 
 	private Map<String, cacheEntry> _cacheMap = new HashMap<String, cacheEntry>();
 	
@@ -56,6 +56,7 @@ public class Cache implements ICache {
 		cacheSize = size;
 
 		_strategy = strategy;
+		//if(_strategy == IKVServer.CacheStrategy.LFU) System.out.println("LFULFULFULFULFU");;
 		//System.out.println("strategy = "+ strategy + " (" + strategyString + ")");
 		//point the header and footer of the linked list together
 		lastEntry.previous = firstEntry;
@@ -119,6 +120,8 @@ public class Cache implements ICache {
 
 				toRemove.removeElement();
 				//also remove it from the hash list
+				//System.out.println("removing " + toRemove.key);
+
 				_cacheMap.remove(toRemove.key);
 			}
 			//if it isnt already there, add it to the hash map and the linked list
@@ -131,15 +134,17 @@ public class Cache implements ICache {
 				newEntry.previous.next = newEntry;
 			} else {
 				cacheEntry insertIndex = firstEntry.next;
-				while (insertIndex.key != null && insertIndex.num_used != 0){
+				//System.out.println("doing lfu insert starting with " + insertIndex.value);
+				while (insertIndex.key != null && insertIndex.num_used == 0){
+					//System.out.println("trying " + insertIndex.key);
 					insertIndex = insertIndex.next;
 				}
 				newEntry.previous = insertIndex.previous;
 				newEntry.next = insertIndex;
-				insertIndex.previous = insertIndex;
+				newEntry.next.previous = newEntry;
 				newEntry.previous.next = newEntry;
 			}
-			//System.out.println("first entry = " + firstEntry.next.key);
+			//System.out.println("first entry = " + firstEntry.next.key + " last entry = " + lastEntry.previous.key);
 			//insert into the cache map
 			_cacheMap.put(key,newEntry);
 
