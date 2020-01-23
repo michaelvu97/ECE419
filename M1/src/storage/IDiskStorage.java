@@ -16,6 +16,7 @@ public interface IDiskStorage {
 
     /**
     * removes given key/value pair from file on disk.
+    * @return true if the key existed and was successfully deleted
     */
     public boolean delete(String key);
 

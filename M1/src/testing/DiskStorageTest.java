@@ -129,7 +129,7 @@ public class DiskStorageTest extends TestCase {
 		try {
 			writeA = diskStorage.put(keyA, valueA); 
 			writeB = diskStorage.put(keyB, valueB); 
-			diskStorage.delete(keyB);
+			assertTrue(diskStorage.delete(keyB));
 			writeC = diskStorage.put(keyC, valueC); 
 		} catch (Exception e) {
 			ex = e;
@@ -146,7 +146,7 @@ public class DiskStorageTest extends TestCase {
 		
 		DiskStorage d = new DiskStorage("TEST_STORAGE_DELETE_FILE");
 		try {
-			d.put("key", "value");
+			assertTrue(d.put("key", "value") == 1);
 			assertTrue(d.get("key").equals("value"));
 			d.clear();
 			assertNull(d.get("key"));

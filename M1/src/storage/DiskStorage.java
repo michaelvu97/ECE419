@@ -11,11 +11,9 @@ public class DiskStorage implements IDiskStorage {
 	
     private Logger logger = Logger.getRootLogger();
 	private static String BASE_PATH = "./src/storage/";
-    private static String BASE_TEMP_FILE_PATH = "./src/storage/";
 
     private String _id;
     private String _storagePath;
-    private String _tempStoragePath;
 
     private static boolean ALLOW_DEFAULT = true;
 
@@ -31,7 +29,6 @@ public class DiskStorage implements IDiskStorage {
         }
 
         _storagePath = BASE_PATH + _id + ".diskstorage";
-        _tempStoragePath = BASE_TEMP_FILE_PATH + _id + ".diskstorage";
     }
 
     private void createNewFile() {
@@ -131,45 +128,45 @@ public class DiskStorage implements IDiskStorage {
 
     @Override
     public boolean delete(String key) {
-        boolean success = false;
-        int lineNum = 1;
-        String currLine;
-    	File tempFile = new File(_tempStoragePath);
+        String currLine = null;
 
         createNewFile();
 
+        boolean keyFound = false;
+
+        /**
+         * Create a new temp storage file
+         * Copy all existing file except the K/V to be deleted.
+         * Delete old storage file, rename new file to old file name.
+         */
     	try {
             // TODO: close the reader/writers using 'finally'
 	    	BufferedReader br = new BufferedReader(new FileReader(_storagePath));
-	    	BufferedWriter bw = new BufferedWriter(new FileWriter(_tempStoragePath));
+	    	StringBuilder sb = new StringBuilder();
 
 	    	while((currLine = br.readLine()) != null) {
 	    		if (!currLine.equals(key)) {
-	    			bw.write(currLine);
-                    bw.newLine();
+	    			sb.append(currLine).append("\n");
 	    		} else {
-                    currLine = br.readLine(); // sketchy.
+                    keyFound = true;
+                    br.readLine(); // Skip line
                 }
-	    		lineNum++;
-	    	} 
-	    	bw.close();
-	    	br.close();
+	    	}
+            br.close();
 
-	    	// delete old file.
-	    	Path oldDiskStorageFile = Paths.get(_storagePath);
-	    	Files.delete(oldDiskStorageFile);
-	    	// rename new file to disk_storage.
-	    	File newName = new File(_storagePath);
-	    	success = tempFile.renameTo(newName);
-
+            FileWriter fw = new FileWriter(_storagePath);
+            fw.write(sb.toString());
+            fw.close();
     	} 
         catch (FileNotFoundException fnfe) {
             logger.error("Could not find file on disk.");
+            return false;
     	} 
         catch (IOException ioe) {
             logger.error("Could not delete entry of key " + key + ".");
+            return false;
     	}
-        return success;
+        return keyFound;
     }
 
     @Override
