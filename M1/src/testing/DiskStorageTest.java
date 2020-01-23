@@ -141,8 +141,19 @@ public class DiskStorageTest extends TestCase {
 		assertTrue(writeC == 1);
 	}
 
-	// @Test 
-	// public void testDeleteFile() {
-	// 	diskStorage.deleteFile();
-	// }
+	@Test 
+	public void testDeleteFile() {
+		
+		DiskStorage d = new DiskStorage("TEST_STORAGE_DELETE_FILE");
+		try {
+			d.put("key", "value");
+			assertTrue(d.get("key").equals("value"));
+			d.clear();
+			assertNull(d.get("key"));
+		} catch (Exception e){
+			assertTrue(false);
+		} finally {
+			d.clear();
+		}
+	}
 }

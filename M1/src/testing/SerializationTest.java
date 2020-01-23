@@ -40,6 +40,15 @@ public class SerializationTest extends TestCase {
         } catch (Exception e1) {
             assertTrue(false);
         }
+
+        Exception e = null;
+        try {
+            d.getByte();
+        } catch (Deserializer.DeserializationException dse) {
+            e = dse;
+        }
+
+        assertNotNull(e);
     }
 }
 
