@@ -39,5 +39,41 @@ public class ServerStoreSmartTest extends TestCase {
         assertNull(serverStore.get("a"));
         assertTrue(serverStore.put("a", "b") == IServerStore.PutResult.INSERTED);
     }
+
+    @Test
+    public void testPersistency() {
+        ICache cache = new Cache(1000, IKVServer.CacheStrategy.FIFO);
+        IDiskStorage diskStorage = new DiskStorage("SERVER_STORE_PERSISTENCY_TEST");
+        IServerStore serverStorePersistent = new ServerStoreSmart(cache, diskStorage);
+
+        try {
+            serverStorePersistent.clearStorage();
+
+            // Empty disk, add some data
+            serverStorePersistent.put("k1", "v1");
+            serverStorePersistent.put("k2", "v2");
+            serverStorePersistent.put("k3", "v3");
+            assertTrue(serverStorePersistent.inStorage("k1"));
+
+            // Delete the disk object
+            cache = null;
+            diskStorage = null;
+            serverStorePersistent = null;
+
+            // Reopen the disk storage, as though the server shut down and
+            // started up again.
+            cache = new Cache(1000, IKVServer.CacheStrategy.FIFO);
+            diskStorage = new DiskStorage("SERVER_STORE_PERSISTENCY_TEST");
+            serverStorePersistent = new ServerStoreSmart(cache, diskStorage);
+
+            assertTrue(serverStorePersistent.inStorage("k1"));
+            assertTrue(serverStorePersistent.get("k1").equals("v1"));
+            assertTrue(serverStorePersistent.get("k2").equals("v2"));
+            assertTrue(serverStorePersistent.get("k3").equals("v3"));
+
+        } finally {
+            serverStorePersistent.clearStorage();
+        }
+    }
 }
 
