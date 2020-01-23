@@ -12,11 +12,17 @@ public class ServerStoreSmart implements IServerStore {
     private Object _lock = new Object();
 
     private ICache _cache;
-
     private IDiskStorage _disk;
 
-    public ServerStoreSmart(int cacheSize, IKVServer.CacheStrategy strategy){
-        this._cache = new Cache(cacheSize, strategy); 
+    public ServerStoreSmart(ICache cache, 
+        IDiskStorage diskStorage){
+        if (cache == null)
+            throw new IllegalArgumentException("Cache is null");
+        if (diskStorage == null)
+            throw new IllegalArgumentException("Disk storage is null");
+
+        this._cache = cache;
+        this._disk = diskStorage;
     }
 
     @Override    

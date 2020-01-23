@@ -12,8 +12,9 @@ import java.util.HashSet;
 
 import logger.LogSetup;
 
+import cache.*;
 import server.*;
-
+import storage.*;
 import shared.Utils;
 
 import org.apache.log4j.Level;
@@ -47,7 +48,7 @@ public class KVServer implements IKVServer {
 	 *           is full and there is a GET- or PUT-request on a key that is
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
-	 */
+	 */ 
 	public KVServer(int port, int cacheSize, String strategy){
 		this._port = port;
 		this._cacheSize = cacheSize;
@@ -68,7 +69,11 @@ public class KVServer implements IKVServer {
 				throw new IllegalArgumentException("Invalid cache strategy: \"" + strategy + "\"");
 		}
 
-		this.serverStore = new ServerStoreSmart(cacheSize, _strategy);
+		// Create the cache
+		ICache cache = new Cache(this._cacheSize, this._strategy);
+		IDiskStorage diskStorage = new DiskStorage("KVSERVER_STORAGE");
+
+		this.serverStore = new ServerStoreSmart(cache, diskStorage);
 	}
 	
 	@Override
