@@ -68,8 +68,7 @@ public class KVServer implements IKVServer {
 				throw new IllegalArgumentException("Invalid cache strategy: \"" + strategy + "\"");
 		}
 
-		// Change this once a real implementation exists.
-		this.serverStore = new ServerStoreDumb(cacheSize, _strategy);
+		this.serverStore = new ServerStoreSmart(cacheSize, _strategy);
 	}
 	
 	@Override
