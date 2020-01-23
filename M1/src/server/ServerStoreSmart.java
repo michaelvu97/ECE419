@@ -37,6 +37,13 @@ public class ServerStoreSmart implements IServerStore {
             return value;
         }
     }
+
+    @Override    
+    public String cacheGet(String key) {
+        synchronized(_lock) {
+            return _cache.get(key);
+        }
+    }
     
     @Override        
     public IServerStore.PutResult put(String key, String value) {

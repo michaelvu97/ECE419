@@ -39,5 +39,33 @@ public class ServerStoreSmartTest extends TestCase {
         assertNull(serverStore.get("a"));
         assertTrue(serverStore.put("a", "b") == IServerStore.PutResult.INSERTED);
     }
+
+    @Test
+    public void testCacheConsistency() {
+        //insert values
+        for (int i = 0; i<100; i++){
+            assertTrue(serverStore.put(Integer.toString(i),"value" + Integer.toString(i)) == IServerStore.PutResult.INSERTED);
+        }
+        
+        //update values
+        for (int i = 0; i<100; i+=2){
+            assertTrue(serverStore.put(Integer.toString(i),"newvalue" + Integer.toString(i)) == IServerStore.PutResult.UPDATED);
+        }
+
+        //check if updates are consistent in both server and cache
+        for (int i = 0; i<100; i++){
+            assertTrue(serverStore.get(Integer.toString(i)) == serverStore.cacheGet(Integer.toString(i)));
+        }
+
+        //delete 1/3 of the values
+        for (int i = 0; i<100; i+=3){
+            assertTrue(serverStore.delete(Integer.toString(i)) == true);
+        }
+
+        //check if deletes are consistent in both server and cache
+        for (int i = 0; i<100; i++){
+            assertTrue(serverStore.get(Integer.toString(i)) == serverStore.cacheGet(Integer.toString(i)));
+        }
+    }
 }
 

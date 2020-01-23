@@ -30,4 +30,6 @@ public interface IServerStore {
 
     public boolean inStorage(String key);
     public boolean inCache(String key);
+
+    public String cacheGet(String key);
 }
