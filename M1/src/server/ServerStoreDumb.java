@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import cache.*;
+
+import app_kvServer.IKVServer;
+
 /**
  * A dumb, only in memory k-v store. Thread-safe (but not fast).
  */
@@ -15,8 +18,8 @@ public class ServerStoreDumb implements IServerStore {
 
     private ICache _cache;
 
-    public ServerStoreDumb(int cacheSize, String strategy){
-        this._cache = new Cache(cacheSize,strategy); 
+    public ServerStoreDumb(int cacheSize, IKVServer.CacheStrategy strategy){
+        this._cache = new Cache(cacheSize, strategy); 
     }
 
     @Override    

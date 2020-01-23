@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Iterator;
 
+import app_kvServer.IKVServer;
+
 public class Cache implements ICache {
 	
 	//stratagy store for replacement policy
-	private int strategy = 2;
+	private IKVServer.CacheStrategy _strategy;
+
 	//cache size store
 	private int cacheSize;
 
@@ -48,20 +51,11 @@ public class Cache implements ICache {
 	private Map<String, cacheEntry> _cacheMap = new HashMap<String, cacheEntry>();
 	
 
-	public Cache(int size, String strategyString){
+	public Cache(int size, IKVServer.CacheStrategy strategy){
 		//init cache array
 		cacheSize = size;
 
-		//set strategy of cache
-		if(strategyString == "FIFO"){
-			strategy = 0;
-		}
-		else if(strategyString == "LRU"){
-			strategy = 1;
-		}
-		else if(strategyString == "LFU"){
-			strategy = 2;
-		}
+		_strategy = strategy;
 		//System.out.println("strategy = "+ strategy + " (" + strategyString + ")");
 		//point the header and footer of the linked list together
 		lastEntry.previous = firstEntry;
@@ -75,7 +69,7 @@ public class Cache implements ICache {
 		//System.out.println("trying to get "+ key);
 		if(_cacheMap.containsKey(key)){
 			cacheEntry valueEntry = _cacheMap.get(key);
-			if(strategy == 1){
+			if(_strategy == IKVServer.CacheStrategy.LRU){
 				//remove entry from linked list and insert it in the back of the list
 				//System.out.println(valueEntry.key + " is being moved to the back");
 				valueEntry.removeElement();
@@ -83,7 +77,7 @@ public class Cache implements ICache {
 				valueEntry.next = lastEntry;
 				lastEntry.previous.next = valueEntry;
 				lastEntry.previous = valueEntry;
-			} else if (strategy == 2){
+			} else if (_strategy == IKVServer.CacheStrategy.LFU){
 				//increment and check whether to switch
 				valueEntry.num_used++;
 				while(valueEntry.next.key != null && valueEntry.num_used>valueEntry.next.num_used){
@@ -130,7 +124,7 @@ public class Cache implements ICache {
 			//if it isnt already there, add it to the hash map and the linked list
 			cacheEntry newEntry = new cacheEntry(key,value);
 			//insert new entry at the back of the queue
-			if(strategy != 2){
+			if(_strategy != IKVServer.CacheStrategy.LFU){
 				newEntry.previous = lastEntry.previous;
 				newEntry.next = lastEntry;
 				lastEntry.previous = newEntry;
