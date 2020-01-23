@@ -4,6 +4,9 @@ import java.util.concurrent.locks.Lock;
 import cache.*;
 import storage.*;
 
+import app_kvServer.IKVServer;
+
+
 public class ServerStoreSmart implements IServerStore {
     
     private Object _lock = new Object();
@@ -12,7 +15,7 @@ public class ServerStoreSmart implements IServerStore {
 
     private IDiskStorage _disk;
 
-    public ServerStoreSmart(int cacheSize, String strategy){
+    public ServerStoreSmart(int cacheSize, IKVServer.CacheStrategy strategy){
         this._cache = new Cache(cacheSize, strategy); 
     }
 
