@@ -16,14 +16,14 @@ public class Cache implements ICache {
 	//cache size store
 	private int cacheSize;
 
-	private class cacheEntry {
+	private class CacheEntry {
 		public String key;
 		public String value;
 		public int num_used;
-		public cacheEntry next;
-		public cacheEntry previous;
+		public CacheEntry next;
+		public CacheEntry previous;
 
-		public cacheEntry (String newKey, String newValue){
+		public CacheEntry (String newKey, String newValue){
 			key=newKey;
 			value = newValue;
 			num_used = 0;
@@ -46,10 +46,10 @@ public class Cache implements ICache {
 		}
 	}
 
-	cacheEntry lastEntry = new cacheEntry(null,"last!");
-	cacheEntry firstEntry = new cacheEntry(null,"first!");
+	CacheEntry lastEntry = new CacheEntry(null,"last!");
+	CacheEntry firstEntry = new CacheEntry(null,"first!");
 
-	private Map<String, cacheEntry> _cacheMap = new HashMap<String, cacheEntry>();
+	private Map<String, CacheEntry> _cacheMap = new HashMap<String, CacheEntry>();
 	
 
 	public Cache(int size, IKVServer.CacheStrategy strategy){
@@ -70,7 +70,7 @@ public class Cache implements ICache {
 	public String get(String key){
 		//System.out.println("trying to get "+ key);
 		if(_cacheMap.containsKey(key)){
-			cacheEntry valueEntry = _cacheMap.get(key);
+			CacheEntry valueEntry = _cacheMap.get(key);
 			if(_strategy == IKVServer.CacheStrategy.LRU){
 				//remove entry from linked list and insert it in the back of the list
 				//System.out.println(valueEntry.key + " is being moved to the back");
@@ -85,7 +85,7 @@ public class Cache implements ICache {
 				while(valueEntry.next.key != null && valueEntry.num_used>valueEntry.next.num_used){
 					//System.out.println(valueEntry.key + " is swapping up");
 					//switch order based on frequency of use
-					cacheEntry toSwitch = valueEntry.next;
+					CacheEntry toSwitch = valueEntry.next;
 					valueEntry.next = toSwitch.next;
 					toSwitch.previous = valueEntry.previous;
 					valueEntry.previous = toSwitch;
@@ -109,7 +109,7 @@ public class Cache implements ICache {
 		//if the key already exists on put, update value
 		//System.out.println("inserting "+ key + " and " + value);
 		if(_cacheMap.containsKey(key)){
-			cacheEntry toModify = _cacheMap.get(key);
+			CacheEntry toModify = _cacheMap.get(key);
 			if(value == toModify.value) return IServerStore.PutResult.IDENTICAL;
 			toModify.value = value;
 			return IServerStore.PutResult.UPDATED;
@@ -118,7 +118,7 @@ public class Cache implements ICache {
 			if(_cacheMap.size() == cacheSize){
 				
 				//if it is find the first element and pop it out
-				cacheEntry toRemove = firstEntry.next;
+				CacheEntry toRemove = firstEntry.next;
 				//System.out.println(toRemove.key + " is being removed");
 
 				toRemove.removeElement();
@@ -128,7 +128,7 @@ public class Cache implements ICache {
 				_cacheMap.remove(toRemove.key);
 			}
 			//if it isnt already there, add it to the hash map and the linked list
-			cacheEntry newEntry = new cacheEntry(key,value);
+			CacheEntry newEntry = new CacheEntry(key,value);
 			//insert new entry at the back of the queue
 			if(_strategy != IKVServer.CacheStrategy.LFU){
 				newEntry.previous = lastEntry.previous;
@@ -136,7 +136,7 @@ public class Cache implements ICache {
 				lastEntry.previous = newEntry;
 				newEntry.previous.next = newEntry;
 			} else {
-				cacheEntry insertIndex = firstEntry.next;
+				CacheEntry insertIndex = firstEntry.next;
 				//System.out.println("doing lfu insert starting with " + insertIndex.value);
 				while (insertIndex.key != null && insertIndex.num_used == 0){
 					//System.out.println("trying " + insertIndex.key);
@@ -158,7 +158,7 @@ public class Cache implements ICache {
 	public void delete(String key){
 		if(_cacheMap.containsKey(key)){
 			//remove element from linked list
-			cacheEntry toRemove = _cacheMap.get(key);
+			CacheEntry toRemove = _cacheMap.get(key);
 			toRemove.removeElement();
 			//also remove it from the hash list
 			_cacheMap.remove(key);
