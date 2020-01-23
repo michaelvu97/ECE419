@@ -31,7 +31,9 @@ public class ServerStoreSmart implements IServerStore {
             String value = _cache.get(key);
             if (value == null) {
                 value = _disk.get(key);
-                _cache.put(key, value);
+                if(value != null){
+                    _cache.put(key, value);
+                }
             }
             return value;
         }
@@ -41,12 +43,15 @@ public class ServerStoreSmart implements IServerStore {
     public IServerStore.PutResult put(String key, String value) {
         IServerStore.PutResult result = IServerStore.PutResult.FAILED;
         synchronized(_lock) {
-            _cache.put(key, value);
-
-            result = _disk.put(key, value) == 1 ? IServerStore.PutResult.INSERTED :
-                IServerStore.PutResult.UPDATED;
-                        
-            return result;
+            IServerStore.PutResult cacheResult = _cache.put(key, value);
+            if(cacheResult != IServerStore.PutResult.IDENTICAL){
+                result = _disk.put(key, value) == 1 ? IServerStore.PutResult.INSERTED :
+                    IServerStore.PutResult.UPDATED;
+                return result;
+            } else {
+                return IServerStore.PutResult.UPDATED;
+            }
+            
         }
     }
     

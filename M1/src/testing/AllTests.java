@@ -31,6 +31,7 @@ public class AllTests {
 		clientSuite.addTestSuite(KVMessageTest.class);
 		clientSuite.addTestSuite(ServerStoreSmartTest.class);
 		clientSuite.addTestSuite(UtilsTest.class);
+		clientSuite.addTestSuite(CacheTest.class);
 		return clientSuite;
 	}
 	
