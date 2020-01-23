@@ -152,7 +152,7 @@ public class Cache implements ICache {
 		}
 	}
 
-	public void remove(String key){
+	public void delete(String key){
 		if(_cacheMap.containsKey(key)){
 			//remove element from linked list
 			cacheEntry toRemove = _cacheMap.get(key);

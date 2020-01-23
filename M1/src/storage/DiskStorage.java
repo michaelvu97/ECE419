@@ -66,7 +66,7 @@ public class DiskStorage implements IDiskStorage {
 	}
    
     @Override
-    public int writeToFile(String key, String value) {    	    	
+    public int put(String key, String value) {    	    	
         int opType = 0;
         int lineNum = 0;
 
@@ -107,7 +107,7 @@ public class DiskStorage implements IDiskStorage {
     }
 
     @Override
-    public String readFromFile(String key) {
+    public String get(String key) {
         int lineNum = 1;
         String line;
         String value = null;
@@ -130,7 +130,8 @@ public class DiskStorage implements IDiskStorage {
     }
 
     @Override
-    public void deleteFromFile(String key) {
+    public boolean delete(String key) {
+        boolean success = false;
         int lineNum = 1;
         String currLine;
     	File tempFile = new File(_tempStoragePath);
@@ -159,7 +160,7 @@ public class DiskStorage implements IDiskStorage {
 	    	Files.delete(oldDiskStorageFile);
 	    	// rename new file to disk_storage.
 	    	File newName = new File(_storagePath);
-	    	tempFile.renameTo(newName);
+	    	success = tempFile.renameTo(newName);
 
     	} 
         catch (FileNotFoundException fnfe) {
@@ -168,10 +169,11 @@ public class DiskStorage implements IDiskStorage {
         catch (IOException ioe) {
             logger.error("Could not delete entry of key " + key + ".");
     	}
+        return success;
     }
 
     @Override
-    public void deleteFile() {
+    public void clear() {
         File file = new File(_storagePath);
         if (file.exists()) {
             file.delete();

@@ -14,7 +14,7 @@ public class DiskStorageTest extends TestCase {
 	}
 
 	public void tearDown() {
-		diskStorage.deleteFile();
+		diskStorage.clear();
 	}
 
 	@Test
@@ -29,9 +29,9 @@ public class DiskStorageTest extends TestCase {
 		String value3 = "Value3";
 
 		try {
-			write1 = diskStorage.writeToFile(key1, value1); 
-			write2 = diskStorage.writeToFile(key2, value2); 
-			write3 = diskStorage.writeToFile(key3, value3); 
+			write1 = diskStorage.put(key1, value1); 
+			write2 = diskStorage.put(key2, value2); 
+			write3 = diskStorage.put(key3, value3); 
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -52,8 +52,8 @@ public class DiskStorageTest extends TestCase {
 		String newValue1 = "NEWValue4";
 
 		try {
-			write = diskStorage.writeToFile(key1, value1); 
-			replace = diskStorage.writeToFile(key1, newValue1); 
+			write = diskStorage.put(key1, value1); 
+			replace = diskStorage.put(key1, newValue1); 
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -72,8 +72,8 @@ public class DiskStorageTest extends TestCase {
 		String value = "Value to read!";
 
 		try {
-			write = diskStorage.writeToFile(key, value);
-			read = diskStorage.readFromFile(key);
+			write = diskStorage.put(key, value);
+			read = diskStorage.get(key);
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -89,7 +89,7 @@ public class DiskStorageTest extends TestCase {
 		String key = "NonExistantKey";
 
 		try {
-			read = diskStorage.readFromFile(key);
+			read = diskStorage.get(key);
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -106,8 +106,8 @@ public class DiskStorageTest extends TestCase {
 		String deleteValue = "Value to delete!";
 
 		try {
-			write = diskStorage.writeToFile(deleteKey, deleteValue);
-			diskStorage.deleteFromFile(deleteKey);
+			write = diskStorage.put(deleteKey, deleteValue);
+			diskStorage.delete(deleteKey);
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -127,10 +127,10 @@ public class DiskStorageTest extends TestCase {
 		String valueC = "ValueC";
 
 		try {
-			writeA = diskStorage.writeToFile(keyA, valueA); 
-			writeB = diskStorage.writeToFile(keyB, valueB); 
-			diskStorage.deleteFromFile(keyB);
-			writeC = diskStorage.writeToFile(keyC, valueC); 
+			writeA = diskStorage.put(keyA, valueA); 
+			writeB = diskStorage.put(keyB, valueB); 
+			diskStorage.delete(keyB);
+			writeC = diskStorage.put(keyC, valueC); 
 		} catch (Exception e) {
 			ex = e;
 		}

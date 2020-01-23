@@ -7,20 +7,20 @@ public interface IDiskStorage {
     * 1: new entry inserted into file.
     * 2: existing entry updated.
     */
-    public int writeToFile(String key, String value);
+    public int put(String key, String value);
 
     /**
     * @return value if found, otherwise return null.
     */
-    public String readFromFile(String key);
+    public String get(String key);
 
     /**
     * removes given key/value pair from file on disk.
     */
-    public void deleteFromFile(String key);
+    public boolean delete(String key);
 
     /**
     * @return deletes file on disk.
     */
-    public void deleteFile();
+    public void clear();
 }
