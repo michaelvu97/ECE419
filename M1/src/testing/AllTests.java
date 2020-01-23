@@ -29,6 +29,8 @@ public class AllTests {
 		clientSuite.addTestSuite(AdditionalTest.class); 
 		clientSuite.addTestSuite(DiskStorageTest.class);
 		clientSuite.addTestSuite(KVMessageTest.class);
+		clientSuite.addTestSuite(ServerStoreSmartTest.class);
+		clientSuite.addTestSuite(UtilsTest.class);
 		return clientSuite;
 	}
 	
