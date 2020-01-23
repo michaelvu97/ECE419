@@ -34,6 +34,10 @@ public class KVServer implements IKVServer {
 
 	private static Logger logger = Logger.getRootLogger();
 
+	private static String USAGE = "server <port> [cache strategy]\n" +
+		"<port> is a valid unused local port, or 0 for new unused port\n" +
+		"[cache strategy] is optional and is one of {LRU, FIFO, LFU}. Default is FIFO.";
+
 	/**
 	 * Start KV Server at given port
 	 * @param port given port for storage server to operate
@@ -48,23 +52,24 @@ public class KVServer implements IKVServer {
 		this._port = port;
 		this._cacheSize = cacheSize;
 
-		switch (strategy.toLowerCase()) {
-			case "fifo":
+		strategy = strategy.toUpperCase();
+
+		switch (strategy) {
+			case "FIFO":
 				_strategy = IKVServer.CacheStrategy.FIFO;
 				break;
-			case "lru":
+			case "LRU":
 				_strategy = IKVServer.CacheStrategy.LRU;
 				break;
-			case "lfu":
+			case "LFU":
 				_strategy = IKVServer.CacheStrategy.LFU;
 				break;
 			default:
-				System.out.println("Invalid cache strategy: \"" + strategy + "\"");
-				break;
+				throw new IllegalArgumentException("Invalid cache strategy: \"" + strategy + "\"");
 		}
 
 		// Change this once a real implementation exists.
-		this.serverStore = new ServerStoreDumb(cacheSize,strategy);
+		this.serverStore = new ServerStoreDumb(cacheSize, _strategy);
 	}
 	
 	@Override
@@ -157,7 +162,7 @@ public class KVServer implements IKVServer {
     }
 
 	private boolean initializeServer() {
-		logger.info("Initialize server ...");
+		logger.info("Initializing server...");
 		
 		try {
 			serverSocket = new ServerSocket(_port);
@@ -166,6 +171,7 @@ public class KVServer implements IKVServer {
 			_hostName = serverSocket.getInetAddress().getHostName();
 
 			logger.info("Server " + _hostName + " listening on port: " + serverSocket.getLocalPort());    
+			logger.info("ServerCache: [" + _strategy + ":" + _cacheSize + "]");
             return true;
 		}
 		catch (IOException e) {
@@ -208,12 +214,18 @@ public class KVServer implements IKVServer {
 	public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
-			if(args.length != 1) {
+			if(args.length < 1 || 2 < args.length) {
 				System.out.println("Error! Invalid number of arguments!");
-				System.out.println("Usage: Server <port>!");
+				System.out.println(USAGE);
 			} else {
 				int port = Integer.parseInt(args[0]);
-				IKVServer kvServer = new KVServer(port, 1000, "FIFO");
+				String cacheStrategy = (args.length >= 2) ? args[1] : "FIFO";
+				IKVServer kvServer = null;
+				try {
+					kvServer = new KVServer(port, 1000, cacheStrategy);
+				} catch (IllegalArgumentException iae) {
+					System.out.println(iae.getMessage());
+				}
 				kvServer.run();
 			}
 
