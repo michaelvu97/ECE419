@@ -29,6 +29,10 @@ public class ServerStoreDumb implements IServerStore {
         }
     }
     
+    public String cacheGet(String key) {
+        return null;
+    }
+
     @Override        
     public IServerStore.PutResult put(String key, String value) {
         IServerStore.PutResult result = IServerStore.PutResult.FAILED;

@@ -5,6 +5,7 @@ import org.junit.Test;
 import junit.framework.TestCase;
 import app_kvServer.*;
 import cache.*;
+import server.IServerStore;
 
 public class CacheTest extends TestCase {
 	
