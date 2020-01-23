@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.Iterator;
 
 import app_kvServer.IKVServer;
+import server.IServerStore;
 
 public class Cache implements ICache {
 	
@@ -104,12 +105,14 @@ public class Cache implements ICache {
 	/**
 	* Insert new object into the cahce
 	**/	
-	public void put(String key, String value){
+	public IServerStore.PutResult put(String key, String value){
 		//if the key already exists on put, update value
 		//System.out.println("inserting "+ key + " and " + value);
 		if(_cacheMap.containsKey(key)){
 			cacheEntry toModify = _cacheMap.get(key);
+			if(value == toModify.value) return IServerStore.PutResult.IDENTICAL;
 			toModify.value = value;
+			return IServerStore.PutResult.UPDATED;
 		} else {
 			//check if a replacement is necassary
 			if(_cacheMap.size() == cacheSize){
@@ -147,6 +150,7 @@ public class Cache implements ICache {
 			//System.out.println("first entry = " + firstEntry.next.key + " last entry = " + lastEntry.previous.key);
 			//insert into the cache map
 			_cacheMap.put(key,newEntry);
+			return IServerStore.PutResult.INSERTED;
 
 		}
 	}

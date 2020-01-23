@@ -1,4 +1,5 @@
 package cache;
+import server.IServerStore;
 
 public interface ICache {
 
@@ -10,7 +11,7 @@ public interface ICache {
 	/**
 	* Insert new object into the cahce
 	**/	
-	public void put(String key, String value);
+	public IServerStore.PutResult put(String key, String value);
 
 	/**
 	* Remove a key from the cahce, if it exists

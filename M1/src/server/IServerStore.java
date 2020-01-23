@@ -11,7 +11,8 @@ public interface IServerStore {
     public enum PutResult {
         INSERTED,
         UPDATED,
-        FAILED
+        FAILED,
+        IDENTICAL
     }
 
     /**
