@@ -163,7 +163,7 @@ public class ClientConnection implements Runnable {
 					commChannel.sendBytes(response.serialize());
 
 				} catch (IOException ioe){
-					logger.error("Unexpectely lost connection to client", ioe);
+					logger.warn("Unexpectely lost connection to client", ioe);
 					isOpen = false;
 				} catch (Deserializer.DeserializationException dse) {
 					logger.error("Received invalid message from client", dse);

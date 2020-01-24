@@ -6,17 +6,20 @@ import client.KVStore;
 import junit.framework.TestCase;
 import shared.messages.KVMessage;
 import shared.messages.KVMessage.StatusType;
-
+import org.apache.log4j.Logger;
 
 public class InteractionTest extends TestCase {
 
 	private KVStore kvClient;
+
+	private Logger logger = Logger.getRootLogger();
 	
 	public void setUp() {
 		kvClient = new KVStore("localhost", 50000);
 		try {
 			kvClient.connect();
 		} catch (Exception e) {
+			logger.error(e);
 		}
 	}
 
@@ -37,7 +40,6 @@ public class InteractionTest extends TestCase {
 		} catch (Exception e) {
 			ex = e;
 		}
-
 		assertTrue(ex == null && response.getStatus() == StatusType.PUT_SUCCESS);
 	}
 
@@ -100,7 +102,7 @@ public class InteractionTest extends TestCase {
 
 	@Test
 	public void testGetUnsetValue() {
-		String key = "an unset value";
+		String key = "an-unset-value";
 		KVMessage response = null;
 		Exception ex = null;
 

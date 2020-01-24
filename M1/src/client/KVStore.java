@@ -52,18 +52,19 @@ public class KVStore implements KVCommInterface {
 		logger.info("trying to close connection ...");
 		try {
 			tearDownConnection();
-			for(ClientSocketListener listener : listeners) {
+			for (ClientSocketListener listener : listeners) {
 				listener.handleStatus(SocketStatus.DISCONNECTED);
 			}
 		} catch (IOException ioe) {
 			logger.error("Unable to close connection.");
+		} finally {
+			_clientSocket = null;
 		}
 	}
 
 	private void tearDownConnection() throws IOException {
 		if (_clientSocket != null) {
 			_clientSocket.close();
-			_clientSocket = null;
 			logger.info("Connection closed!");
 		}
 	}
@@ -74,6 +75,7 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public KVMessage put(String key, String value) throws Exception {
+		validateConnected();
 		try {
 			Utils.validateKey(key);
 			Utils.validateValue(value);
@@ -95,6 +97,7 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public KVMessage get(String key) throws Exception {
+		validateConnected();
 		try {
 			Utils.validateKey(key);
 
@@ -110,6 +113,13 @@ public class KVStore implements KVCommInterface {
 		catch (shared.Deserializer.DeserializationException dse) {
 			logger.error("GET failed, invalid server response", dse);
 			throw dse;
+		}
+	}
+
+	private void validateConnected() {
+		if (_clientSocket == null) {
+			logger.error("Attempted to connect to a disconnected kvStore");
+			throw new IllegalStateException("KVStore disconnected");
 		}
 	}
 

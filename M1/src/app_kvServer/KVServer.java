@@ -29,6 +29,8 @@ public class KVServer implements IKVServer {
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;
 
+    private ClientAcceptor _clientAcceptor;    
+
 	private IServerStore serverStore;
 
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
@@ -133,32 +135,11 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void run(){
-
-    	running = initializeServer();
-
-  		if(serverSocket != null){
-	        while(isRunning()){
-	            try {
-	                Socket client = serverSocket.accept();                
-	                
-	                ClientConnection connection = new ClientConnection(
-	                	client,
-	                	this.serverStore
-                	);
-
-                	clientConnections.add(connection);
-
-	                new Thread(connection).start();
-	                
-	                logger.info("Connected to " 
-	                		+ client.getInetAddress().getHostName() 
-	                		+  " on port " + client.getPort());
-	            } catch (IOException e) {
-	            	logger.error("Error! " + "Unable to establish connection. \n", e);
-	            }
-	        }
-        }
-        logger.info("Server socket is null.");
+    	this.running = initializeServer();
+    	if (this.running) {
+    		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore);
+    		new Thread(this._clientAcceptor).start();
+    	}
 	}
 
 	private boolean isRunning() {
@@ -231,6 +212,7 @@ public class KVServer implements IKVServer {
 					System.out.println(iae.getMessage());
 				}
 				kvServer.run();
+				while(true);
 			}
 
 		} catch (IOException ioe)
