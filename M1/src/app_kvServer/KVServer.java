@@ -51,7 +51,7 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */ 
-	public KVServer(int port, int cacheSize, String strategy){
+	public KVServer(int port, int cacheSize, String strategy, String diskStorageStr){
 		this._port = port;
 		this._cacheSize = cacheSize;
 
@@ -73,7 +73,7 @@ public class KVServer implements IKVServer {
 
 		// Create the cache
 		ICache cache = new Cache(this._cacheSize, this._strategy);
-		IDiskStorage diskStorage = new DiskStorage("KVSERVER_STORAGE");
+		IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
 	}
@@ -207,7 +207,7 @@ public class KVServer implements IKVServer {
 				String cacheStrategy = (args.length >= 2) ? args[1] : "FIFO";
 				IKVServer kvServer = null;
 				try {
-					kvServer = new KVServer(port, 1000, cacheStrategy);
+					kvServer = new KVServer(port, 1000, cacheStrategy, "DISK_STORAGE_MAIN");
 				} catch (IllegalArgumentException iae) {
 					System.out.println(iae.getMessage());
 				}
