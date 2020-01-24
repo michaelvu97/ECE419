@@ -45,6 +45,29 @@ public class DiskStorage implements IDiskStorage {
         }
     }
 
+    private void correctnessCheck() {
+        int lineNum = 0; 
+
+        /**
+         * Check that the file has an even number of lines.
+         * If not, insert one new line to the end of the file.
+         */
+        try { 
+            BufferedReader br = new BufferedReader(new FileReader(_storagePath));
+            
+            while(br.readLine() != null) {
+                lineNum++;
+            }
+
+            if(lineNum % 2 != 0) {
+                FileWriter fw = new FileWriter(_storagePath);
+                fw.write(System.getProperty("line.separator"));
+            }
+        } catch (Exception e) {
+            logger.error("could not conduct disk file correctness check.");
+        }
+    }
+
 	private int findEntryLine(String key) {
 		String line;
 		int lineNum = 1;
@@ -52,7 +75,7 @@ public class DiskStorage implements IDiskStorage {
     	    		
     	try { 
     		BufferedReader br = new BufferedReader(new FileReader(_storagePath));
-    		while ((line = br.readLine()) != null) {
+    		while((line = br.readLine()) != null) {
     			if(lineNum % 2 != 0 && line.equals(key)) {
     				lineRet = lineNum;
     				break;
@@ -71,6 +94,7 @@ public class DiskStorage implements IDiskStorage {
         int lineNum = 0;
 
         createNewFile();
+        correctnessCheck();
 
         lineNum = findEntryLine(key);
 
@@ -113,6 +137,7 @@ public class DiskStorage implements IDiskStorage {
         String value = null;
 
         createNewFile();
+        correctnessCheck();
             
         try {
             BufferedReader br = new BufferedReader(new FileReader(_storagePath));
@@ -134,6 +159,7 @@ public class DiskStorage implements IDiskStorage {
         String currLine = null;
 
         createNewFile();
+        correctnessCheck();
 
         boolean keyFound = false;
 
