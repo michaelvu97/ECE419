@@ -62,7 +62,9 @@ public class ClientConnection implements Runnable {
 
 		if (requestType == KVMessage.StatusType.PUT) {
 
-			if (request.getValue() == null) {
+			if (request.getValue() == null || 
+				request.getValue().equals("null") || 
+				request.getValue().isEmpty()) {
 				return handleDelete(request);
 			} else {
 				return handlePut(request);
