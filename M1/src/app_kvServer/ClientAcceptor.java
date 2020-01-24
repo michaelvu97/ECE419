@@ -4,6 +4,9 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+
 import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -13,7 +16,10 @@ import server.*;
 public class ClientAcceptor implements Runnable {
     private ServerSocket _serverSocket;
     private IServerStore _serverStore;
-
+    
+    private ArrayList <ClientConnection> clientList = new ArrayList<ClientConnection>();  
+    private Object _lock = new Object();
+    	    
     private boolean _running = false;
 
     private static Logger logger = Logger.getRootLogger();
@@ -33,10 +39,27 @@ public class ClientAcceptor implements Runnable {
         return this._running;
     }
 
-    public void stop() {
-        this._running = false;
+    public void alertClose (ClientConnection toClose) {
+        synchronized(_lock) {
+            for (int i = 0; i < clientList.size(); i++){
+                if(toClose == clientList.get(i)){
+                    clientList.remove(i);
+                }
+            }
+	}
+        return;
+    }
 
-        // TODO: kill client handler threads.
+    public void stop() {
+        //Send kill message to client handler threads.
+        for(int i = 0; i < clientList.size(); i++){
+            ClientConnection connection = clientList.get(i);
+            connection.kill();
+        }
+
+        while (clientList.size() != 0) 
+
+        this._running = false;
     }
      
     @Override
@@ -48,8 +71,12 @@ public class ClientAcceptor implements Runnable {
 
                 ClientConnection clientConnection = new ClientConnection(
                         clientSocket,
-                        this._serverStore
+                        this._serverStore,
+			this
                 );
+
+                //add the connection to the client list
+                clientList.add(clientConnection);
 
                 new Thread(clientConnection).start();
 
