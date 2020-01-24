@@ -100,14 +100,12 @@ public class KVServer implements IKVServer {
 
 	@Override
     public boolean inStorage(String key){
-		// TODO Auto-generated method stub
-		return false;
+		return this.serverStore.inStorage(key);
 	}
 
 	@Override
     public boolean inCache(String key){
-		// TODO Auto-generated method stub
-		return false;
+		return this.serverStore.inCache(key);
 	}
 
 	@Override
