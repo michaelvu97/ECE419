@@ -186,12 +186,19 @@ public class KVServer implements IKVServer {
     	// Do not accept new connections
 		this.running = false;
 
-		// Stop all existing connections
-		for (ClientConnection conn : clientConnections) {
-			conn.stop();
+		logger.info("Stopping client acceptor");
+		// Stop the client acceptor
+		// Client acceptor is responsible for cleaning up client threads
+		this._clientAcceptor.stop();
+
+		try {
+			serverSocket.close();
+			logger.info("Server socket is closed.");
+		} catch (IOException e) {
+			logger.error("Unable to close server socket on port: " + _port, e);
 		}
 
-		// TODO Clear/flush cache?
+		// TODO: clear cache?
 	}
 
 	public static void main(String[] args) {
