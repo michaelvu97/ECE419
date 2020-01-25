@@ -60,7 +60,7 @@ public class DiskStorageTest extends TestCase {
 		
 		assertTrue(ex == null);
 		assertTrue(write == 1);
-		assertTrue(write == 1);
+		assertTrue(replace == 2);
 	}
 
 	@Test 

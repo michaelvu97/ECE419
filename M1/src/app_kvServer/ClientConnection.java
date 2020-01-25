@@ -19,6 +19,8 @@ import org.apache.log4j.*;
  */
 public class ClientConnection implements Runnable {
 
+	private volatile boolean exit = false;
+	private ClientAcceptor clientMaster;
 	private static Logger logger = Logger.getRootLogger();
 	
 	private boolean isOpen;
@@ -35,7 +37,7 @@ public class ClientConnection implements Runnable {
 	 * Constructs a new CientConnection object for a given TCP socket.
 	 * @param clientSocket the Socket object for the client connection.
 	 */
-	public ClientConnection(Socket clientSocket, IServerStore serverStore) {
+	public ClientConnection(Socket clientSocket, IServerStore serverStore, ClientAcceptor acceptor) {
 		if (clientSocket == null)
 			throw new NullPointerException("client socket is null");
 		if (serverStore == null)
@@ -43,7 +45,7 @@ public class ClientConnection implements Runnable {
 
 		this.clientSocket = clientSocket;
 		this.serverStore = serverStore;
-
+		this.clientMaster = acceptor;
 		this.isOpen = true;
 		try {
 			this.commChannel = new CommChannel(clientSocket);
@@ -120,7 +122,7 @@ public class ClientConnection implements Runnable {
 	public void stop() {
 		logger.info("Stopping client connection thread.");
 		this.isOpen = false;
-
+		clientMaster.alertClose(this);
 		int millisSlept = 0;
 		int sleepTimeoutMillis = 5000;
 
@@ -144,13 +146,20 @@ public class ClientConnection implements Runnable {
 	}
 	
 	/**
+	 * adds exit functionality to threads;
+	 */
+	public void kill(){
+		exit = true;
+	}
+
+	/**
 	 * Initializes and starts the client connection. 
 	 * Loops until the connection is closed or aborted by the client.
 	 */
 	public void run() {
 		logger.info("Client connection thread started");
 		try {
-			while(isOpen) { 
+			while(isOpen && !exit) { 
 
 				try {
 
