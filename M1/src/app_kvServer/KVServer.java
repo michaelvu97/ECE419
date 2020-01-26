@@ -77,6 +77,10 @@ public class KVServer implements IKVServer {
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
 	}
+
+    public KVServer(int port, int cacheSize, String cacheStrategy) {
+        this(port, cacheSize, cacheStrategy, "DEFAULT_STORAGE");
+    }
 	
 	@Override
 	public int getPort(){
