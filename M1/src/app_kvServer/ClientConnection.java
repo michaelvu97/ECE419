@@ -183,6 +183,7 @@ public class ClientConnection implements Runnable {
 			try {
 				if (clientSocket != null) {
 					clientSocket.close();
+					clientMaster.alertClose(this);
 					logger.info("Client disconnected, socket closed");
 				}
 			} catch (IOException ioe) {

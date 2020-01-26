@@ -46,7 +46,7 @@ public class ClientAcceptor implements Runnable {
                     clientList.remove(i);
                 }
             }
-	}
+	    }
         return;
     }
 
@@ -81,11 +81,13 @@ public class ClientAcceptor implements Runnable {
                 ClientConnection clientConnection = new ClientConnection(
                         clientSocket,
                         this._serverStore,
-			this
+                        this
                 );
 
                 //add the connection to the client list
-                clientList.add(clientConnection);
+                synchronized(_lock) {
+                    clientList.add(clientConnection);
+                }
 
                 new Thread(clientConnection).start();
 
