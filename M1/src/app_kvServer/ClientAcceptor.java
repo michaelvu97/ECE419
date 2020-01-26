@@ -57,7 +57,16 @@ public class ClientAcceptor implements Runnable {
             connection.kill();
         }
 
-        while (clientList.size() != 0) 
+        //5 second timeout on close
+        int i = 0;
+        while (clientList.size()!=0 && i!=500){
+            i++;
+            try {
+                Thread.sleep(10);
+            } catch (Exception InterruptedException){
+                //if we cant sleep, just go
+            } 
+        } 
 
         this._running = false;
     }
