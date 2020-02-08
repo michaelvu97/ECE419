@@ -1,14 +1,32 @@
 package app_kvECS;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Collection;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import logger.LogSetup;
+
+import org.apache.zookeeper.*;
 
 import ecs.IECSNode;
 
 public class ECSClient implements IECSClient {
 
+    private ZooKeeper _zoo = null;
+
+    private static Logger logger = Logger.getRootLogger();
+
     @Override
     public boolean start() {
+        
+        try {
+            _zoo = new ZooKeeper("localhost", 0, new ECSWatcher());
+        } catch (IOException e){
+            _zoo = null;
+        }
+
         // TODO
         return false;
     }
@@ -69,5 +87,8 @@ public class ECSClient implements IECSClient {
 
     public static void main(String[] args) {
         // TODO
+
+        ECSClient client = new ECSClient();
+        client.start();
     }
 }
