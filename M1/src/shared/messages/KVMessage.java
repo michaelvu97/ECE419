@@ -86,7 +86,7 @@ public interface KVMessage {
 	public StatusType getStatus();
 
 	/**
-	 * @return the KV message serialized to JSON.
+	 * @return the KV message serialized.
 	 */
 	public byte[] serialize();
 }
