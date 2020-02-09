@@ -14,18 +14,30 @@ import ecs.IECSNode;
 
 public class ECSClient implements IECSClient {
 
+    private String _configFilePath;
+
     private ZooKeeper _zoo = null;
 
     private static Logger logger = Logger.getRootLogger();
+
+    public ECSClient(String configFilePath) {
+        if (configFilePath == null || configFilePath.length() == 0)
+            throw new IllegalArgumentException("configFilePath");
+
+        _configFilePath = configFilePath;
+    }
 
     @Override
     public boolean start() {
         
         try {
-            _zoo = new ZooKeeper("localhost", 0, new ECSWatcher());
+            _zoo = new ZooKeeper("localhost:2181", 10000, new ECSWatcher());
+            // data monitor?
         } catch (IOException e){
             _zoo = null;
         }
+
+
 
         // TODO
         return false;
@@ -46,6 +58,7 @@ public class ECSClient implements IECSClient {
     @Override
     public IECSNode addNode(String cacheStrategy, int cacheSize) {
         // TODO
+        // Start a single server.
         return null;
     }
 
@@ -86,9 +99,9 @@ public class ECSClient implements IECSClient {
     }
 
     public static void main(String[] args) {
-        // TODO
+        // Start Admin CLI
 
-        ECSClient client = new ECSClient();
+        ECSClient client = new ECSClient("aaaa");
         client.start();
     }
 }

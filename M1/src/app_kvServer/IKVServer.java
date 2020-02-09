@@ -1,11 +1,20 @@
 package app_kvServer;
 
+import shared.MetaData;
+
 public interface IKVServer {
     public enum CacheStrategy {
         None,
         LRU,
         LFU,
         FIFO
+    };
+
+    public enum ServerStateType {
+        IDLE,
+        STARTED,
+        SHUT_DOWN,
+        STOPPED // Default server status; server is stopped.
     };
 
     /**
@@ -86,4 +95,10 @@ public interface IKVServer {
      * Gracefully stop the server, can perform any additional actions
      */
     public void close();
+
+    public ServerStateType getServerState();
+
+    public boolean isWriterLocked();
+
+    public MetaData getMetaData();
 }

@@ -1,0 +1,3 @@
+#!/bin/csh
+
+../zookeeper-3.4.11/bin/zkServer.sh $1

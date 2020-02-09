@@ -1,5 +1,7 @@
 package ecs;
 
+import shared.MetaData;
+
 public interface IECSNode {
 
     /**
@@ -22,4 +24,18 @@ public interface IECSNode {
      */
     public String[] getNodeHashRange();
 
+    public void setFlag(ECSNodeFlag flag);
+    public ECSNodeFlag getFlag();
+
+    public MetaData getMetaData();
+
+    public enum ECSNodeFlag {
+        STOP,              /* Node has stopped */
+        START,             /* Node has started */
+        STATE_CHANGE,      /* Node state has changed*/
+        KV_TRANSFER,       /* Data transfer occurred */
+        SHUT_DOWN,         /* Node has shutdown*/
+        UPDATE,            /* Node has updated */
+        TRANSFER_FINISH    /* Data transfer operation finished */
+    }
 }
