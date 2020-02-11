@@ -1,5 +1,8 @@
 package shared.serialization;
 
+import java.util.List;
+import java.util.ArrayList;
+
 public class Deserializer {
 
     public class DeserializationException extends Exception {
@@ -90,5 +93,41 @@ public class Deserializer {
         _position += length;
 
         return new String(strBytes);
+    }
+
+    // Does not have to handle null bytes.
+    @FunctionalInterface
+    public interface ObjectDeserializer<T extends ISerializable>{
+        public T deserialize(byte[] objBytes) throws DeserializationException;
+    }
+
+    public <T extends ISerializable> T getObject(
+            ObjectDeserializer<T> deserializer)
+            throws DeserializationException {
+        byte[] bytes = getBytes();
+        if (bytes.length == 0)
+            return null;
+
+        return deserializer.deserialize(bytes);
+    }
+
+    public <T extends ISerializable> List<T> getList(
+            ObjectDeserializer<T> deserializer) 
+            throws DeserializationException {
+
+        int length = getInt();
+        if (length == -1)
+            return null;
+
+        ArrayList<T> result = new ArrayList<T>();
+        for (int i = 0; i < length; i++) {
+            byte[] bytes = getBytes();
+            if (bytes.length == 0)
+                result.add(null);
+            else
+                result.add(deserializer.deserialize(bytes));
+        }
+
+        return result;
     }
 }

@@ -3,6 +3,9 @@ package testing;
 import org.junit.Test;
 import junit.framework.TestCase;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import shared.metadata.*;
 
 public class MetaDataTest extends TestCase {
@@ -128,5 +131,18 @@ public class MetaDataTest extends TestCase {
         }
 
         // TODO TODO TODO: tsest getServerStateType
+    }
+
+    @Test
+    public void testMetaDataSet() {
+        Collection<ServerInfo> serverInfos = Arrays.asList(
+            new ServerInfo("node1", "localhost", 1),
+            new ServerInfo("node2", "localhost", 2),
+            new ServerInfo("node3", "localhost", 3),
+            new ServerInfo("node4", "localhost", 4)
+        );
+
+        MetaDataSet mds = MetaDataSet.CreateFromServerInfo(serverInfos);
+        
     }
 }

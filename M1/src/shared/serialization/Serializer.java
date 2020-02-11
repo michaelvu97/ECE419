@@ -76,4 +76,24 @@ public class Serializer {
 
         return this;
     }
+
+    public Serializer writeList(Collection<ISerializable> list) {
+        // Accepts null and empty lists.
+        if (list == null) {
+            writeInt(-1);
+            return this;
+        }
+        ArrayList<ISerializable> t = new ArrayList<ISerializable>(list);
+        writeInt(t.size());
+
+        for (ISerializable item : t) {
+            writeObject(item);
+        }
+
+        return this;
+    }
+
+    public Serializer writeList(ISerializable[] list) {
+        return writeList(Arrays.asList(list));
+    }
 }

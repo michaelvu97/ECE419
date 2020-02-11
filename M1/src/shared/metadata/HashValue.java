@@ -6,7 +6,7 @@ import shared.serialization.*;
 /**
  * Wrapper class for MD5 hash values.
  */
-public final class HashValue implements ISerializable {
+public final class HashValue implements ISerializable, Comparable<HashValue> {
 
     private BigInteger _val;
 
@@ -21,13 +21,23 @@ public final class HashValue implements ISerializable {
         _val = new BigInteger(1, bytes);
     }
 
+    @Override
     public int compareTo(HashValue rhs) {
         return _val.compareTo(rhs._val);
     }
 
     @Override
-    public byte[] serialize() {
-        byte[] bytes = _val.toByteArray();
+    public String toString() {
+        byte[] bytes = getValAsBytes();
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    private byte[] getValAsBytes() {
+         byte[] bytes = _val.toByteArray();
 
         // Correct the byte array.
         if (bytes.length < 16) {
@@ -45,6 +55,13 @@ public final class HashValue implements ISerializable {
             bytes = tempBytes;
         }
 
+        return bytes;
+    }
+
+    @Override
+    public byte[] serialize() {
+        byte[] bytes = getValAsBytes();
+
         return new Serializer()
             .writeBytes(bytes)
             .toByteArray();
@@ -53,6 +70,14 @@ public final class HashValue implements ISerializable {
     public static HashValue Deserialize(byte[] serializedBytes) 
             throws Deserializer.DeserializationException {
         return new HashValue(new Deserializer(serializedBytes).getBytes());
+    }
+
+    public static HashValue CreateFromMD5Bytes(byte[] md5Bytes) {
+        if (md5Bytes.length != 16)
+            throw new IllegalArgumentException("md5Bytes has invalid length: " 
+                + md5Bytes.length);
+
+        return new HashValue(md5Bytes);
     }
 
     public static HashValue CreateFromHashString(String md5HashString) {

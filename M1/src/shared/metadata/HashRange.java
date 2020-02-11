@@ -67,6 +67,22 @@ public final class HashRange implements ISerializable {
                 && hashCheck.compareTo(_hashEnd) < 0;
     }
 
+    public HashValue getStart() {
+        return _hashStart;
+    }
+
+    public HashValue getEnd() {
+        return _hashEnd;
+    }
+
+    public boolean getWrapsAround() {
+        return _wrapsAround;
+    }
+
+    public boolean getIsEncompassing() {
+        return _encompassing;
+    }
+
     @Override
     public byte[] serialize() {
         return new Serializer()

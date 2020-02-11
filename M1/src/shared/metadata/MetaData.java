@@ -1,9 +1,12 @@
 package shared.metadata;
 
+import java.util.Comparator;
+import java.util.Collection;
+
 import app_kvServer.IKVServer;
 import shared.serialization.*;
 
-public final class MetaData implements ISerializable {
+public final class MetaData implements ISerializable, Comparable<MetaData> {
     
     private String _name;
     private String _host;
@@ -69,6 +72,17 @@ public final class MetaData implements ISerializable {
         return s.toByteArray();
     }
 
+
+    // Thanks a lot, java 1.7
+    public static final Deserializer.ObjectDeserializer<MetaData> Deserialize = 
+            new Deserializer.ObjectDeserializer<MetaData>() {
+                @Override
+                public MetaData deserialize(byte[] bytes) 
+                        throws Deserializer.DeserializationException{
+                    return Deserialize(bytes);
+                }
+            };
+
     public static MetaData Deserialize(byte[] serializedBytes) 
             throws Deserializer.DeserializationException {
         Deserializer d = new Deserializer(serializedBytes);
@@ -78,6 +92,16 @@ public final class MetaData implements ISerializable {
             d.getString(),
             d.getInt(),
             HashRange.Deserialize(d.getBytes())
+        );
+    }
+
+    /**
+     * Sorter for start hash. Does not consider wrapping around.
+     */    
+    @Override
+    public int compareTo(MetaData other) {
+        return getHashRange().getStart().compareTo(
+            other.getHashRange().getStart()
         );
     }
 }
