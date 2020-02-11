@@ -28,3 +28,4 @@ hs_err_pid*
 /M1/logs/testing/test.log
 /M1/data
 /zookeeper-3.4.11/data
+/M1/zookeeper.out
