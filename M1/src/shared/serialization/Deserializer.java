@@ -48,12 +48,32 @@ public class Deserializer {
         return _arr[_position++];
     }
 
+    public byte[] getBytes() throws DeserializationException {
+        int length = getInt();
+        if (length == 0)
+            return null;
+
+        if (remainingBytes() < length)
+            throw new DeserializationException("Reached end of deserializer");
+
+        // Yes I know there's a faster way of doing this.
+        byte[] res = new byte[length];
+        for (int i = 0; i < length; i++) {
+            res[i] = _arr[_position + i];
+        }
+
+        return res;
+    }
+
     public String getString() throws DeserializationException {
         // Read int
         int length = getInt();
 
         if (length == 0)
             return null;
+
+        if (remainingBytes() < length)
+            throw new DeserializationException("Reached end of deserializer");
 
         byte[] strBytes = new byte[length];
 

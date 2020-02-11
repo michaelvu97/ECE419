@@ -3,11 +3,8 @@ package shared.serialization;
 import java.util.*;
 
 public class Serializer {
+
     private ArrayList<Byte> _byteList = new ArrayList<Byte>();
-
-    public Serializer() {
-
-    }
 
     public byte[] toByteArray() {
         byte[] result = new byte[_byteList.size()];
@@ -28,6 +25,33 @@ public class Serializer {
 
     public Serializer writeByte(byte b){
         _byteList.add(new Byte(b));
+        return this;
+    }
+
+    // Allows null
+    public Serializer writeObject(ISerializable obj) {
+        if (obj == null) {
+            writeInt(0);
+            return this;
+        }
+
+        writeBytes(obj.serialize());
+        return this;
+    }
+
+    // Allows null
+    public Serializer writeBytes(byte[] b) {
+        if (b == null)
+        {
+            writeInt(0);
+            return this;
+        }
+
+        writeInt(b.length);
+        for (byte cur_b : b) {
+            writeByte(cur_b);
+        }
+
         return this;
     }
 

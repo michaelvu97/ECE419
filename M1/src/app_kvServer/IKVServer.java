@@ -1,6 +1,6 @@
 package app_kvServer;
 
-import shared.MetaData;
+import shared.metadata.*;
 
 public interface IKVServer {
     public enum CacheStrategy {

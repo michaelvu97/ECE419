@@ -15,7 +15,7 @@ import logger.LogSetup;
 import cache.*;
 import server.*;
 import storage.*;
-import shared.MetaData;
+import shared.metadata.*;
 import shared.Utils;
 
 import org.apache.log4j.Level;

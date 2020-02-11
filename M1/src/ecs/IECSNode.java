@@ -1,6 +1,6 @@
 package ecs;
 
-import shared.MetaData;
+import shared.metadata.*;
 
 public interface IECSNode {
 
