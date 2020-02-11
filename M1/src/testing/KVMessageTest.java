@@ -72,6 +72,7 @@ public class KVMessageTest extends TestCase {
                 assertTrue(m4.getValue().equals(value));
 
             } catch (Exception e) {
+                e.printStackTrace();
                 assertTrue(false);
             }
         }

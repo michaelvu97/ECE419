@@ -38,6 +38,12 @@ public interface KVMessage extends ISerializable {
 					return 7;
 				case DELETE_ERROR:
 					return 8;
+				case SERVER_STOPPED:
+					return 9;
+				case SERVER_WRITE_LOCK:
+					return 10;
+				case SERVER_NOT_RESPONSIBLE:
+					return 11;
                 default:                
                     throw new IllegalArgumentException("s out of range");
             }
@@ -63,6 +69,12 @@ public interface KVMessage extends ISerializable {
 					return DELETE_SUCCESS;
 				case 8:
 					return DELETE_ERROR;
+				case 9:
+					return SERVER_STOPPED;
+				case 10:
+					return SERVER_WRITE_LOCK;
+				case 11:
+					return SERVER_NOT_RESPONSIBLE;
                 default:                
                     throw new IllegalArgumentException("b out of range");
             }
