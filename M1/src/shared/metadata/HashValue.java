@@ -28,9 +28,21 @@ public final class HashValue implements ISerializable {
     @Override
     public byte[] serialize() {
         byte[] bytes = _val.toByteArray();
-        if (bytes.length != 16) {
-            throw new IllegalStateException("bytes not the right length: " 
-                + bytes.length);
+
+        // Correct the byte array.
+        if (bytes.length < 16) {
+            byte[] tempBytes = new byte[16];
+            int diff = 16 - bytes.length;
+            System.arraycopy(bytes, 0, tempBytes, diff, bytes.length);
+            bytes = tempBytes;
+            for (int i = 0; i < diff; i++) {
+                bytes[i] = 0;
+            }
+        }
+        if (bytes.length > 16) {
+            byte[] tempBytes = new byte[16];
+            System.arraycopy(bytes, bytes.length - 16, tempBytes, 0, 16);
+            bytes = tempBytes;
         }
 
         return new Serializer()
@@ -55,7 +67,7 @@ public final class HashValue implements ISerializable {
         byte[] bytes = new byte[16];
         for (int i = 0; i < 32; i += 2) {
             bytes[i / 2] = 
-                    Byte.parseByte(md5HashString.substring(i, i + 2), 16);
+                    (byte) Integer.parseInt(md5HashString.substring(i, i + 2), 16);
         }
         return new HashValue(bytes);
     }

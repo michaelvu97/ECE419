@@ -46,6 +46,10 @@ public final class MetaData implements ISerializable {
         return _host;
     }
 
+    public int getPort() {
+        return _port;
+    }
+
     public HashRange getHashRange() {
         return _hashRange;
     }
@@ -60,7 +64,7 @@ public final class MetaData implements ISerializable {
         s.writeString(_name)
             .writeString(_host)
             .writeInt(_port)
-            .writeObject(_hashRange);
+            .writeBytes(_hashRange.serialize());
 
         return s.toByteArray();
     }

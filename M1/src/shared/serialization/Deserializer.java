@@ -42,6 +42,10 @@ public class Deserializer {
         return result;
     }
 
+    public byte[] getObjectBytes() throws DeserializationException {
+        return getBytes();
+    }
+
     public byte getByte() throws DeserializationException {
         if (remainingBytes() <= 0)
             throw new DeserializationException("reached end of deserializer");
@@ -61,6 +65,8 @@ public class Deserializer {
         for (int i = 0; i < length; i++) {
             res[i] = _arr[_position + i];
         }
+
+        _position += length;
 
         return res;
     }

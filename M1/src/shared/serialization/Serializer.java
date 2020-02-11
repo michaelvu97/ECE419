@@ -28,7 +28,13 @@ public class Serializer {
         return this;
     }
 
-    // Allows null
+    /**
+     * The object writing protocol is as follows:
+     * An object is written as byte array (as entirely serialized),
+     * with 0-length corresponding to null.
+     * Example null: ...00...
+     * Example non-null: ...04{obj bytes x 4}...
+     */
     public Serializer writeObject(ISerializable obj) {
         if (obj == null) {
             writeInt(0);

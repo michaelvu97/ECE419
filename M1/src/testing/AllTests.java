@@ -35,6 +35,7 @@ public class AllTests {
 		clientSuite.addTestSuite(ServerStoreSmartTest.class);
 		clientSuite.addTestSuite(UtilsTest.class);
 		clientSuite.addTestSuite(CacheTest.class);
+		clientSuite.addTestSuite(MetaDataTest.class);
 		return clientSuite;
 	}
 	
