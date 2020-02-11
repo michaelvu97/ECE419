@@ -115,6 +115,19 @@ public final class MetaDataSet implements ISerializable {
         return new MetaDataSet(result);
     }
 
+    public MetaData getServerForHash(HashValue hv) {
+        if (hv == null)
+            throw new IllegalArgumentException("hv is null");
+
+        for (MetaData srv : _data) {
+            if (srv.getHashRange().isInRange(hv))
+                return srv;
+        }
+
+        // This should never happen.
+        throw new IllegalStateException("Could not find server for hash " + hv);
+    }
+
     public static MetaDataSet Deserialize(byte[] serializedBytes)
             throws Deserializer.DeserializationException {
         return new MetaDataSet(

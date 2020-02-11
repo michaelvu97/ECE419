@@ -144,5 +144,23 @@ public class MetaDataTest extends TestCase {
 
         MetaDataSet mds = MetaDataSet.CreateFromServerInfo(serverInfos);
         
+        // Random hash values
+        Collection<HashValue> inputs = Arrays.asList(
+            HashValue.CreateFromHashString("00112233445566778899001122334455"),
+            HashValue.CreateFromHashString("5011223344556677889988CC82334455"),
+            HashValue.CreateFromHashString("8011223344123327889988CC82334455"),
+            HashValue.CreateFromHashString("6011223344123327889988CC82334455")
+        );
+
+        for (HashValue input : inputs) {
+            MetaData m = mds.getServerForHash(input);
+            System.out.println(input + "," + m.getName());
+            boolean matches = false;
+            for (ServerInfo s : serverInfos) {
+                if (s.getName().equals(m.getName()))
+                    matches = true;
+            }
+            assertTrue(matches);
+        }
     }
 }
