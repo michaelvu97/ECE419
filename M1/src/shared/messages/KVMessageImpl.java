@@ -1,7 +1,6 @@
 package shared.messages;
 
-import shared.Deserializer;
-import shared.Serializer;
+import shared.serialization.*;
 
 public final class KVMessageImpl implements KVMessage {
 

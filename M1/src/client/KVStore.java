@@ -2,6 +2,7 @@ package client;
 
 import shared.messages.*;
 import shared.Utils;
+import shared.serialization.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,7 +90,7 @@ public class KVStore implements KVCommInterface {
 			logger.error("PUT failed I/O", ioe);
 			throw ioe;
 		}
-		catch (shared.Deserializer.DeserializationException dse) {
+		catch (Deserializer.DeserializationException dse) {
 			logger.error("PUT failed, invalid server response", dse);
 			throw dse;
 		}
@@ -110,7 +111,7 @@ public class KVStore implements KVCommInterface {
 			logger.error("GET failed I/O", ioe);
 			throw ioe;
 		}
-		catch (shared.Deserializer.DeserializationException dse) {
+		catch (Deserializer.DeserializationException dse) {
 			logger.error("GET failed, invalid server response", dse);
 			throw dse;
 		}
@@ -124,7 +125,7 @@ public class KVStore implements KVCommInterface {
 	}
 
 	private KVMessage sendRequest(KVMessage requestMessage) 
-			throws IOException, shared.Deserializer.DeserializationException {
+			throws IOException, Deserializer.DeserializationException {
 		// Inside here will be the actual marshalling of the message, and 
 		// sending to the server.
 

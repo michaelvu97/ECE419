@@ -15,6 +15,7 @@ import logger.LogSetup;
 import cache.*;
 import server.*;
 import storage.*;
+import shared.MetaData;
 import shared.Utils;
 
 import org.apache.log4j.Level;
@@ -203,6 +204,21 @@ public class KVServer implements IKVServer {
 		}
 
 		// TODO: clear cache?
+	}
+
+	@Override
+	public MetaData getMetaData() {
+		throw new IllegalStateException(); // TODO
+	}
+
+	@Override
+	public boolean isWriterLocked() {
+		throw new IllegalStateException(); // TODO
+	}
+
+	@Override
+	public IKVServer.ServerStateType getServerState() {
+		throw new IllegalStateException(); // TODO
 	}
 
 	public static void main(String[] args) {

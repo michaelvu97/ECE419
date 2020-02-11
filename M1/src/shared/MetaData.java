@@ -1,8 +1,9 @@
 package shared;
 
 import app_kvServer.IKVServer;
+import shared.serialization.*;
 
-public final class MetaData {
+public final class MetaData implements ISerializable {
     
     private String _name;
     private String _host;
@@ -36,6 +37,11 @@ public final class MetaData {
     }
 
     public IKVServer.ServerStateType getServerStateType() {
+        return null; // TODO
+    }
+
+    @Override
+    public byte[] serialize() {
         return null; // TODO
     }
 }

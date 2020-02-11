@@ -4,9 +4,7 @@ import java.net.UnknownHostException;
 
 import org.junit.Test;
 
-import shared.Serializer;
-import shared.Deserializer;
-
+import shared.serialization.*;
 import shared.messages.*;
 
 import junit.framework.TestCase;

@@ -25,8 +25,8 @@ public final class HashRange {
         if (end.length() != 32)
             throw new IllegalArgumentException("end");
 
-        _hashStart = new BigInteger(start.getBytes());
-        _hashEnd = new BigInteger(end.getBytes());
+        _hashStart = new BigInteger(1, start.getBytes());
+        _hashEnd = new BigInteger(1, end.getBytes());
 
         _wrapsAround = _hashStart.compareTo(_hashEnd) > 0;
     }
@@ -41,7 +41,7 @@ public final class HashRange {
         if (hashCheck.length() != 32)
             throw new IllegalArgumentException("hashCheck");
 
-        BigInteger val = new BigInteger(hashCheck.getBytes());
+        BigInteger val = new BigInteger(1, hashCheck.getBytes());
 
         if (_wrapsAround) {
             return _hashStart.compareTo(val) <= 0 

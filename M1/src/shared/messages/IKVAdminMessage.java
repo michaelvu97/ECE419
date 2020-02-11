@@ -1,10 +1,7 @@
 package shared.messages;
 
-public interface IKVAdminMessage {
-    // TODO
+import shared.serialization.*;
 
-    /**
-     * @return the KVAdminMessage serialized.
-     */
-    public byte[] serialize();
+public interface IKVAdminMessage extends ISerializable {
+    // TODO
 }
