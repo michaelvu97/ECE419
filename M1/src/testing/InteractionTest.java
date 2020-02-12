@@ -15,7 +15,7 @@ public class InteractionTest extends TestCase {
 	private Logger logger = Logger.getRootLogger();
 	
 	public void setUp() {
-		kvClient = new KVStore("localhost", 50000);
+		kvClient = new KVStore("TODO", "localhost", 50000);
 		try {
 			kvClient.connect();
 		} catch (Exception e) {

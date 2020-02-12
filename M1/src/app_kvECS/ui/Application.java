@@ -56,12 +56,12 @@ public class Application implements ClientSocketListener {
 		}
 	}
 
-	private void connect(String address, int port) 
+	private void connect(String serverName, String address, int port) 
 			throws UnknownHostException, IOException {
 		client = new KVClient();
 		try {
-			client.newConnection(address, port);
-			client.addListener(this);
+			client.newConnection(serverName, address, port);
+			// client.addListener(this);
 		} catch (IOException e) {
 			printError("Could not establish connection!");
 			logger.warn("Could not establish connection!", e);

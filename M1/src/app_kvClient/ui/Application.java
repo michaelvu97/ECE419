@@ -52,10 +52,16 @@ public class Application implements ClientSocketListener {
 		// connect <address> <port>
 		else if (tokens[0].equals("connect")){
 			if(tokens.length == 3) {
+
+				// TODO TODO also read the server name???
+				// TODO TODO also read the server name???
+				// TODO TODO also read the server name???
+
 				try{
 					serverAddress = tokens[1];
 					serverPort = Integer.parseInt(tokens[2]);
-					connect(serverAddress, serverPort);
+					connect("PLEASE PUT THE NAME HERE", serverAddress, 
+							serverPort);
 				} catch(NumberFormatException nfe) {
 					printError("No valid address. Port must be a number!");
 					logger.info("Unable to parse argument <port>", nfe);
@@ -130,12 +136,11 @@ public class Application implements ClientSocketListener {
 		}
 	}
 
-	private void connect(String address, int port) 
+	private void connect(String serverName, String address, int port) 
 			throws UnknownHostException, IOException {
 		client = new KVClient();
 		try {
-			client.newConnection(address, port);
-			client.addListener(this);
+			client.newConnection(serverName, address, port);
 		} catch (IOException e) {
 			printError("Could not establish connection!");
 			logger.warn("Could not establish connection!", e);

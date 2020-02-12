@@ -121,7 +121,8 @@ public class StressTest {
 
             // Initialize & connect client(s)
             kvClient = new KVClient();
-            kvClient.newConnection(kvServer.getHostname(), kvServer.getPort());
+            kvClient.newConnection("TODO", kvServer.getHostname(), 
+                    kvServer.getPort());
 
             // Perform put put put get, etc.
             // Each GET must get a random key that has previously been PUT.

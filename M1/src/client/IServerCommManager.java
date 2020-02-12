@@ -6,6 +6,17 @@ import shared.messages.*;
 import shared.serialization.*;
 
 public interface IServerCommManager {
+
+    /**
+     * Connects to the cloud KV service.
+     */
+    public void connect() throws IOException;
+
+    /**
+     * Disconnects from the cloud KV service.
+     */
+    public void disconnect() throws IOException;
+
     /**
      * Sends a KVMessage to the KVServer cloud.
      * Internally, will handle SERVER_NOT_RESPONSIBLE responses, and will retry

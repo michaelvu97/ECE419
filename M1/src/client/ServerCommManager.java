@@ -1,7 +1,9 @@
 package client;
 
-import java.util.HashMap;
 import java.io.IOException;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -22,15 +24,42 @@ public final class ServerCommManager implements IServerCommManager {
     private HashMap<String, ICommChannel> _serverCommChannels = 
             new HashMap<String, ICommChannel>();
 
-    public ServerCommManager() {
-        
-        // We need to figure out an intial server to connect to in order to 
-        // populate our metadata set.
+    private ServerInfo _initialServerInfo;
 
-        // TODO
-        // TODO
-        // TODO
-        // TODO
+    public ServerCommManager(ServerInfo initialServerInfo) {
+        if (initialServerInfo == null)
+            throw new IllegalArgumentException("initialServerInfo is null");
+
+        _initialServerInfo = initialServerInfo;
+    }
+
+    @Override
+    public void connect() throws IOException {
+        connectToServer(_initialServerInfo);
+    }
+
+    @Override
+    public synchronized void disconnect() throws IOException {
+
+        IOException ioe = null;
+
+        // Close all sockets
+        for (Map.Entry<String, ICommChannel> entry : 
+                _serverCommChannels.entrySet()) {
+            try {
+                entry.getValue().getSocket().close();
+            } catch (IOException e) {
+                ioe = e;
+                logger.error("Could not disconnect from server: " 
+                        + entry.getKey());
+            }
+        }
+
+        _serverCommChannels.clear();
+        _metaDataSet = null;
+
+        if (ioe != null)
+            throw ioe;
     }
 
     @Override
@@ -48,6 +77,7 @@ public final class ServerCommManager implements IServerCommManager {
             MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
 
             if (!_serverCommChannels.containsKey(responsibleServer.getName())) {
+                // May throw an IOException.
                 connectToServer(responsibleServer);
             }
 
@@ -104,13 +134,25 @@ public final class ServerCommManager implements IServerCommManager {
                 && status != KVMessage.StatusType.SERVER_WRITE_LOCK;
     }
 
-    private void connectToServer(MetaData serverMetaData) {
-        ICommChannel commChannel = null;
+    private void connectToServer(MetaData serverMetaData) 
+            throws IOException {
+        connectToServer(new ServerInfo(
+            serverMetaData.getName(),
+            serverMetaData.getHost(),
+            serverMetaData.getPort())
+        );
+    }
 
-        // TODO
-        // TODO
-        // TODO
+    private void connectToServer(ServerInfo serverInfo) 
+            throws IOException {
+        Socket clientSocket = new Socket(
+            serverInfo.getHost(),
+            serverInfo.getPort()
+        );
 
-        _serverCommChannels.put(serverMetaData.getName(), commChannel);
+        ICommChannel commChannel = new CommChannel(clientSocket);
+        _serverCommChannels.put(serverInfo.getName(), commChannel);
+
+        logger.info("connection established");
     }
 }

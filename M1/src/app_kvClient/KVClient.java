@@ -6,14 +6,17 @@ import client.KVCommInterface;
 import client.ClientSocketListener;
 import client.KVStore;
 
+import shared.metadata.*;
+
 public class KVClient implements IKVClient {
 
 	private KVStore clientStore = null;
 
     @Override
-    public void newConnection (String hostname, int port) throws IOException {
+    public void newConnection (String serverName, String hostname, int port) 
+            throws IOException {
         // TODO: check that the connection doesn't already exist?
-		clientStore = new KVStore(hostname, port);
+		clientStore = new KVStore(new ServerInfo(serverName, hostname, port));
 		clientStore.connect();
 	}
 
@@ -38,10 +41,10 @@ public class KVClient implements IKVClient {
         clientStore.disconnect();
     }
 
-    public void addListener(ClientSocketListener listener) throws IllegalStateException {
-        ValidateConnectionEstablished();
-    	clientStore.addListener(listener);
-    }
+    // public void addListener(ClientSocketListener listener) throws IllegalStateException {
+    //     ValidateConnectionEstablished();
+    // 	clientStore.addListener(listener);
+    // }
 
     private void ValidateConnectionEstablished() throws IllegalStateException {
         if (clientStore == null) {

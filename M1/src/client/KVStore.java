@@ -21,61 +21,49 @@ import shared.comms.*;
 import shared.metadata.*;
 
 public class KVStore implements KVCommInterface {
-	
-	int port;
-	String address; 
-
 	private ICommChannel _commChannel = null; // TODO remove
 
-	private IServerCommManager _serverCommManager = new ServerCommManager();
-	private Socket _clientSocket = null;
+	private IServerCommManager _serverCommManager;
  	private Logger logger = Logger.getRootLogger();
- 	private Set<ClientSocketListener> listeners;
 
 	/**
-	 * Initialize KVStore with address and port of KVServer
-	 * @param address the address of the KVServer
-	 * @param port the port of the KVServer
+	 * Initialize KVStore with an initial server to connect to.
 	 */
+	public KVStore(ServerInfo entryPointServerInfo) {
+		if (entryPointServerInfo == null)
+			throw new IllegalArgumentException("entryPointServerInfo is null");
+		_serverCommManager = new ServerCommManager(entryPointServerInfo);
+	}
 
-	public KVStore(String address, int port) {
-		this.port = port;
-		this.address = address;
+	public KVStore(String name, String host, int port) {
+		this(new ServerInfo(name, host, port));
 	}
 
 	@Override
 	public void connect() throws UnknownHostException, IOException {
-		_clientSocket = new Socket(address, port);
-		listeners = new HashSet<ClientSocketListener>();
-		logger.info("Connection established");
+		try {
+			_serverCommManager.connect();
+		} catch (UnknownHostException uhe) {
+			logger.error("Host not found!");
+			throw uhe;
+		} finally {
 
-		_commChannel = new CommChannel(_clientSocket);
+		}
+		logger.info("Connected to KVServer cloud");
 	}
 
 	@Override
 	public synchronized void disconnect() {
 		logger.info("trying to close connection ...");
 		try {
-			tearDownConnection();
-			for (ClientSocketListener listener : listeners) {
-				listener.handleStatus(SocketStatus.DISCONNECTED);
-			}
+			if (_serverCommManager != null)
+				_serverCommManager.disconnect();
+			logger.info("Disconnected from KVServer cloud");
 		} catch (IOException ioe) {
-			logger.error("Unable to close connection.");
+			logger.error("Unable to close connection to KVServer cloud");
 		} finally {
-			_clientSocket = null;
+			_serverCommManager = null;
 		}
-	}
-
-	private void tearDownConnection() throws IOException {
-		if (_clientSocket != null) {
-			_clientSocket.close();
-			logger.info("Connection closed!");
-		}
-	}
-
-	public void addListener(ClientSocketListener listener){
-		listeners.add(listener);
 	}
 
 	@Override
@@ -126,9 +114,10 @@ public class KVStore implements KVCommInterface {
 	}
 
 	private void validateConnected() {
-		if (_clientSocket == null) {
-			logger.error("Attempted to connect to a disconnected kvStore");
-			throw new IllegalStateException("KVStore disconnected");
+		if (_serverCommManager == null) {
+			logger.error(
+					"Attempted to connect to a disconnected KVServer Cloud");
+			throw new IllegalStateException("KVServer Cloud Disconnected");
 		}
 	}
 }
