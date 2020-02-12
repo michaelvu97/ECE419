@@ -92,6 +92,11 @@ public interface KVMessage extends ISerializable {
 	 * 		null if not value is associated.
 	 */
 	public String getValue();
+
+	/**
+	 * @return the value of this message as raw bytes.
+	 */
+	public byte[] getValueRaw();
 	
 	/**
 	 * @return a status string that is used to identify request types, 

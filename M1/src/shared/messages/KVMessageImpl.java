@@ -5,14 +5,18 @@ import shared.serialization.*;
 public final class KVMessageImpl implements KVMessage {
 
     private String _key = null;
-    private String _value = null;
+    private byte[] _value = null;
     private KVMessage.StatusType _type;
 
     public KVMessageImpl(KVMessage.StatusType type, String key, String value) {
+        this(type, key, value == null ? null : value.getBytes());
+    }
+
+    public KVMessageImpl(KVMessage.StatusType type, String key, byte[] value) {
         _type = type;
         _key = key;
         _value = value;
-        
+
         if (getStatus() == KVMessage.StatusType.GET) {
             if (getValue() != null)
                 throw new IllegalArgumentException("Value cannot be set for GET requests");
@@ -42,6 +46,11 @@ public final class KVMessageImpl implements KVMessage {
 
     @Override
     public String getValue() {
+        return _value == null ? null : new String(_value);
+    }
+
+    @Override
+    public byte[] getValueRaw() {
         return _value;
     }
 
@@ -56,7 +65,7 @@ public final class KVMessageImpl implements KVMessage {
             new Serializer()
             .writeByte(getStatus().toByte())
             .writeString(getKey())
-            .writeString(getValue())
+            .writeBytes(getValueRaw())
             .toByteArray();
     }
 
@@ -69,7 +78,7 @@ public final class KVMessageImpl implements KVMessage {
 
         KVMessage.StatusType type = KVMessage.StatusType.FromByte(d.getByte());
         String key = d.getString();
-        String value = d.getString();
+        byte[] value = d.getBytes();
 
         return new KVMessageImpl(type, key, value);
     }

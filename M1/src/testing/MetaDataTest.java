@@ -154,7 +154,7 @@ public class MetaDataTest extends TestCase {
 
         for (HashValue input : inputs) {
             MetaData m = mds.getServerForHash(input);
-            System.out.println(input + "," + m.getName());
+            
             boolean matches = false;
             for (ServerInfo s : serverInfos) {
                 if (s.getName().equals(m.getName()))
