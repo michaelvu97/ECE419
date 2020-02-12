@@ -16,14 +16,18 @@ import java.util.HashSet;
 import org.apache.log4j.Logger;
 
 import client.ClientSocketListener.SocketStatus;
+
 import shared.comms.*;
+import shared.metadata.*;
 
 public class KVStore implements KVCommInterface {
 	
 	int port;
 	String address; 
 
-	private ICommChannel _commChannel = null;
+	private ICommChannel _commChannel = null; // TODO remove
+
+	private IServerCommManager _serverCommManager = new ServerCommManager();
 	private Socket _clientSocket = null;
  	private Logger logger = Logger.getRootLogger();
  	private Set<ClientSocketListener> listeners;
@@ -82,7 +86,7 @@ public class KVStore implements KVCommInterface {
 			Utils.validateValue(value);
 
 			KVMessage message = new KVMessageImpl(KVMessage.StatusType.PUT, key, value);
-			KVMessage response = sendRequest(message);
+			KVMessage response = _serverCommManager.sendRequest(message);
 
 			return response;
 		} 
@@ -102,8 +106,12 @@ public class KVStore implements KVCommInterface {
 		try {
 			Utils.validateKey(key);
 
-			KVMessage message = new KVMessageImpl(KVMessage.StatusType.GET, key, null);
-			KVMessage response = sendRequest(message);
+			KVMessage message = new KVMessageImpl(
+				KVMessage.StatusType.GET,
+				key
+			);
+
+			KVMessage response = _serverCommManager.sendRequest(message);
 
 			return response;
 		}
@@ -122,24 +130,5 @@ public class KVStore implements KVCommInterface {
 			logger.error("Attempted to connect to a disconnected kvStore");
 			throw new IllegalStateException("KVStore disconnected");
 		}
-	}
-
-	private KVMessage sendRequest(KVMessage requestMessage) 
-			throws IOException, Deserializer.DeserializationException {
-		// Inside here will be the actual marshalling of the message, and 
-		// sending to the server.
-
-		byte[] messageBytes = requestMessage.serialize();
-
-		_commChannel.sendBytes(messageBytes);
-
-		// Should probably trycatch?
-		byte[] response = _commChannel.recvBytes();
-
-		KVMessage responseObj = KVMessageImpl.Deserialize(response);
-
-		logger.info("Received server response: " + responseObj.toString());
-
-		return responseObj;
 	}
 }

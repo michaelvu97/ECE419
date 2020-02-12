@@ -5,10 +5,9 @@ import shared.messages.KVMessage;
 public interface KVCommInterface {
 
 	/**
-	 * Establishes a connection to the KV Server.
-	 *
-	 * @throws Exception
-	 *             if connection could not be established.
+	 * Establishes a connection to the storage service, i.e., to an arbitrary
+	 * instance of the storage servers that makes up the storage service.
+	 * @throws Exception if connection could not be established.
 	 */
 	public void connect() throws Exception, IllegalStateException;
 

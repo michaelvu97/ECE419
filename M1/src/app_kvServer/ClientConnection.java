@@ -85,7 +85,7 @@ public class ClientConnection implements Runnable {
 		if (result != null) {
 			return new KVMessageImpl(KVMessage.StatusType.GET_SUCCESS, key, result);
 		} else {
-			return new KVMessageImpl(KVMessage.StatusType.GET_ERROR, key, null);
+			return new KVMessageImpl(KVMessage.StatusType.GET_ERROR, key);
 		}
 	}
 
@@ -108,9 +108,9 @@ public class ClientConnection implements Runnable {
 
 		boolean success = serverStore.delete(key);
 		if (success) {
-			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key, null);
+			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key);
 		} else {
-			return new KVMessageImpl(KVMessage.StatusType.DELETE_ERROR, key, null);
+			return new KVMessageImpl(KVMessage.StatusType.DELETE_ERROR, key);
 		}
 	}
 

@@ -35,7 +35,8 @@ public class KVMessageTest extends TestCase {
             assertTrue(false);
         }
 
-        KVMessage getReq = new KVMessageImpl(KVMessage.StatusType.GET, key, null);
+        KVMessage getReq = new KVMessageImpl(KVMessage.StatusType.GET, key, 
+                (String) null);
 
         assertTrue(getReq.getStatus() == KVMessage.StatusType.GET);
         assertTrue(getReq.getKey().equals(key));
@@ -98,7 +99,8 @@ public class KVMessageTest extends TestCase {
 
         // GET key
         try {
-            KVMessage req = new KVMessageImpl(KVMessage.StatusType.GET, null, null);
+            KVMessage req = new KVMessageImpl(KVMessage.StatusType.GET, null, 
+                    (String)null);
         } catch (Exception e1) {
             e = e1;
         }
@@ -107,7 +109,8 @@ public class KVMessageTest extends TestCase {
 
         // PUT key
         try {
-            KVMessage req = new KVMessageImpl(KVMessage.StatusType.PUT, null, null);
+            KVMessage req = new KVMessageImpl(KVMessage.StatusType.PUT, null, 
+                    (String)null);
         } catch (Exception e1) {
             e = e1;
         }

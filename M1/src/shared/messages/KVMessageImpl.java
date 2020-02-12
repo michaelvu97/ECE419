@@ -12,6 +12,10 @@ public final class KVMessageImpl implements KVMessage {
         this(type, key, value == null ? null : value.getBytes());
     }
 
+    public KVMessageImpl(KVMessage.StatusType type, String key) {
+        this(type, key, (byte[]) null);
+    }
+
     public KVMessageImpl(KVMessage.StatusType type, String key, byte[] value) {
         _type = type;
         _key = key;
@@ -33,10 +37,15 @@ public final class KVMessageImpl implements KVMessage {
     }
 
     public String toString() {
-        if (_value == null)
+        if (_value == null) {
             return getStatus().toString() + "<" + getKey() + ">";
-        else
+        } else if (getStatus() == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+            return getStatus().toString() + "<" + getKey() + ",[server_metadata]>";
+        } else {
             return getStatus().toString() + "<" + getKey() + "," + getValue() + ">";
+        }
+
+        
     }
 
     @Override
