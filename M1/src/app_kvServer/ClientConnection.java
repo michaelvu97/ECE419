@@ -28,6 +28,9 @@ public class ClientConnection implements Runnable {
 	
 	private ICommChannel commChannel;
 	private IServerStore serverStore;
+	private IKVServer kvServer;
+
+	private IMetaDataManager metaDataManager;
 
 	// Null when the socket is closed.
 	private Socket clientSocket;
@@ -36,15 +39,22 @@ public class ClientConnection implements Runnable {
 	 * Constructs a new CientConnection object for a given TCP socket.
 	 * @param clientSocket the Socket object for the client connection.
 	 */
-	public ClientConnection(Socket clientSocket, IServerStore serverStore, ClientAcceptor acceptor) {
+	public ClientConnection(Socket clientSocket, IServerStore serverStore, 
+				IMetaDataManager metaDataManager, ClientAcceptor acceptor) {
 		if (clientSocket == null)
 			throw new NullPointerException("client socket is null");
 		if (serverStore == null)
 			throw new IllegalArgumentException("server store is null");
+		if (acceptor == null)
+			throw new IllegalArgumentException("client acceptor is null");
+		if (metaDataManager == null)
+			throw new IllegalArgumentException("metaDataManager is null");
 
 		this.clientSocket = clientSocket;
 		this.serverStore = serverStore;
 		this.clientMaster = acceptor;
+		this.metaDataManager = metaDataManager;
+
 		this.isOpen = true;
 		try {
 			this.commChannel = new CommChannel(clientSocket);
@@ -73,6 +83,8 @@ public class ClientConnection implements Runnable {
 
 		} else if (requestType == KVMessage.StatusType.GET) {
 			return handleGet(request);
+		} else if (requestType == KVMessage.StatusType.GET_METADATA) {
+			return handleGetMetadata(request);
 		} else {
 			throw new IllegalArgumentException("request is not valid: " + request);
 		}
@@ -112,6 +124,15 @@ public class ClientConnection implements Runnable {
 		} else {
 			return new KVMessageImpl(KVMessage.StatusType.DELETE_ERROR, key);
 		}
+	}
+
+	private KVMessage handleGetMetadata(KVMessage getMetadataMessage) {
+		// No need to validate any fields, there are none.
+		return new KVMessageImpl(
+			KVMessage.StatusType.GET_METADATA_SUCCESS,
+			null,
+			this.metaDataManager.getMetaData().serialize()
+		);
 	}
 
 	/**

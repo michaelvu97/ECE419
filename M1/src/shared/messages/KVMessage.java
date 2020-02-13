@@ -14,11 +14,13 @@ public interface KVMessage extends ISerializable {
 		PUT_ERROR, 		/* Put - request not successful */
 		DELETE_SUCCESS, /* Delete - request successful */
 		DELETE_ERROR, 	/* Delete - request successful */
-		SERVER_STOPPED,         /* Server is stopped, no requests are processed */
-  		SERVER_WRITE_LOCK,      /* Server locked for out, only get possible */
-  		SERVER_NOT_RESPONSIBLE;  /* Request not successful, server not responsible for key */
+		SERVER_STOPPED,          /* Server is stopped, no requests are processed */
+  		SERVER_WRITE_LOCK,       /* Server locked for out, only get possible */
+  		SERVER_NOT_RESPONSIBLE,  /* Request not successful, server not responsible for key */
+  		GET_METADATA,            /* Pls give me the metadata - request */
+  		GET_METADATA_SUCCESS     /* Ok here you go, let me introduce you to my friends - request successful */; 
 
-		public byte toByte(){
+		public byte toByte() {
 			switch (this) {
 				case GET:
 					return 0;
@@ -44,12 +46,16 @@ public interface KVMessage extends ISerializable {
 					return 10;
 				case SERVER_NOT_RESPONSIBLE:
 					return 11;
+				case GET_METADATA:
+					return 12;
+				case GET_METADATA_SUCCESS:
+					return 13;
                 default:                
                     throw new IllegalArgumentException("s out of range");
             }
 		}
 
-		public static StatusType FromByte(byte b){
+		public static StatusType FromByte(byte b) {
             switch (b) {
 				case 0:
 					return GET;
@@ -75,6 +81,10 @@ public interface KVMessage extends ISerializable {
 					return SERVER_WRITE_LOCK;
 				case 11:
 					return SERVER_NOT_RESPONSIBLE;
+				case 12:
+					return GET_METADATA;
+				case 13:
+					return GET_METADATA_SUCCESS;
                 default:                
                     throw new IllegalArgumentException("b out of range");
             }

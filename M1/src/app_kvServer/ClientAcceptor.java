@@ -16,6 +16,7 @@ import server.*;
 public class ClientAcceptor implements Runnable {
     private ServerSocket _serverSocket;
     private IServerStore _serverStore;
+    private IMetaDataManager _metaDataManager;
     
     private ArrayList <ClientConnection> clientList = new ArrayList<ClientConnection>();  
     private Object _lock = new Object();
@@ -24,15 +25,20 @@ public class ClientAcceptor implements Runnable {
 
     private static Logger logger = Logger.getRootLogger();
 
-    public ClientAcceptor(ServerSocket serverSocket, IServerStore serverStore) {
+    public ClientAcceptor(ServerSocket serverSocket, IServerStore serverStore,
+            IMetaDataManager metaDataManager) {
+        
         super();
         if (serverSocket == null)
             throw new IllegalArgumentException("server socket is null");
         if (serverStore == null)
             throw new IllegalArgumentException("server store is null");
+        if (metaDataManager == null)
+            throw new IllegalArgumentException("metaDataManager is null");
 
         this._serverStore = serverStore;
         this._serverSocket = serverSocket;
+        this._metaDataManager = metaDataManager;
     }
     
     public boolean isRunning() {
@@ -81,6 +87,7 @@ public class ClientAcceptor implements Runnable {
                 ClientConnection clientConnection = new ClientConnection(
                         clientSocket,
                         this._serverStore,
+                        this._metaDataManager,
                         this
                 );
 

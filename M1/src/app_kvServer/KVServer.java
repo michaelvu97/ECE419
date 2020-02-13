@@ -33,6 +33,7 @@ public class KVServer implements IKVServer {
     private ClientAcceptor _clientAcceptor;    
 
 	private IServerStore serverStore;
+	private IMetaDataManager metaDataManager = new MetaDataManager();
 
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
@@ -140,7 +141,7 @@ public class KVServer implements IKVServer {
     public void run(){
     	this.running = initializeServer();
     	if (this.running) {
-    		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore);
+    		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore, this.metaDataManager);
     		new Thread(this._clientAcceptor).start();
     	}
 	}
@@ -208,7 +209,7 @@ public class KVServer implements IKVServer {
 
 	@Override
 	public MetaData getMetaData() {
-		throw new IllegalStateException(); // TODO
+		throw new IllegalStateException("NOT IMPLEMENTED"); // TODO
 	}
 
 	@Override
