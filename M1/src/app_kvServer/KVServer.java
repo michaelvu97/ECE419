@@ -21,8 +21,11 @@ import shared.Utils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import org.apache.zookeeper.ZooKeeper;
+
 public class KVServer implements IKVServer {
 	
+	private String _name;
 	private int _port;
 	private int _cacheSize;
 	private boolean running = false;
@@ -39,9 +42,13 @@ public class KVServer implements IKVServer {
 
 	private static Logger logger = Logger.getRootLogger();
 
-	private static String USAGE = "server <port> [cache strategy]\n" +
+	private IZKClient _zkClient = null;
+
+	private static String USAGE = "server <name> <port> <cache strategy> <cache size>\n" +
+		"<name> is the server znode name\n" +
 		"<port> is a valid unused local port, or 0 for new unused port\n" +
-		"[cache strategy] is optional and is one of {LRU, FIFO, LFU}. Default is FIFO.";
+		"<cache strategy> is one of {LRU, FIFO, LFU}\n" + 
+		"<cache size> is the size of the cache.";
 
 	/**
 	 * Start KV Server at given port
@@ -53,7 +60,16 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */ 
-	public KVServer(int port, int cacheSize, String strategy, String diskStorageStr){
+	public KVServer(String znodeName, int port, int cacheSize, String strategy,
+			String diskStorageStr) {
+		if (znodeName == null || znodeName.length() == 0)
+			throw new IllegalArgumentException("znodeName invalid");
+		if (port < 0)
+			throw new IllegalArgumentException("port is negative");
+		if (cacheSize < 0)
+			throw new IllegalArgumentException("cache size cannot be negative");
+
+		this._name = znodeName;
 		this._port = port;
 		this._cacheSize = cacheSize;
 
@@ -78,10 +94,18 @@ public class KVServer implements IKVServer {
 		IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
+		try {
+			this._zkClient = new ZKClient("localhost:2181");
+			// Test for now
+			this._zkClient.registerNode(this._name);
+		} catch (Exception e) {
+			logger.error("Could not connect to zookeeper!", e);
+			this._zkClient = null;
+		}
 	}
 
-    public KVServer(int port, int cacheSize, String cacheStrategy) {
-        this(port, cacheSize, cacheStrategy, "DEFAULT_STORAGE");
+    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy) {
+        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE");
     }
 	
 	@Override
@@ -225,19 +249,23 @@ public class KVServer implements IKVServer {
 	public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
-			if(args.length < 1 || 2 < args.length) {
+			if(args.length != 4) {
 				System.out.println("Error! Invalid number of arguments!");
 				System.out.println(USAGE);
 			} else {
-				int port = Integer.parseInt(args[0]);
-				String cacheStrategy = (args.length >= 2) ? args[1] : "FIFO";
+				String znodeName = args[0];
+				int port = Integer.parseInt(args[1]);
+				String cacheStrategy = args[2];
+				int cacheSize = Integer.parseInt(args[3]);
 				IKVServer kvServer = null;
 				try {
-					kvServer = new KVServer(port, 1000, cacheStrategy, "DISK_STORAGE_MAIN");
+					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName);
 				} catch (IllegalArgumentException iae) {
 					System.out.println(iae.getMessage());
 				}
 				kvServer.run();
+
+				// TODO: we might need a way to kill the server remotely
 				while(true);
 			}
 
