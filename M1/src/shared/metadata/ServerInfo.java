@@ -7,6 +7,7 @@ public class ServerInfo implements Comparable<ServerInfo> {
     private String _host;
     private int _port;
     private String _hash;
+    private boolean available = true;
 
     public ServerInfo(String name, String host, int port) {
         if (name == null)
@@ -20,6 +21,7 @@ public class ServerInfo implements Comparable<ServerInfo> {
         _host = host;
         _port = port;
         _hash = ComputeHash(_host, _port);
+        available = false;
     }
 
     private static String ComputeHash(String hostname, int port) {
@@ -36,6 +38,15 @@ public class ServerInfo implements Comparable<ServerInfo> {
         byte[] result = md.digest();
         
         return HashValue.CreateFromMD5Bytes(result).toString();
+    }
+
+    public boolean setAvailability(boolean availability) {
+        available = availability;
+        return available;
+    }
+
+    public boolean getAvailability() {
+        return available;
     }
 
     public String getName() {

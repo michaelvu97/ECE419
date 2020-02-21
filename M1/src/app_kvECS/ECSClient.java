@@ -1,8 +1,7 @@
 package app_kvECS;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Collection;
+import java.util.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -10,34 +9,36 @@ import logger.LogSetup;
 
 import org.apache.zookeeper.*;
 
-import ecs.IECSNode;
+import ecs.*;
+import shared.metadata.*;
 
 public class ECSClient implements IECSClient {
 
     private String _configFilePath;
-
     private ZooKeeper _zoo = null;
-
     private static Logger logger = Logger.getRootLogger();
+    private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
+    private Map<String, IECSNode> allNodes = new HashMap<String, IECSNode>();
 
     public ECSClient(String configFilePath) {
         if (configFilePath == null || configFilePath.length() == 0)
             throw new IllegalArgumentException("configFilePath");
 
         _configFilePath = configFilePath;
+
+        // TODO: extract all servers in config into allServerInfo.
     }
 
     @Override
     public boolean start() {
         
+        // unsure about this
         try {
             _zoo = new ZooKeeper("localhost:2181", 10000, new ECSWatcher());
             // data monitor?
         } catch (IOException e){
             _zoo = null;
         }
-
-
 
         // TODO
         return false;
@@ -56,15 +57,53 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
+    public ServerInfo getNextAvailableServer() {
+       
+        for(int i = 0; i < allServerInfo.size(); i++) {
+            if (allServerInfo.get(i).getAvailability()) {
+                return allServerInfo.get(i);
+            }
+        }
+        return null;
+    }
+
+    @Override
     public IECSNode addNode(String cacheStrategy, int cacheSize) {
-        // TODO
-        // Start a single server.
+        
+        ECSNode newNode = null;
+        ServerInfo newServer = getNextAvailableServer();
+        
+        if (newServer != null) {
+            newNode = new ECSNode(newServer.getHost(), newServer.getName(), 
+               newServer.getPort(), cacheStrategy, cacheSize); 
+
+            // TODO: add the new node to map of nodes.
+
+            // ssh call to start KV server
+            // TODO: write the actual kc_server.sh scrip.
+            Process proc = null;
+            String script = "kv_server.sh";
+
+            Runtime run = Runtime.getRuntime();
+            String cmd[] = {script /* AGUMENTS FOR SCRIPT HERE */};
+
+            try {
+                proc = run.exec(cmd);
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+
+            return newNode;
+
+        } else {
+            // TODO no servers left! do something about it.
+        }
         return null;
     }
 
     @Override
     public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
-        // TODO
+        // TODO: call addNode count # of times
         return null;
     }
 
@@ -88,20 +127,19 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Map<String, IECSNode> getNodes() {
-        // TODO
-        return null;
+        // TODO ???
+        return allNodes;
     }
 
     @Override
-    public IECSNode getNodeByKey(String Key) {
+    public IECSNode getNodeByName(String name) {
         // TODO
         return null;
     }
 
     public static void main(String[] args) {
         // Start Admin CLI
-
-        ECSClient client = new ECSClient("aaaa");
+        ECSClient client = new ECSClient("ecs.config");
         client.start();
     }
 }

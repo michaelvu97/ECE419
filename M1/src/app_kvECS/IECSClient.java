@@ -3,7 +3,8 @@ package app_kvECS;
 import java.util.Map;
 import java.util.Collection;
 
-import ecs.IECSNode;
+import ecs.*;
+import shared.metadata.*;
 
 public interface IECSClient {
     /**
@@ -71,5 +72,8 @@ public interface IECSClient {
     /**
      * Get the specific node responsible for the given key
      */
-    public IECSNode getNodeByKey(String Key);
+    public IECSNode getNodeByName(String name);
+
+    public ServerInfo getNextAvailableServer();
+
 }
