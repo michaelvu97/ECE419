@@ -10,20 +10,17 @@ import org.apache.log4j.Logger;
 
 import logger.LogSetup;
 
-import app_kvClient.KVClient;
+import app_kvECS.ECSClient;
 import client.ClientSocketListener;
 //import client.TextMessage;
 
-public class Application implements ClientSocketListener {
+public class Application {
 
 	private static Logger logger = Logger.getRootLogger();
-	private static final String PROMPT = "KVClient> ";
+	private static final String PROMPT = "ECSClient> ";
 	private BufferedReader stdin;
-	private KVClient client = null;
+	private static ECSClient client;
 	private boolean running = true;
-	
-	private String serverAddress;
-	private int serverPort;
 	
 	public void run() {
 		while(running) {
@@ -49,6 +46,50 @@ public class Application implements ClientSocketListener {
 			disconnect();
 			System.out.println(PROMPT + "Application exit!");
 		} 
+		else if(tokens[0].equals("add")) {	
+			if(tokens.length == 4) {
+				try{
+					int numNodes = Integer.parseInt(tokens[1]);
+					String cacheStrategy = tokens[2];
+					int cacheSize = Integer.parseInt(tokens[3]);
+					if(!(cacheStrategy.equals("FIFO") || cacheStrategy.equals("LFU") || cacheStrategy.equals("LRU"))){
+						printError("Not a valid cache strategy. Must choose FIFO, LFU, or LRU!");
+					}
+					else if (numNodes < 1){
+						printError("The number of nodes must be greater than 0!");
+					}
+					else {
+						add_servers(numNodes, 
+							cacheStrategy, 
+							cacheSize);	
+					}
+				} catch(NumberFormatException nfe) {
+					printError("Please make sure that both the cache size and number of nodes are integers");
+					logger.info("Unable to parse argument <cacheSize> or <numNodes>", nfe);
+				} catch (UnknownHostException e) {
+					printError("Unknown Host!");
+					logger.info("Unknown Host!", e);
+				} catch (IOException e) {
+					printError("Could not establish connection!");
+					logger.warn("Could not establish connection!", e);
+				}
+			} else {
+				printError("Invalid number of parameters!");
+			}
+		} 
+		else if(tokens[0].equals("remove")) {	
+			if(tokens.length == 2) {
+				try{
+					int serverIndex = Integer.parseInt(tokens[1]);
+					remove_server(serverIndex);
+				} catch(NumberFormatException nfe) {
+					printError("Index must be a number!");
+					logger.info("Unable to parse argument <serverIndex>", nfe);
+				}
+			} else {
+				printError("Invalid number of parameters!");
+			}
+		} 
 		// unknown command
 		else {
 			printError("Unknown command");
@@ -56,45 +97,55 @@ public class Application implements ClientSocketListener {
 		}
 	}
 
-	private void connect(String serverName, String address, int port) 
-			throws UnknownHostException, IOException {
-		client = new KVClient();
-		try {
-			client.newConnection(serverName, address, port);
-			// client.addListener(this);
-		} catch (IOException e) {
-			printError("Could not establish connection!");
-			logger.warn("Could not establish connection!", e);
-		}
+	private void add_servers(int numServers, String cacheStrategy, int cacheSize) 
+		 throws UnknownHostException, IOException {
+		 //UNCOMMENT WHEN ECSCLIENT IS IMPLEMENTED
+		 // try {
+		  	client.addNodes(numServers,cacheStrategy,cacheSize);
+		  	// client.addListener(this);
+		 // } catch (IOException e) {
+		 //  	printError("Could not establish connection!");
+		 //  	logger.warn("Could not establish connection!", e);
+		 // }
 	}
 	
+	private void remove_server(int nodeIndex) {
+		// try {
+		// 	//remove needs to beimplemented
+		// 	//client.remove(nodeIndex);
+		// 	// client.addListener(this);
+		// } catch (IOException e) {
+		// 	printError("Could not establish connection!");
+		// 	logger.warn("Could not establish connection!", e);
+		// }
+	}
+
 	private void disconnect() {
 		if(client != null) {
-			client.disconnect();
+			client.shutdown();
 			client = null;
 		}
 	}
 	
 	private void printHelp() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(PROMPT).append("CLIENT HELP (Usage):\n");
+		sb.append(PROMPT).append("ECS HELP (Usage):\n");
 		sb.append(PROMPT);
-		sb.append("::::::::::::::::::::::::::::::::");
-		sb.append("::::::::::::::::::::::::::::::::\n");
-		sb.append(PROMPT).append("connect <host> <port>");
-		sb.append("\t\t establishes a connection to a server\n");
-		sb.append(PROMPT).append("get <key>");
-		sb.append("\t\t\t retrieves a tuple from the server based on <key>\n");
-		sb.append(PROMPT).append("put <key> <value>");
-		sb.append("\t\t inserts a new KV tuple into the server. If <value> == \"null\", the tuple is deleted from the server.\n");
-		sb.append(PROMPT).append("disconnect");
-		sb.append("\t\t\t disconnects from the server \n");
+		sb.append("::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		sb.append("::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
+		sb.append(PROMPT).append("add <number of nodes> <cache strategy> <cache size>");
+		sb.append("\t adds a new server with the specified cache size and strategy\n");
+		sb.append(PROMPT).append("remove <index>");
+		sb.append("\t\t\t\t\t remove node of a given index index\n");
 		sb.append(PROMPT).append("logLevel");
-		sb.append("\t\t\t changes the logLevel \n");
-		sb.append(PROMPT).append("\t\t\t\t ");
+		sb.append("\t\t\t\t\t\t changes the logLevel\n");
+		sb.append(PROMPT).append("\t\t\t\t\t\t\t ");
 		sb.append("ALL | DEBUG | INFO | WARN | ERROR | FATAL | OFF \n");
 		sb.append(PROMPT).append("quit ");
-		sb.append("\t\t\t\t exits the program");
+		sb.append("\t\t\t\t\t\t exits the program\n");
+		sb.append(PROMPT);
+		sb.append("::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		sb.append("::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		System.out.println(sb.toString());
 	}
 	
@@ -133,22 +184,22 @@ public class Application implements ClientSocketListener {
 		}
 	}
 	
-	@Override
-	public void handleStatus(SocketStatus status) {
-		if(status == SocketStatus.CONNECTED) {
+	// @Override
+	// public void handleStatus(SocketStatus status) {
+	// 	if(status == SocketStatus.CONNECTED) {
 
-		} else if (status == SocketStatus.DISCONNECTED) {
-			System.out.print(PROMPT);
-			System.out.println("Connection terminated: " 
-					+ serverAddress + " / " + serverPort);
+	// 	} else if (status == SocketStatus.DISCONNECTED) {
+	// 		System.out.print(PROMPT);
+	// 		System.out.println("Connection terminated: " 
+	// 				+ serverAddress + " / " + serverPort);
 			
-		} else if (status == SocketStatus.CONNECTION_LOST) {
-			System.out.println("Connection lost: " 
-					+ serverAddress + " / " + serverPort);
-			System.out.print(PROMPT);
-		}
+	// 	} else if (status == SocketStatus.CONNECTION_LOST) {
+	// 		System.out.println("Connection lost: " 
+	// 				+ serverAddress + " / " + serverPort);
+	// 		System.out.print(PROMPT);
+	// 	}
 		
-	}
+	// }
 
 	private void printError(String error){
 		System.out.println(PROMPT + "Error! " +  error);
@@ -163,6 +214,7 @@ public class Application implements ClientSocketListener {
     		// TODO log level?
 			new LogSetup("logs/client.log", Level.ALL);
 			Application app = new Application();
+			client = new ECSClient(args[0]);
 			app.run();
 		} catch (IOException e) {
 			System.out.println("Error! Unable to initialize logger!");
