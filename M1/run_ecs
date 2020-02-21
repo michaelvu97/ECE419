@@ -1,0 +1,3 @@
+#!/bin/csh
+
+java -cp m2-ecs.jar app_kvECS.ui.Application $1
