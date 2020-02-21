@@ -14,6 +14,8 @@ import shared.metadata.*;
 
 public class ECSClient implements IECSClient {
 
+    // TODO: update all servers' meta data every time a new server is added.
+
     private String _configFilePath;
     private ZooKeeper _zoo = null;
     private static Logger logger = Logger.getRootLogger();
@@ -77,7 +79,7 @@ public class ECSClient implements IECSClient {
             newNode = new ECSNode(newServer.getHost(), newServer.getName(), 
                newServer.getPort(), cacheStrategy, cacheSize); 
 
-            // TODO: add the new node to map of nodes.
+            // TODO: add the new node to map allNodes.
 
             // ssh call to start KV server
             // TODO: write the actual kc_server.sh scrip.
@@ -85,13 +87,16 @@ public class ECSClient implements IECSClient {
             String script = "kv_server.sh";
 
             Runtime run = Runtime.getRuntime();
-            String cmd[] = {script /* AGUMENTS FOR SCRIPT HERE */};
+            String cmd[] = {script /*AGUMENTS FOR SCRIPT HERE */};
 
             try {
                 proc = run.exec(cmd);
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
+
+            // TODO: CREATE & SET METADATA FOR ALL THE SERVERS HERE!
+            // use CreateFromServerInfo(Collection<ServerInfo> serverInfos) from MetaDataSet class.
 
             return newNode;
 
