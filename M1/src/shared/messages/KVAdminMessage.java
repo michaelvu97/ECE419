@@ -33,6 +33,9 @@ public class KVAdminMessage implements ISerializable {
     protected byte[] payloadBytes = null;
 
     public KVAdminMessage(StatusType status, byte[] payloadBytes) {
+        // Will throw an error if the status is invalid.
+        StatusType.FromByte(status.toByte());
+        
         _status = status;
         this.payloadBytes = payloadBytes;
     }
