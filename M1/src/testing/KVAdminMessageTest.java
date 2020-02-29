@@ -36,9 +36,9 @@ public class KVAdminMessageTest extends TestCase {
         /**
          * Correct KVAdminMessage creation
          */
-        KVAdminMessage req = new KVAdminMessage(KVAdminMessage.StatusType.TODO, value);
+        KVAdminMessage req = new KVAdminMessage(KVAdminMessage.StatusType.TRANSFER_REQUEST, value);
 
-        assertTrue(req.getStatus() == KVAdminMessage.StatusType.TODO);
+        assertTrue(req.getStatus() == KVAdminMessage.StatusType.TRANSFER_REQUEST);
         assertTrue(byteArrEq(req.getPayload(), value));
 
         try {
@@ -54,7 +54,7 @@ public class KVAdminMessageTest extends TestCase {
          * Construction with a null payload.
          */
 
-        req = new KVAdminMessage(KVAdminMessage.StatusType.TODO, null);
+        req = new KVAdminMessage(KVAdminMessage.StatusType.TRANSFER_REQUEST, null);
         assertTrue(byteArrEq(null, req.getPayload()));
         try {
             KVAdminMessage req3 = KVAdminMessage.Deserialize(req.serialize());
