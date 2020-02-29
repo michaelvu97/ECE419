@@ -1,5 +1,6 @@
 package app_kvServer;
 
+import java.io.IOException;
 import java.net.Socket;
 
 import org.apache.log4j.Level;
@@ -31,7 +32,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
     public ECSCommandReceiver(IKVServer kvServer, 
             IMetaDataManager metaDataManager,
             String ecsLoc,
-            int ecsPort) {
+            int ecsPort) throws IOException {
         if (kvServer == null)
             throw new IllegalArgumentException("kvServer is null");
         if (metaDataManager == null)
@@ -46,7 +47,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         connect();
     }
 
-    public void connect() {
+    public void connect() throws IOException{
         Socket clientSocket = new Socket(
             _ecsLoc,
             _ecsPort
@@ -62,9 +63,9 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         _running = true;
         while(_running) {
             // Listen for commands
-            byte[] recvBytes = _commChannel.recvBytes();
-            KVAdminMessage message = KVAdminMessage.Deserialize(recvBytes);
             try {
+                byte[] recvBytes = _commChannel.recvBytes();
+                KVAdminMessage message = KVAdminMessage.Deserialize(recvBytes);
                 KVAdminMessage result = handleCommand(message);
                 _commChannel.sendBytes(result.serialize());
             } catch (Exception e) {
@@ -76,7 +77,8 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         logger.info("ECS Command Receiver stopped");
     }
 
-    private KVAdminMessage handleCommand(KVAdminMessage request) {
+    private KVAdminMessage handleCommand(KVAdminMessage request) 
+            throws Exception {
         switch (request.getStatus()) {
             case UPDATE_METADATA_REQUEST:
                 return onUpdateMetadataRequest(request);

@@ -60,10 +60,9 @@ public class Application {
 		else if(tokens[0].equals("add")) {	
 			if(tokens.length == 5) {
 				try {
-					String username = tokens[1];
-					int numNodes = Integer.parseInt(tokens[2]);
-					String cacheStrategy = tokens[3];
-					int cacheSize = Integer.parseInt(tokens[4]);
+					int numNodes = Integer.parseInt(tokens[1]);
+					String cacheStrategy = tokens[2];
+					int cacheSize = Integer.parseInt(tokens[3]);
 					if(!(cacheStrategy.equals("FIFO") || cacheStrategy.equals("LFU") || cacheStrategy.equals("LRU"))){
 						printError("Not a valid cache strategy. Must choose FIFO, LFU, or LRU!");
 					}
@@ -71,7 +70,7 @@ public class Application {
 						printError("The number of nodes must be greater than 0!");
 					}
 					else {
-						add_servers(username, numNodes, cacheStrategy, cacheSize);	
+						add_servers(numNodes, cacheStrategy, cacheSize);	
 					}
 				} catch(NumberFormatException nfe) {
 					printError("Please make sure that both the cache size and number of nodes are integers");
@@ -119,13 +118,13 @@ public class Application {
 		}
 	}
 
-	private void add_servers(String username, int numServers, String cacheStrategy, int cacheSize) 
+	private void add_servers(int numServers, String cacheStrategy, int cacheSize) 
 		 throws UnknownHostException, IOException {
 		  	int numNodes = 0;
 		  	List<ECSNode> newNodes = null;
 
 			// call ECSClient method to add new servers.
-			newNodes = client.addNodes(username, numServers, cacheStrategy, cacheSize);
+			newNodes = client.addNodes(numServers, cacheStrategy, cacheSize);
 		  	numNodes = newNodes.size();
 
 		  	// log the number of and names for all servers added.
@@ -258,7 +257,7 @@ public class Application {
 			
 			Application app = new Application();
 			
-			client = new ECSClient(args[0]); 
+			client = new ECSClient(args[0], args[1]); 
 			
 			app.run();
 
