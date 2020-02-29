@@ -17,12 +17,12 @@ import server.*;
  * IOC abstract class for handling nodes/clients connecting to this process.
  */
 public abstract class Acceptor implements Runnable {
-    private ServerSocket _serverSocket;
+    protected ServerSocket serverSocket;
     
-    private Object _connectionsLock = new Object();
-    private ArrayList<Connection> _connections = new ArrayList<Connection>();
+    protected Object connectionsLock = new Object();
+    protected ArrayList<Connection> connections = new ArrayList<Connection>();
 
-    private boolean _running = false;
+    protected boolean running = false;
 
     protected static Logger logger = Logger.getRootLogger();
 
@@ -30,18 +30,18 @@ public abstract class Acceptor implements Runnable {
         if (serverSocket == null)
             throw new IllegalArgumentException("server socket is null");
 
-        this._serverSocket = serverSocket;
+        this.serverSocket = serverSocket;
     }
     
     public boolean isRunning() {
-        return this._running;
+        return this.running;
     }
 
     public void alertClose(Connection connectionToClose) {
-        synchronized(_connectionsLock) {
-            for (int i = 0; i < _connections.size(); i++){
-                if(connectionToClose == _connections.get(i)){
-                    _connections.remove(i);
+        synchronized(connectionsLock) {
+            for (int i = 0; i < connections.size(); i++){
+                if(connectionToClose == connections.get(i)){
+                    connections.remove(i);
                 }
             }
         }
@@ -50,14 +50,14 @@ public abstract class Acceptor implements Runnable {
 
     public void stop() {
         //Send kill message to client handler threads.
-        for(int i = 0; i < _connections.size(); i++){
-            Connection connection = _connections.get(i);
+        for(int i = 0; i < connections.size(); i++){
+            Connection connection = connections.get(i);
             connection.kill();
         }
 
         //5 second timeout on close
         int i = 0;
-        while (_connections.size() != 0 && i != 500){
+        while (connections.size() != 0 && i != 500){
             i++;
             try {
                 Thread.sleep(10);
@@ -66,23 +66,23 @@ public abstract class Acceptor implements Runnable {
             } 
         } 
 
-        this._running = false;
+        this.running = false;
     }
 
     public abstract Connection handleConnection(Socket clientSocket);
      
     @Override
     public void run() {
-        this._running = true;
+        this.running = true;
         while (isRunning()) {
             try {
-                Socket clientSocket = this._serverSocket.accept();
+                Socket clientSocket = this.serverSocket.accept();
 
                 Connection connection = handleConnection(clientSocket);
 
                 //add the connection to the client list
-                synchronized(_connectionsLock) {
-                    _connections.add(connection);
+                synchronized(connectionsLock) {
+                    connections.add(connection);
                 }
 
                 new Thread(connection).start();
