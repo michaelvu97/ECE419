@@ -24,7 +24,7 @@ public class ServerInfo implements Comparable<ServerInfo> {
         available = false;
     }
 
-    private static String ComputeHash(String hostname, int port) {
+    public static String ComputeHash(String hostname, int port) {
         String combinedStr = hostname + ":" + port;
 
         MessageDigest md = null;
