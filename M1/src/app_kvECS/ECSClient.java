@@ -3,10 +3,10 @@ package app_kvECS;
 import ecs.*;
 import java.io.*;
 import java.util.*;
+import java.lang.*;
 import java.nio.file.*;
 import java.nio.charset.*;
 import java.io.IOException;
-import java.lang.*;
 
 import shared.metadata.*;
 import org.apache.zookeeper.*;
@@ -15,16 +15,21 @@ import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import java.net.InetAddress;
+
 public class ECSClient implements IECSClient {
 
-    // TODO: update all servers' meta data every time a new server is added.
-
+    private int ecsClientPort = 6969;
+    private int _port = 0;
+    private String _host = null;
+    private ServerSocket ecsSocket;
     private String _configFilePath;
     private ZooKeeper _zoo = null;
     private static Logger logger = Logger.getRootLogger();
     private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
     private MetaDataSet allMetadata = null;
+    private NodeAcceptor nodeAcceptor = null;
 
     @Override
     public void setAllServers(String configFilePath) {
@@ -66,20 +71,34 @@ public class ECSClient implements IECSClient {
             throw new IllegalArgumentException("configFilePath");
 
         _configFilePath = configFilePath;
-       
+
         setAllServers(_configFilePath);
     }
 
     @Override
     public boolean start() {
-        // unsure about this
+        // i have no idea if this is right 
+        logger.info("Initializing ECS Client...");
+        
         try {
-            _zoo = new ZooKeeper("localhost:2181", 10000, new ECSWatcher());
-            // data monitor?
-        } catch (IOException e){
-            _zoo = null;
+			ecsSocket = new ServerSocket(ecsClientPort);
+			
+			_port = serverSocket.getLocalPort();
+			_hostName = serverSocket.getInetAddress().getHostName();
+
+			logger.info("ECSClient " + _hostName + " listening on port: " + serverSocket.getLocalPort());    
+            
+            nodeAcceptor = new NodeAcceptor(ecsSocket, this);
+            
+            return true;
+		}
+		catch (IOException e) {
+        	logger.error("Error! Cannot open server socket:");
+            if(e instanceof BindException){
+            	logger.error("Port " + _port + " is already bound!");
+            }
+            return false;
         }
-        // TODO
         return false;
     }
 
@@ -110,7 +129,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public ECSNode addNode(String cacheStrategy, int cacheSize) {
+    public ECSNode addNode(String username, String cacheStrategy, int cacheSize) {
         
         ECSNode newNode = null;
         ServerInfo newServer = getNextAvailableServer();
@@ -125,12 +144,23 @@ public class ECSClient implements IECSClient {
             allNodes.put(newServer.getName(), newNode);
 
             // ssh call to start KV server
-            // TODO: write the actual kc_server.sh scrip.
             Process proc = null;
             String script = "kv_server.sh";
 
             Runtime run = Runtime.getRuntime();
-            String cmd[] = {script /*AGUMENTS FOR SCRIPT HERE */};
+            
+            String cmd[] = {
+                script,
+                username,
+                newServer.getHost(), // config host
+                newServer.getName(), // server name
+                newServer.getPort(), // server port
+                cacheStrategy, 
+                cacheSize,
+                newServer.getName(), // disk storage string
+                _hostname,           // ecs hostname
+                _port,               // ecs port
+            };
 
             try {
                 proc = run.exec(cmd);
@@ -147,14 +177,14 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public List<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
+    public List<ECSNode> addNodes(String username, int count, String cacheStrategy, int cacheSize) {
         ECSNode newNode = null;
         ArrayList<ECSNode> newNodes = new ArrayList<ECSNode>();
 
         // call addNode count # of times.
         for (int i = 0; i < count; i++) {
             
-            newNode = addNode(cacheStrategy, cacheSize);
+            newNode = addNode(username, cacheStrategy, cacheSize);
             
             if (newNode != null) {
                 newNodes.add(newNode);
@@ -163,10 +193,11 @@ public class ECSClient implements IECSClient {
 
         /* use CreateFromServerInfo from MetaDataSet to construct a metadata 
         *  set from a collection of server infos.
-        *  TODO: sent metadata to all nodes/servers.
+        *  sent metadata to all nodes/servers.
         */        
         
         allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
+        nodeAcceptor.broadcastMetadata(allMetadata);
 
         return newNodes;
     }
@@ -208,7 +239,7 @@ public class ECSClient implements IECSClient {
         }
 
         allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
-        // TODO: send metadata to all nodes/servers.
+        nodeAcceptor.broadcastMetadata(allMetadata);
 
         return removedNodes;
     }
@@ -223,9 +254,8 @@ public class ECSClient implements IECSClient {
         return allNodes.get(name);
     }
 
-    public static void main(String[] args) {
-        // Start Admin CLI
-        ECSClient client = new ECSClient("ecs.config");
+    public static void main(String configFile) {
+        ECSClient client = new ECSClient(configFile);
         client.start();
     }
 }
