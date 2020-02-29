@@ -44,13 +44,13 @@ public interface IECSClient {
      * NOTE: Must call setupNodes before the SSH calls to start the servers and must call awaitNodes before returning
      * @return  set of strings containing the names of the nodes
      */
-    public Collection<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize);
+    public List<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize);
 
     /**
      * Sets up `count` servers with the ECS (in this case Zookeeper)
      * @return  array of strings, containing unique names of servers
      */
-    public Collection<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize);
+    public List<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize);
 
     /**
      * Wait for all nodes to report status or until timeout expires
@@ -67,7 +67,7 @@ public interface IECSClient {
      * @param nodeNames names of nodes to remove
      * @return  true on success, false otherwise
      */
-    public List<String> removeNodes(Collection<String> nodeNames);
+    public List<String> removeNodes(List<String> nodeNames);
 
     /**
      * Get a map of all nodes
