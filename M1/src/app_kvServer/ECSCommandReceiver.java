@@ -16,14 +16,19 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
     private IKVServer _kvServer;
     private IMetaDataManager _metaDataManager;
 
+    private String _ecsLoc;
+    private int _ecsPort;
+    private ICommChannel _commChannel;
+
+    private boolean _running = false;
+
     /**
      * Connects on construction.
      */
     public ECSCommandReceiver(IKVServer kvServer, 
             IMetaDataManager metaDataManager,
-            String ECSLoc,
-            int ECSPort) {
-
+            String ecsLoc,
+            int ecsPort) {
         if (kvServer == null)
             throw new IllegalArgumentException("kvServer is null");
         if (metaDataManager == null)
@@ -32,30 +37,44 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         _kvServer = kvServer;
         _metaDataManager = metaDataManager;
 
+        _ecsLoc = ecsLoc;
+        _ecsPort = ecsPort;
+
         connect();
     }
 
     public void connect() {
-        // TODO
+        Socket clientSocket = new Socket(
+            _ecsLoc,
+            _ecsPort
+        );
+
+        _commChannel = new CommChannel(clientSocket);
+        logger.info("Connected to ECS");
     }
 
     @Override
     public void run() {
         logger.info("ECS Command Receiver running");
+        _running = true;
+        while(_running) {
+            // Listen for commands
+            byte[] recvBytes = _commChannel.recvBytes();
+            KVAdminMessage message = KVAdminMessage.Deserialize(recvBytes);
+            KVAdminMessage result = handleCommand(message);
+            _commChannel.sendBytes(result.serialize());
+        }
+
+        logger.info("ECS Command Receiver stopped");
     }
+
+    private void handleCommand(
 
     /**
      * Called when a transfer request is receieved.
      */
     public void onTransferRequest(KVAdminMessage transferRequest) {
         // TODO
-	//transferRequest.payloadBytes.Deserialize();
-	//get new HashRange that is taken by the new server.
-	//get server send information
-	//initialize KVStoreThing
-	//while(KVServer.popInRange()!=null)
-		//send message to new server
-	//return;
     }
 
     /**
