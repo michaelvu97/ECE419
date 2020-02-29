@@ -7,8 +7,10 @@ import java.net.InetAddress;
 
 import java.io.IOException;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.Set;
 import java.util.HashSet;
+
 
 import logger.LogSetup;
 
@@ -41,6 +43,8 @@ public class KVServer implements IKVServer {
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
 	private static Logger logger = Logger.getRootLogger();
+
+	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
 	private IZKClient _zkClient = null;
 
@@ -95,9 +99,9 @@ public class KVServer implements IKVServer {
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
 		try {
-			this._zkClient = new ZKClient("localhost:2181");
+			this._zkClient = new ZKClient("localhost:2181", this._name);
 			// Test for now
-			this._zkClient.registerNode(this._name);
+			this._zkClient.registerNode();
 		} catch (Exception e) {
 			logger.error("Could not connect to zookeeper!", e);
 			this._zkClient = null;
@@ -139,7 +143,7 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public String getKV(String key) throws Exception{
+    public String getKV(String key) throws Exception {
 		Utils.validateKey(key);
 		return this.serverStore.get(key);
 	}

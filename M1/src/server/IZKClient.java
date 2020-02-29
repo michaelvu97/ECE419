@@ -2,7 +2,7 @@ package server;
 
 public interface IZKClient {
     /**
-     * Registers this server to zookeeper, using the given node name.
+     * Registers this server to zookeeper.
      */
-    public void registerNode(String nodeName) throws Exception;
+    public void registerNode() throws Exception;
 }
