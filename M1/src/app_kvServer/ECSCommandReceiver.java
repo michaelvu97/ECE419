@@ -1,10 +1,13 @@
 package app_kvServer;
 
+import java.net.Socket;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import logger.LogSetup;
 
 import app_kvServer.IKVServer;
+import shared.comms.*;
 import shared.messages.KVAdminMessage;
 import shared.metadata.*;
 import shared.serialization.*;
@@ -61,26 +64,41 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             // Listen for commands
             byte[] recvBytes = _commChannel.recvBytes();
             KVAdminMessage message = KVAdminMessage.Deserialize(recvBytes);
-            KVAdminMessage result = handleCommand(message);
-            _commChannel.sendBytes(result.serialize());
+            try {
+                KVAdminMessage result = handleCommand(message);
+                _commChannel.sendBytes(result.serialize());
+            } catch (Exception e) {
+                logger.error(e);
+                _running = false;
+            }
         }
 
         logger.info("ECS Command Receiver stopped");
     }
 
-    private void handleCommand(
+    private KVAdminMessage handleCommand(KVAdminMessage request) {
+        switch (request.getStatus()) {
+            case UPDATE_METADATA_REQUEST:
+                return onUpdateMetadataRequest(request);
+            case TRANSFER_REQUEST:
+                return onTransferRequest(request);
+            default:
+                throw new Exception("Invalid command from ECS: " + request.getStatus());
+        }
+    }
 
     /**
      * Called when a transfer request is receieved.
      */
-    public void onTransferRequest(KVAdminMessage transferRequest) {
+    public KVAdminMessage onTransferRequest(KVAdminMessage transferRequest) {
         // TODO
+        return null;
     }
 
     /**
      * Called when an update metadata request is received.
      */
-    public void onUpdateMetadataRequest(KVAdminMessage updateMetadataRequest) {
+    public KVAdminMessage onUpdateMetadataRequest(KVAdminMessage updateMetadataRequest) {
         
         // Deserialize the metadata
         MetaDataSet mds;
@@ -89,10 +107,14 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             mds = MetaDataSet.Deserialize(updateMetadataRequest.getPayload());
         } catch (Deserializer.DeserializationException dse) {
             logger.error("Received invalid metadata from server", dse);
-            return;
+            return new KVAdminMessage(
+                    KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_FAILURE,
+                    "Could not parse metadata payload".getBytes()
+            );
         }
 
         _metaDataManager.updateMetaData(mds);
+        return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }
 
 
