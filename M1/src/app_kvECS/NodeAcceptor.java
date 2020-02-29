@@ -21,17 +21,9 @@ public class NodeAcceptor extends Acceptor {
     
     private IECSClient _ecsClient;
 
-    private int _numServersRemaining;
-
-    public NodeAcceptor(ServerSocket serverSocket, int numKVServers, IECSClient ecsClient) {
+    public NodeAcceptor(ServerSocket serverSocket, IECSClient ecsClient) {
         super(serverSocket);
 
-        if (numKVServers <= 0) {
-            throw new IllegalArgumentException("numKVServers out of range: " 
-                + numKVServers);
-        }
-
-        _numServersRemaining = numKVServers;
         _ecsClient = ecsClient;
     }
 
@@ -154,17 +146,7 @@ public class NodeAcceptor extends Acceptor {
                 //add the connection to the client list
                 synchronized(connectionsLock) {
                     connections.add(connection);
-                    _numServersRemaining--;
-
-                    if (_numServersRemaining == 0) {
-                        
-                        logger.info("All KV Servers connected, starting "
-                            + "connection threads");
-                    }
                 }
-
-                // Note that the handler does not start until all servers are
-                // connected
 
                 logger.info("Accepted connection from " 
                     + clientSocket.getInetAddress().getHostName() 
