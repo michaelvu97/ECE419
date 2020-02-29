@@ -52,14 +52,7 @@ public class NodeAcceptor extends Acceptor {
                         
                         logger.info("All KV Servers connected, starting "
                             + "connection threads");
-
-                        // Start all connections
-                        for (Connection c : connections) {
-                            new Thread(c).start();
-                        }
-
                     }
-
                 }
 
                 // Note that the handler does not start until all servers are
