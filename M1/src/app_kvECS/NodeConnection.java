@@ -31,14 +31,13 @@ public final class NodeConnection extends Connection implements INodeConnection 
     }
 
 
-
     @Override
     public void work() throws Exception {
         throw new IllegalStateException("Cannot call work on NodeConnection");
     }
 
     @Override
-    public boolean sendMetadata(MetaDataSet mds) throws Exception {
+    public void sendMetadata(MetaDataSet mds) throws Exception {
         if (mds == null)
             throw new IllegalArgumentException("mds is null");
 
@@ -51,17 +50,42 @@ public final class NodeConnection extends Connection implements INodeConnection 
             this.commChannel.sendBytes(messageToSend.serialize());
             byte[] responseBytes = this.commChannel.recvBytes();
             KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
-            if (response.getStatus() == KVAdminMessage.StatusType
+            if (response.getStatus() != KVAdminMessage.StatusType
                         .UPDATE_METADATA_REQUEST_SUCCESS) {
-                return true;
+                _logger.warn("Send metadata failed on node");
+                throw new Exception("Send metadata failed on node");
             }
-            _logger.warn("Send metadata failed, node response is not success");
-            return false;
         } catch (IOException ioe) {
             _logger.error("Send metadata failed I/O", ioe);
             throw ioe;
         } catch (Deserializer.DeserializationException dse) {
             _logger.error("Send metadata failed, invalid node response", dse);
+            throw dse;
+        }
+    }
+
+    @Override
+    public void sendTransferRequest(TransferRequest tr) throws Exception {
+        try {
+            KVAdminMessage messageToSend = new KVAdminMessage(
+                    KVAdminMessage.StatusType.TRANSFER_REQUEST,
+                    tr.serialize()
+            );
+            
+            this.commChannel.sendBytes(messageToSend.serialize());
+             byte[] responseBytes = this.commChannel.recvBytes();
+            KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
+            if (response.getStatus() != KVAdminMessage.StatusType
+                        .UPDATE_METADATA_REQUEST_SUCCESS) {
+                _logger.warn("Send transfer request failed on node");
+                throw new Exception("Send transfer request failed on node");
+            }
+        } catch (IOException ioe) {
+            _logger.error("Send transfer request failed I/O", ioe);
+            throw ioe;
+        } catch (Deserializer.DeserializationException dse) {
+            _logger.error("Send transfer request failed, invalid node response",
+                    dse);
             throw dse;
         }
     }

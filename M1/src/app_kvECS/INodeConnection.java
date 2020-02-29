@@ -6,5 +6,10 @@ public interface INodeConnection {
     /**
      * Sends a metadata set to a node.
      */
-    public boolean sendMetadata(MetaDataSet mds) throws Exception;
+    public void sendMetadata(MetaDataSet mds) throws Exception;
+
+    /** 
+     * Sends a transfer request to a node.
+     */
+    public void sendTransferRequest(TransferRequest tr) throws Exception;
 }
