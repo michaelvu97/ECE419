@@ -1,5 +1,9 @@
 package app_kvECS.ui;
 
+import ecs.*;
+import app_kvECS.ECSClient;
+
+import java.util.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,16 +14,17 @@ import org.apache.log4j.Logger;
 
 import logger.LogSetup;
 
-import app_kvECS.ECSClient;
 import client.ClientSocketListener;
 //import client.TextMessage;
 
 public class Application {
 
+	private static ECSClient client;
 	private static Logger logger = Logger.getRootLogger();
 	private static final String PROMPT = "ECSClient> ";
+	
 	private BufferedReader stdin;
-	private static ECSClient client;
+	
 	private boolean running = true;
 	
 	public void run() {
@@ -40,12 +45,18 @@ public class Application {
 	private void handleCommand(String cmdLine) {
 		String[] tokens = cmdLine.split("\\s+");
 
-		// quit
+		/*
+		* INPUT: quit
+		*/
 		if(tokens[0].equals("quit")) {	
 			running = false;
 			disconnect();
 			System.out.println(PROMPT + "Application exit!");
-		} 
+		}
+
+		/*
+		* INPUT: add <num of nodes> <cache strategy> <cache size>
+		*/
 		else if(tokens[0].equals("add")) {	
 			if(tokens.length == 4) {
 				try{
@@ -59,9 +70,7 @@ public class Application {
 						printError("The number of nodes must be greater than 0!");
 					}
 					else {
-						add_servers(numNodes, 
-							cacheStrategy, 
-							cacheSize);	
+						add_servers(numNodes, cacheStrategy, cacheSize);	
 					}
 				} catch(NumberFormatException nfe) {
 					printError("Please make sure that both the cache size and number of nodes are integers");
@@ -77,6 +86,10 @@ public class Application {
 				printError("Invalid number of parameters!");
 			}
 		} 
+
+		/*
+		* INPUT: remove <name of server>
+		*/
 		else if(tokens[0].equals("remove")) {	
 			if(tokens.length == 2) {
 				try{
@@ -90,7 +103,10 @@ public class Application {
 				printError("Invalid number of parameters!");
 			}
 		} 
-		// unknown command
+
+		/*
+		* INPUT: <unknown command>
+		*/
 		else {
 			printError("Unknown command");
 			printHelp();
@@ -99,14 +115,23 @@ public class Application {
 
 	private void add_servers(int numServers, String cacheStrategy, int cacheSize) 
 		 throws UnknownHostException, IOException {
-		 //UNCOMMENT WHEN ECSCLIENT IS IMPLEMENTED
-		 // try {
-		  	client.addNodes(numServers,cacheStrategy,cacheSize);
-		  	// client.addListener(this);
-		 // } catch (IOException e) {
-		 //  	printError("Could not establish connection!");
-		 //  	logger.warn("Could not establish connection!", e);
-		 // }
+		  	int numNodes = 0;
+		  	List<ECSNode> newNodes = null;
+		 	Collection<ECSNode> newNodesCollection = new ArrayList<ECSNode>();
+
+		 	// addNodes method returns collection, so convert to list.
+		  	newNodesCollection = client.addNodes(numServers, cacheStrategy, cacheSize);
+			newNodes = new ArrayList(newNodesCollection);
+
+		  	numNodes = newNodes.size();
+
+		  	// log the number of and names for all servers added.
+		  	// sorry if this is a really ugly way to do it.
+		  	logger.info("Added " + numNodes + " new servers:");
+
+		  	for (int i = 0; i < numNodes; i++) {
+		  		logger.info(newNodes.get(i).getNodeName());
+		  	}
 	}
 	
 	private void remove_server(int nodeIndex) {
@@ -134,9 +159,9 @@ public class Application {
 		sb.append("::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		sb.append("::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
 		sb.append(PROMPT).append("add <number of nodes> <cache strategy> <cache size>");
-		sb.append("\t adds a new server with the specified cache size and strategy\n");
-		sb.append(PROMPT).append("remove <index>");
-		sb.append("\t\t\t\t\t remove node of a given index index\n");
+		sb.append("\t adds <number of nodes> new server(s) with the specified cache size and strategy\n");
+		sb.append(PROMPT).append("remove <name>");
+		sb.append("\t\t\t\t\t remove node of a given name\n");
 		sb.append(PROMPT).append("logLevel");
 		sb.append("\t\t\t\t\t\t changes the logLevel\n");
 		sb.append(PROMPT).append("\t\t\t\t\t\t\t ");
@@ -205,16 +230,14 @@ public class Application {
 		System.out.println(PROMPT + "Error! " +  error);
 	}
 	
-    /**
-     * Main entry point for the echo server application. 
-     * @param args contains the port number at args[0].
-     */
     public static void main(String[] args) {
     	try {
-    		// TODO log level?
 			new LogSetup("logs/client.log", Level.ALL);
+			
 			Application app = new Application();
+			
 			client = new ECSClient(args[0]);
+			
 			app.run();
 		} catch (IOException e) {
 			System.out.println("Error! Unable to initialize logger!");
@@ -222,5 +245,4 @@ public class Application {
 			System.exit(1);
 		}
     }
-
 }

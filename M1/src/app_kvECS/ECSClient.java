@@ -193,28 +193,26 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    @Override
-    public boolean removeNodes(Collection<String> nodeNames) {
+    public List<String> removeNodes(Collection<String> nodeNames) {
         // convert collection to list because easier to use.
         List<String> _nodeNames = new ArrayList<String>(nodeNames); 
-        boolean stauts = true;
+        List<String> removedNodes = null;
+
         String nodeName = null;
 
         for (int i = 0; i < _nodeNames.size(); i++) {
             nodeName = _nodeNames.get(i);
             
             if (allNodes.remove(nodeName) != null) {
+                removedNodes.add(nodeName);
                 setServerAvailable(nodeName);
             } 
-            else { stauts = false; }
         }
 
         allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
-
         // TODO: send metadata to all nodes/servers.
 
-        // stauts is only true if all removals are successful.
-        return stauts;
+        return removedNodes;
     }
 
     @Override

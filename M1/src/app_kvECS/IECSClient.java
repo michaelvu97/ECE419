@@ -1,6 +1,6 @@
 package app_kvECS;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Collection;
 
 import ecs.*;
@@ -67,7 +67,7 @@ public interface IECSClient {
      * @param nodeNames names of nodes to remove
      * @return  true on success, false otherwise
      */
-    public boolean removeNodes(Collection<String> nodeNames);
+    public List<String> removeNodes(Collection<String> nodeNames);
 
     /**
      * Get a map of all nodes
