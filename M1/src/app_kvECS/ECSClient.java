@@ -110,8 +110,14 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean stop() {
-        // TODO
-        return false;
+        try {
+            _ecsSocket.close();
+            logger.info("Server socket is closed.");
+            return true;
+        } catch (IOException e) {
+            logger.error("Error! " + "Unable to close socket on port: " + _port, e);
+            return false;
+        }
     }
 
     @Override
@@ -197,8 +203,8 @@ public class ECSClient implements IECSClient {
             }
         }
 
-        /* use CreateFromServerInfo from MetaDataSet to construct a metadata 
-        *  set from a collection of server infos.
+        /* use CreateFromServerInfo from MetaDataSet to construct a 
+        *  metadata set from a collection of server infos.
         *  sent metadata to all nodes/servers.
         */        
         
@@ -231,9 +237,8 @@ public class ECSClient implements IECSClient {
     }
 
     public List<String> removeNodes(List<String> nodeNames) {
-        List<String> removedNodes = null;
-
         String nodeName = null;
+        List<String> removedNodes = null;
 
         for (int i = 0; i < nodeNames.size(); i++) {
             nodeName = nodeNames.get(i);
