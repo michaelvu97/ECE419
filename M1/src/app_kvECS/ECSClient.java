@@ -176,32 +176,40 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Collection<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
+        // to be honest.. what does this do?
         // TODO
         return null;
     }
 
     @Override
     public boolean awaitNodes(int count, int timeout) throws Exception {
+        // figure this out.
         // TODO
         return false;
     }
 
     @Override
     public boolean removeNodes(Collection<String> nodeNames) {
-        // TODO
-        return false;
+        boolean stauts = true;
+
+        for (Iterator i = nodeNames.iterator(); i.hasNext(); ) {
+            if (allNodes.remove(i.next()) == null) {
+                stauts = false;
+            }
+        }
+
+        // stauts is only true if all removals are successful.
+        return stauts;
     }
 
     @Override
     public Map<String, ECSNode> getNodes() {
-        // TODO ???
         return allNodes;
     }
 
     @Override
     public ECSNode getNodeByName(String name) {
-        // TODO
-        return null;
+        return allNodes.get(name);
     }
 
     public static void main(String[] args) {

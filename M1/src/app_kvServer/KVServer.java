@@ -7,7 +7,6 @@ import java.net.InetAddress;
 
 import java.io.IOException;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -38,13 +37,11 @@ public class KVServer implements IKVServer {
     private ClientAcceptor _clientAcceptor;    
 
 	private IServerStore serverStore;
-	private IMetaDataManager metaDataManager = new MetaDataManager();
+	private IMetaDataManager metaDataManager = new MetaDataManager(null, this);
 
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
 	private static Logger logger = Logger.getRootLogger();
-
-	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
 	private IZKClient _zkClient = null;
 

@@ -12,5 +12,5 @@ public interface IMetaDataManager {
      */
     public MetaDataSet getMetaData();
 
-    // TODO: updaters.
+    public void updateMetaData(MetaDataSet mds);
 }
