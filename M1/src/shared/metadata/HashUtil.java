@@ -7,7 +7,7 @@ public final class HashUtil {
 
     }
 
-    public static String ComputeHash(String hostname, int port) {
+    public static String ComputeHashString(String hostname, int port) {
         String combinedStr = hostname + ":" + port;
 
         MessageDigest md = null;
@@ -23,7 +23,11 @@ public final class HashUtil {
         return HashValue.CreateFromMD5Bytes(result).toString();
     }
 
-    public static String ComputeHash(String key) {
+    public static HashValue ComputeHash(String hostname, int port) {
+        return HashValue.CreateFromHashString(ComputeHashString(hostname, port));
+    }
+
+    public static String ComputeHashStringFromKey(String key) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
@@ -35,5 +39,9 @@ public final class HashUtil {
         byte[] result = md.digest();
         
         return HashValue.CreateFromMD5Bytes(result).toString();
+    }
+
+    public static HashValue ComputeHashFromKey(String key) {
+        return HashValue.CreateFromHashString(ComputeHashStringFromKey(key));
     }
 }
