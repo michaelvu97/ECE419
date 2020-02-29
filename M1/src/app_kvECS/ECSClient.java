@@ -83,10 +83,10 @@ public class ECSClient implements IECSClient {
         try {
 			ecsSocket = new ServerSocket(ecsClientPort);
 			
-			_port = serverSocket.getLocalPort();
-			_hostName = serverSocket.getInetAddress().getHostName();
+			_port = ecsSocket.getLocalPort();
+			_hostName = ecsSocket.getInetAddress().getHostName();
 
-			logger.info("ECSClient " + _hostName + " listening on port: " + serverSocket.getLocalPort());    
+			logger.info("ECSClient " + _hostName + " listening on port: " + ecsSocket.getLocalPort());    
             
             nodeAcceptor = new NodeAcceptor(ecsSocket, this);
             
@@ -104,7 +104,14 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean stop() {
-        // TODO
+        try {
+            ecsSocket.close();
+            logger.info("Server socket is closed.");
+            return true;
+        } catch (IOException e) {
+            logger.error("Error! " + "Unable to close socket on port: " + _port, e);
+            return false;
+        }
         return false;
     }
 
