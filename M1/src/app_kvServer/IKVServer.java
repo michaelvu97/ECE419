@@ -81,6 +81,11 @@ public interface IKVServer {
     public void clearStorage();
 
     /**
+     * Removes any entries from storage/cache that don't belong to the hash range.
+     */
+    public void refocus(HashRange hr);
+
+    /**
      * Starts running the server
      */
     public void run();
@@ -99,6 +104,9 @@ public interface IKVServer {
     public ServerStateType getServerState();
 
     public boolean isWriterLocked();
+
+    public void requestLock();
+    public void requestUnlock();
 
     public MetaData getMetaData();
 }
