@@ -106,7 +106,7 @@ public class ClientConnection extends Connection {
 
 	private KVMessage handleGet(KVMessage getMessage) {
 		String key = getMessage.getKey();
-		if(!serverHR.isInRange(HashUtil.ComputeHashFromKey(key))){
+		if(!kvServer.getServerHR().isInRange(HashUtil.ComputeHashFromKey(key))){
 			//return metadata if this is the wrong server
 			return new KVMessageImpl(
 				KVMessage.StatusType.GET_METADATA_SUCCESS,
@@ -126,7 +126,7 @@ public class ClientConnection extends Connection {
 	private KVMessage handlePut(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
-		if(!serverHR.isInRange(HashUtil.ComputeHashFromKey(key))){
+		if(!kvServer.getServerHR().isInRange(HashUtil.ComputeHashFromKey(key))){
 			//return metadata if this is the wrong server
 			return new KVMessageImpl(
 				KVMessage.StatusType.GET_METADATA_SUCCESS,
@@ -147,7 +147,7 @@ public class ClientConnection extends Connection {
 
 	private KVMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
-		if(!serverHR.isInRange(HashUtil.ComputeHashFromKey(key))){
+		if(!kvServer.getServerHR().isInRange(HashUtil.ComputeHashFromKey(key))){
 			//return metadata if this is the wrong server
 			return new KVMessageImpl(
 				KVMessage.StatusType.GET_METADATA_SUCCESS,

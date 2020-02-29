@@ -37,4 +37,12 @@ public final class Utils {
         if (containsNewline(res))
             throw new IllegalArgumentException("server response cannot contain carriage return characters.");
     }
+    public class Pair<T, U> {         
+        public final T t;
+        public final U u;
+        public Pair(T t, U u) {         
+             this.t= t;
+             this.u= u;
+        }
+    }
 }

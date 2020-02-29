@@ -225,8 +225,7 @@ public class Application implements ClientSocketListener {
 			System.out.println("Connection lost: " 
 					+ serverAddress + " / " + serverPort);
 			System.out.print(PROMPT);
-		}
-		
+		}		
 	}
 
 	private void printError(String error){
@@ -249,5 +248,4 @@ public class Application implements ClientSocketListener {
 			System.exit(1);
 		}
     }
-
 }

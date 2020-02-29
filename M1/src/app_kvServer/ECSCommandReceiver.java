@@ -23,6 +23,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             IMetaDataManager metaDataManager,
             String ECSLoc,
             int ECSPort) {
+
         if (kvServer == null)
             throw new IllegalArgumentException("kvServer is null");
         if (metaDataManager == null)
@@ -43,6 +44,13 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
      */
     public void onTransferRequest(KVAdminMessage transferRequest) {
         // TODO
+	//transferRequest.payloadBytes.Deserialize();
+	//get new HashRange that is taken by the new server.
+	//get server send information
+	//initialize KVStoreThing
+	//while(KVServer.popInRange()!=null)
+		//send message to new server
+	//return;
     }
 
     /**

@@ -38,6 +38,7 @@ public class KVServer implements IKVServer {
 
 	private IServerStore serverStore;
 	private IMetaDataManager metaDataManager = new MetaDataManager(null, this);
+	private HashRange serverHR = null;
 
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
@@ -109,7 +110,9 @@ public class KVServer implements IKVServer {
 			this._zkClient = null;
 		}
 	}
-
+    public HashRange getServerHR(){
+    	return serverHR;
+    }	    
     public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ECSLoc, int ECSPort) {
         this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ECSLoc, ECSPort);
     }
@@ -148,6 +151,7 @@ public class KVServer implements IKVServer {
     public String getKV(String key) throws Exception {
 		Utils.validateKey(key);
 		return this.serverStore.get(key);
+		
 	}
 
 	@Override
@@ -160,6 +164,11 @@ public class KVServer implements IKVServer {
 	@Override
     public void clearCache(){
 		this.serverStore.clearCache();
+	}
+
+	@Override
+    public Utils.Pair<String,String> popInRange(HashRange hr){
+		//this.serverStore.popInRange(hr);
 	}
 
 	@Override
