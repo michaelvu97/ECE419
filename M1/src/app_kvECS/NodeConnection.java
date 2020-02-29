@@ -18,10 +18,15 @@ public final class NodeConnection extends Connection implements INodeConnection 
 
     private static Logger _logger = Logger.getRootLogger();
 
-    public NodeConnection(Socket socket, Acceptor acceptor) {
-        super(socket, acceptor);
+    private String _name;
 
-        // TODO
+    public NodeConnection(Socket socket, Acceptor acceptor, String name) {
+        super(socket, acceptor);
+        
+       if (name == null || name.length() == 0)
+          throw new IllegalArgumentException("name is null or empty"); 
+
+        _name = name;
     }
 
     @Override
@@ -34,6 +39,11 @@ public final class NodeConnection extends Connection implements INodeConnection 
     @Override
     public void work() throws Exception {
         throw new IllegalStateException("Cannot call work on NodeConnection");
+    }
+
+    @Override
+    public String getNodeName() {
+        return _name;
     }
 
     @Override

@@ -3,6 +3,7 @@ package app_kvECS;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -11,15 +12,18 @@ import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import ecs.*;
 import server.*;
 import shared.network.*;
 import shared.metadata.*;
 
 public class NodeAcceptor extends Acceptor {
+    
+    private IECSClient _ecsClient;
 
     private int _numServersRemaining;
 
-    public NodeAcceptor(ServerSocket serverSocket, int numKVServers) {
+    public NodeAcceptor(ServerSocket serverSocket, int numKVServers, IECSClient ecsClient) {
         super(serverSocket);
 
         if (numKVServers <= 0) {
@@ -28,6 +32,7 @@ public class NodeAcceptor extends Acceptor {
         }
 
         _numServersRemaining = numKVServers;
+        _ecsClient = ecsClient;
     }
 
     /** 
@@ -98,13 +103,43 @@ public class NodeAcceptor extends Acceptor {
     } 
 
     private INodeConnection getConnectionWithName(String name) {
-        // TODO
-        throw new IllegalStateException("NOT IMPLEMENETED");
+        // Assumes that the connectionsLock is currently held
+        for (Connection c : this.connections) {
+            INodeConnection nodeConnection = (INodeConnection) c;
+
+            if (nodeConnection.getNodeName().equals(name))
+                return nodeConnection;
+
+        }
+        return null;
     }
 
     @Override
     public Connection handleConnection(Socket clientSocket) {
-        return new NodeConnection(clientSocket, this);
+        // Determine the node's name using zookeeper
+        try {
+            String nodeName = getNodeName(clientSocket);
+            return new NodeConnection(clientSocket, this, nodeName);
+        } catch (Exception e) {
+            logger.error(e);
+            return null;
+        }
+    }
+
+    private String getNodeName(Socket nodeConnectionSocket) throws Exception {
+        if (nodeConnectionSocket == null)
+            throw new IllegalArgumentException("node connection socket is null");
+        
+        String hostName = nodeConnectionSocket.getInetAddress().getHostName();
+        int port = nodeConnectionSocket.getPort();
+
+        for (Map.Entry<String, ECSNode> entry : this._ecsClient.getNodes().entrySet()) {
+            if (entry.getValue().getNodeHost().equals(hostName) && entry.getValue().getNodePort() == port) {
+                return entry.getKey();
+            }
+        }
+       
+        throw new Exception("Could not find server: " + hostName + ":" + port); 
     }
 
     @Override

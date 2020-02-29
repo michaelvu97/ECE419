@@ -12,4 +12,9 @@ public interface INodeConnection {
      * Sends a transfer request to a node.
      */
     public void sendTransferRequest(TransferRequest tr) throws Exception;
+    
+    /**
+     * Returns the name of this node
+     */
+    public String getNodeName();
 }
