@@ -98,20 +98,22 @@ public final class MetaDataSet implements ISerializable {
         ArrayList<MetaData> result = new ArrayList<MetaData>();
 
         for (int i = 0; i < infoList.size(); i++) {
-            ServerInfo curr = infoList.get(i);
-            ServerInfo next = infoList.get((i + 1) % infoList.size());
+            // added: server availability check.
+            if (infoList.get(i).getAvailability()) {
+                ServerInfo curr = infoList.get(i);
+                ServerInfo next = infoList.get((i + 1) % infoList.size());
 
-            result.add(
-                new MetaData(
-                    curr.getName(),
-                    curr.getHost(), 
-                    curr.getPort(),
-                    curr.getHash(),
-                    next.getHash()
-                )
-            );
+                result.add(
+                    new MetaData(
+                        curr.getName(),
+                        curr.getHost(), 
+                        curr.getPort(),
+                        curr.getHash(),
+                        next.getHash()
+                    )
+                );
+            }
         }
-
         return new MetaDataSet(result);
     }
 
