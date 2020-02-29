@@ -59,7 +59,7 @@ public class Application {
 		*/
 		else if(tokens[0].equals("add")) {	
 			if(tokens.length == 4) {
-				try{
+				try {
 					int numNodes = Integer.parseInt(tokens[1]);
 					String cacheStrategy = tokens[2];
 					int cacheSize = Integer.parseInt(tokens[3]);
@@ -88,16 +88,21 @@ public class Application {
 		} 
 
 		/*
-		* INPUT: remove <name of server>
+		* INPUT: remove <name of servers, separated by spaces>
 		*/
 		else if(tokens[0].equals("remove")) {	
-			if(tokens.length == 2) {
-				try{
-					int serverIndex = Integer.parseInt(tokens[1]);
-					remove_server(serverIndex);
-				} catch(NumberFormatException nfe) {
+			if(tokens.length >= 2) {
+				try {
+					List<String> serversToRemove = null;
+					for (int i = 0; i < (tokens.length - 1); i++){
+						serversToRemove.add(tokens[i+1]);
+					}
+					//int serverName = Integer.parseInt(tokens[1]);
+					remove_servers(serversToRemove);
+				} 
+				catch(NumberFormatException nfe) {
 					printError("Index must be a number!");
-					logger.info("Unable to parse argument <serverIndex>", nfe);
+					logger.info("Unable to parse argument <serverName>", nfe);
 				}
 			} else {
 				printError("Invalid number of parameters!");
@@ -117,12 +122,9 @@ public class Application {
 		 throws UnknownHostException, IOException {
 		  	int numNodes = 0;
 		  	List<ECSNode> newNodes = null;
-		 	Collection<ECSNode> newNodesCollection = new ArrayList<ECSNode>();
 
-		 	// addNodes method returns collection, so convert to list.
-		  	newNodesCollection = client.addNodes(numServers, cacheStrategy, cacheSize);
-			newNodes = new ArrayList(newNodesCollection);
-
+			// call ECSClient method to add new servers.
+			newNodes = client.addNodes(numServers, cacheStrategy, cacheSize);
 		  	numNodes = newNodes.size();
 
 		  	// log the number of and names for all servers added.
@@ -134,7 +136,26 @@ public class Application {
 		  	}
 	}
 	
-	private void remove_server(int nodeIndex) {
+	private void remove_servers(List<String> servers) {
+		int numRmServers = 0;
+		List<String> removedServers = null;
+
+		if (serverName = "all") {
+
+		} else {
+			// call ECSClinet method to remove servers.
+			removedServers = client.removeNodes(servers);
+			numRmServers = removedServers.size();
+
+			// log the number of and names for all servers removed.
+		  	// sorry if this is a really ugly way to do it.
+		  	logger.info("Removed " + numRmServers + " servers:");
+
+		  	for (int i = 0; i < numNodes; i++) {
+		  		logger.info(removedServers.get(i));
+		  	}
+		}
+				
 		// try {
 		// 	//remove needs to beimplemented
 		// 	//client.remove(nodeIndex);
