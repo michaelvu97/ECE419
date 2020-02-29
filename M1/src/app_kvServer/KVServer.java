@@ -45,6 +45,8 @@ public class KVServer implements IKVServer {
 
 	private IZKClient _zkClient = null;
 
+	private IECSCommandReceiver ECSConnection;
+
 	private static String USAGE = "server <name> <port> <cache strategy> <cache size>\n" +
 		"<name> is the server znode name\n" +
 		"<port> is a valid unused local port, or 0 for new unused port\n" +
@@ -61,14 +63,15 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */ 
-	public KVServer(String znodeName, int port, int cacheSize, String strategy,
-			String diskStorageStr) {
+	public KVServer(String znodeName, int port, int cacheSize, String strategy, String diskStorageStr, String ECSLoc, int ECSPort) {
 		if (znodeName == null || znodeName.length() == 0)
 			throw new IllegalArgumentException("znodeName invalid");
 		if (port < 0)
 			throw new IllegalArgumentException("port is negative");
 		if (cacheSize < 0)
 			throw new IllegalArgumentException("cache size cannot be negative");
+		if(ECSPort < 0)
+			throw new IllegalArgumentException("ecs port is negative");
 
 		this._name = znodeName;
 		this._port = port;
@@ -76,6 +79,8 @@ public class KVServer implements IKVServer {
 
 		strategy = strategy.toUpperCase();
 
+		ECSConnection = new ECSCommandReceiver(this, metaDataManager, ECSLoc, ECSPort);
+		
 		switch (strategy) {
 			case "FIFO":
 				_strategy = IKVServer.CacheStrategy.FIFO;
@@ -105,8 +110,8 @@ public class KVServer implements IKVServer {
 		}
 	}
 
-    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy) {
-        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE");
+    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ECSLoc, int ECSPort) {
+        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ECSLoc, ECSPort);
     }
 	
 	@Override
@@ -247,6 +252,16 @@ public class KVServer implements IKVServer {
 		throw new IllegalStateException(); // TODO
 	}
 
+	/**
+    * Removes any entries from storage/cache that don't belong to the hash range.
+    */
+    @Override
+    public void refocus(HashRange hr){
+    	this.serverStore.flushStorage(hr);
+    	//TODO only flush within a hash range (not sure its required so not doing until I am sure there is time)
+    	clearCache();
+	}
+
 	public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
@@ -258,9 +273,11 @@ public class KVServer implements IKVServer {
 				int port = Integer.parseInt(args[1]);
 				String cacheStrategy = args[2];
 				int cacheSize = Integer.parseInt(args[3]);
+				String ECSLoc = args[4];
+				int ECSPort = Integer.parseInt(args[5]);
 				IKVServer kvServer = null;
 				try {
-					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName);
+					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName, ECSLoc, ECSPort);
 				} catch (IllegalArgumentException iae) {
 					System.out.println(iae.getMessage());
 				}

@@ -1,5 +1,4 @@
 package app_kvECS;
-// package shared.metadata;
 
 import ecs.*;
 import java.io.*;
@@ -15,8 +14,6 @@ import org.apache.zookeeper.*;
 import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
-// import shared.metadata;
 
 public class ECSClient implements IECSClient {
 
@@ -166,7 +163,7 @@ public class ECSClient implements IECSClient {
 
         /* use CreateFromServerInfo from MetaDataSet to construct a metadata 
         *  set from a collection of server infos.
-        *  TODO: Once the metadata set is returned, re-distribute to all servers?
+        *  TODO: sent metadata to all nodes/servers.
         */        
         
         allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
@@ -188,15 +185,33 @@ public class ECSClient implements IECSClient {
         return false;
     }
 
-    @Override
-    public boolean removeNodes(Collection<String> nodeNames) {
-        boolean stauts = true;
-
-        for (Iterator i = nodeNames.iterator(); i.hasNext(); ) {
-            if (allNodes.remove(i.next()) == null) {
-                stauts = false;
+    public void setServerAvailable(String serverName) {
+        for (int i = 0; i < allServerInfo.size(); i++) {
+            if (allServerInfo.get(i).getName() == serverName) {
+                allServerInfo.get(i).setAvailability(true);
             }
         }
+    }
+
+    @Override
+    public boolean removeNodes(Collection<String> nodeNames) {
+        // convert collection to list because easier to use.
+        List<String> _nodeNames = new ArrayList<String>(nodeNames); 
+        boolean stauts = true;
+        String nodeName = null;
+
+        for (int i = 0; i < _nodeNames.size(); i++) {
+            nodeName = _nodeNames.get(i);
+            
+            if (allNodes.remove(nodeName) != null) {
+                setServerAvailable(nodeName);
+            } 
+            else { stauts = false; }
+        }
+
+        allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
+
+        // TODO: send metadata to all nodes/servers.
 
         // stauts is only true if all removals are successful.
         return stauts;

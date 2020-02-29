@@ -20,7 +20,9 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
      * Connects on construction.
      */
     public ECSCommandReceiver(IKVServer kvServer, 
-            IMetaDataManager metaDataManager) {
+            IMetaDataManager metaDataManager,
+            String ECSLoc,
+            int ECSPort) {
         if (kvServer == null)
             throw new IllegalArgumentException("kvServer is null");
         if (metaDataManager == null)

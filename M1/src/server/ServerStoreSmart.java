@@ -5,6 +5,7 @@ import cache.*;
 import storage.*;
 
 import app_kvServer.IKVServer;
+import shared.metadata.*;
 
 /**
  * Implementation of IServerStore. This class is not thread safe.
@@ -102,4 +103,14 @@ public class ServerStoreSmart implements IServerStore {
             return _cache.get(key) == null ? false : true; 
         }
     }
+
+    @Override
+    public boolean flushStorage(HashRange hr){
+        boolean return_val;
+        synchronized(_lock) {
+            clearCache();
+            return_val = _disk.flush(hr);
+        }
+        return return_val;
+    } 
 }
