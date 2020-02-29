@@ -1,0 +1,3 @@
+#!/bin/csh
+
+java -jar ECS.jar ecs.config
