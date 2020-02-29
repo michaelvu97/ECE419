@@ -4,8 +4,6 @@ import ecs.*;
 import java.io.*;
 import java.util.*;
 import java.lang.*;
-import java.net.BindException;
-import java.net.ServerSocket;
 import java.nio.file.*;
 import java.nio.charset.*;
 import java.io.IOException;
@@ -21,19 +19,17 @@ import java.net.InetAddress;
 
 public class ECSClient implements IECSClient {
 
-    private int ecsClientPort = 6969;
     private int _port = 0;
     private String _host = null;
-    private ServerSocket _ecsSocket;
-    private String _configFilePath;
     private ZooKeeper _zoo = null;
+    private int ecsClientPort = 6969;
+    private ServerSocket ecsSocket = null;
+    private String _configFilePath = null;
+    private MetaDataSet allMetadata = null;
+    private NodeAcceptor nodeAcceptor = null;
     private static Logger logger = Logger.getRootLogger();
     private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
-    private MetaDataSet allMetadata = null;
-    private NodeAcceptor nodeAcceptor = null;
-
-    private String _username;
 
     @Override
     public void setAllServers(String configFilePath) {
@@ -70,14 +66,11 @@ public class ECSClient implements IECSClient {
         }        
     }
 
-    public ECSClient(String configFilePath, String username) {
+    public ECSClient(String configFilePath) {
         if (configFilePath == null || configFilePath.length() == 0)
             throw new IllegalArgumentException("configFilePath");
-        if (username == null || username.length() == 0)
-            throw new IllegalArgumentException("username");
 
         _configFilePath = configFilePath;
-        _username = username;
 
         setAllServers(_configFilePath);
     }
@@ -88,41 +81,50 @@ public class ECSClient implements IECSClient {
         logger.info("Initializing ECS Client...");
         
         try {
-			_ecsSocket = new ServerSocket(ecsClientPort);
+			ecsSocket = new ServerSocket(ecsClientPort);
 			
-			_port = _ecsSocket.getLocalPort();
-			_host = _ecsSocket.getInetAddress().getHostName();
+			_port = ecsSocket.getLocalPort();
+			_hostName = ecsSocket.getInetAddress().getHostName();
 
-			logger.info("ECSClient " + _host + " listening on port: " + _ecsSocket.getLocalPort());    
+			logger.info("ECSClient " + _hostName + " listening on port: " + ecsSocket.getLocalPort());    
             
-            nodeAcceptor = new NodeAcceptor(_ecsSocket, this);
+            nodeAcceptor = new NodeAcceptor(ecsSocket, this);
             
             return true;
 		}
 		catch (IOException e) {
         	logger.error("Error! Cannot open server socket:");
-            if (e instanceof BindException){
+            if(e instanceof BindException){
             	logger.error("Port " + _port + " is already bound!");
             }
             return false;
         }
+        return false;
     }
 
     @Override
     public boolean stop() {
         try {
-            _ecsSocket.close();
-            logger.info("Server socket is closed.");
+            ecsSocket.close();
+            logger.info("ECSClient socket is closed.");
             return true;
         } catch (IOException e) {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);
             return false;
         }
+        return false;
     }
 
     @Override
     public boolean shutdown() {
-        // TODO
+        try {
+            ecsSocket.close();
+            logger.info("ECSClient socket is closed.");
+            return true;
+        } catch (IOException e) {
+            logger.error("Error! " + "Unable to close socket on port: " + _port, e);
+            return false;
+        }
         return false;
     }
 
@@ -141,7 +143,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public ECSNode addNode(String cacheStrategy, int cacheSize) {
+    public ECSNode addNode(String username, String cacheStrategy, int cacheSize) {
         
         ECSNode newNode = null;
         ServerInfo newServer = getNextAvailableServer();
@@ -163,15 +165,15 @@ public class ECSClient implements IECSClient {
             
             String cmd[] = {
                 script,
-                _username,
+                username,
                 newServer.getHost(), // config host
                 newServer.getName(), // server name
-                Integer.toString(newServer.getPort()), // server port
+                newServer.getPort(), // server port
                 cacheStrategy, 
-                Integer.toString(cacheSize),
+                cacheSize,
                 newServer.getName(), // disk storage string
-                _host,           // ecs hostname
-                Integer.toString(_port), // ecs port
+                _hostname,           // ecs hostname
+                _port,               // ecs port
             };
 
             try {
@@ -189,14 +191,14 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public List<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
+    public List<ECSNode> addNodes(String username, int count, String cacheStrategy, int cacheSize) {
         ECSNode newNode = null;
         ArrayList<ECSNode> newNodes = new ArrayList<ECSNode>();
 
         // call addNode count # of times.
         for (int i = 0; i < count; i++) {
             
-            newNode = addNode(cacheStrategy, cacheSize);
+            newNode = addNode(username, cacheStrategy, cacheSize);
             
             if (newNode != null) {
                 newNodes.add(newNode);
@@ -265,8 +267,8 @@ public class ECSClient implements IECSClient {
         return allNodes.get(name);
     }
 
-    public static void main(String configFile, String username) {
-        ECSClient client = new ECSClient(configFile, username);
+    public static void main(String configFile) {
+        ECSClient client = new ECSClient(configFile);
         client.start();
     }
 }
