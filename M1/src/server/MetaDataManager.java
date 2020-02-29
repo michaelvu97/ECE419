@@ -15,7 +15,7 @@ public class MetaDataManager implements IMetaDataManager {
         _metaDataSet = mds;
 
         _currentServerHash = HashValue.CreateFromHashString(
-            ServerInfo.ComputeHash(
+            HashUtil.ComputeHash(
                 kvServer.getHostname(),
                 kvServer.getPort()
             )

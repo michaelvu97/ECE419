@@ -1,7 +1,5 @@
 package shared.metadata;
 
-import java.security.MessageDigest;
-
 public class ServerInfo implements Comparable<ServerInfo> {
     private String _name;
     private String _host;
@@ -20,24 +18,8 @@ public class ServerInfo implements Comparable<ServerInfo> {
         _name = name;
         _host = host;
         _port = port;
-        _hash = ComputeHash(_host, _port);
+        _hash = HashUtil.ComputeHash(_host, _port);
         available = false;
-    }
-
-    public static String ComputeHash(String hostname, int port) {
-        String combinedStr = hostname + ":" + port;
-
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (Exception e) {
-            // Swallow exception, this won't happen.
-        }
-
-        md.update(combinedStr.getBytes());
-        byte[] result = md.digest();
-        
-        return HashValue.CreateFromMD5Bytes(result).toString();
     }
 
     public boolean setAvailability(boolean availability) {
