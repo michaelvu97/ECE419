@@ -45,7 +45,7 @@ public class KVServer implements IKVServer {
 
 	private IZKClient _zkClient = null;
 
-	private IECSCommandReceiver ECSConnection;
+	private IECSCommandReceiver _ecsConnection;
 
 	private static String USAGE = "server <name> <port> <cache strategy> <cache size>\n" +
 		"<name> is the server znode name\n" +
@@ -79,7 +79,7 @@ public class KVServer implements IKVServer {
 
 		strategy = strategy.toUpperCase();
 
-		ECSConnection = new ECSCommandReceiver(this, metaDataManager, ECSLoc, ECSPort);
+		_ecsConnection = new ECSCommandReceiver(this, metaDataManager, ECSLoc, ECSPort);
 		
 		switch (strategy) {
 			case "FIFO":
@@ -171,6 +171,7 @@ public class KVServer implements IKVServer {
     public void run(){
     	this.running = initializeServer();
     	if (this.running) {
+            new Thread(this._ecsConnection).start();
     		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore, this.metaDataManager);
     		new Thread(this._clientAcceptor).start();
     	}

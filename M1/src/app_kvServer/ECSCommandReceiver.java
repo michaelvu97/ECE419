@@ -38,6 +38,11 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         // TODO
     }
 
+    @Override
+    public void run() {
+        logger.info("ECS Command Receiver running");
+    }
+
     /**
      * Called when a transfer request is receieved.
      */
