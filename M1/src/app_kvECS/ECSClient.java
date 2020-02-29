@@ -147,7 +147,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public Collection<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
+    public List<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
         ECSNode newNode = null;
         ArrayList<ECSNode> newNodes = new ArrayList<ECSNode>();
 
@@ -172,7 +172,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public Collection<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
+    public List<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
         // to be honest.. what does this do?
         // TODO
         return null;
@@ -193,28 +193,24 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    @Override
-    public boolean removeNodes(Collection<String> nodeNames) {
-        // convert collection to list because easier to use.
-        List<String> _nodeNames = new ArrayList<String>(nodeNames); 
-        boolean stauts = true;
+    public List<String> removeNodes(List<String> nodeNames) {
+        List<String> removedNodes = null;
+
         String nodeName = null;
 
-        for (int i = 0; i < _nodeNames.size(); i++) {
-            nodeName = _nodeNames.get(i);
+        for (int i = 0; i < nodeNames.size(); i++) {
+            nodeName = nodeNames.get(i);
             
             if (allNodes.remove(nodeName) != null) {
+                removedNodes.add(nodeName);
                 setServerAvailable(nodeName);
             } 
-            else { stauts = false; }
         }
 
         allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
-
         // TODO: send metadata to all nodes/servers.
 
-        // stauts is only true if all removals are successful.
-        return stauts;
+        return removedNodes;
     }
 
     @Override
