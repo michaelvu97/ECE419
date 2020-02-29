@@ -5,6 +5,7 @@ import shared.messages.*;
 import shared.network.*;	
 import shared.serialization.*;
 import server.*;
+import shared.metadata.*;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -105,7 +106,14 @@ public class ClientConnection extends Connection {
 
 	private KVMessage handleGet(KVMessage getMessage) {
 		String key = getMessage.getKey();
-
+		if(!serverHR.isInRange(HashUtil.ComputeHashFromKey(key))){
+			//return metadata if this is the wrong server
+			return new KVMessageImpl(
+				KVMessage.StatusType.GET_METADATA_SUCCESS,
+				null,
+				this.metaDataManager.getMetaData().serialize()
+			);
+		}
 		String result = serverStore.get(key);
 		if (result != null) {
 			return new KVMessageImpl(KVMessage.StatusType.GET_SUCCESS, key, result);
@@ -118,7 +126,14 @@ public class ClientConnection extends Connection {
 	private KVMessage handlePut(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
-
+		if(!serverHR.isInRange(HashUtil.ComputeHashFromKey(key))){
+			//return metadata if this is the wrong server
+			return new KVMessageImpl(
+				KVMessage.StatusType.GET_METADATA_SUCCESS,
+				null,
+				this.metaDataManager.getMetaData().serialize()
+			);
+		}
 		IServerStore.PutResult putResult = serverStore.put(key, value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
 			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
@@ -132,7 +147,14 @@ public class ClientConnection extends Connection {
 
 	private KVMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
-
+		if(!serverHR.isInRange(HashUtil.ComputeHashFromKey(key))){
+			//return metadata if this is the wrong server
+			return new KVMessageImpl(
+				KVMessage.StatusType.GET_METADATA_SUCCESS,
+				null,
+				this.metaDataManager.getMetaData().serialize()
+			);
+		}
 		boolean success = serverStore.delete(key);
 		if (success) {
 			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key);
