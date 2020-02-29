@@ -1,5 +1,4 @@
 package app_kvECS;
-// package shared.metadata;
 
 import ecs.*;
 import java.io.*;
@@ -15,8 +14,6 @@ import org.apache.zookeeper.*;
 import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
-// import shared.metadata;
 
 public class ECSClient implements IECSClient {
 
@@ -150,7 +147,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public Collection<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
+    public List<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
         ECSNode newNode = null;
         ArrayList<ECSNode> newNodes = new ArrayList<ECSNode>();
 
@@ -166,7 +163,7 @@ public class ECSClient implements IECSClient {
 
         /* use CreateFromServerInfo from MetaDataSet to construct a metadata 
         *  set from a collection of server infos.
-        *  TODO: Once the metadata set is returned, re-distribute to all servers?
+        *  TODO: sent metadata to all nodes/servers.
         */        
         
         allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
@@ -175,7 +172,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public Collection<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
+    public List<ECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
         // to be honest.. what does this do?
         // TODO
         return null;
@@ -188,18 +185,32 @@ public class ECSClient implements IECSClient {
         return false;
     }
 
-    @Override
-    public boolean removeNodes(Collection<String> nodeNames) {
-        boolean stauts = true;
-
-        for (Iterator i = nodeNames.iterator(); i.hasNext(); ) {
-            if (allNodes.remove(i.next()) == null) {
-                stauts = false;
+    public void setServerAvailable(String serverName) {
+        for (int i = 0; i < allServerInfo.size(); i++) {
+            if (allServerInfo.get(i).getName() == serverName) {
+                allServerInfo.get(i).setAvailability(true);
             }
         }
+    }
 
-        // stauts is only true if all removals are successful.
-        return stauts;
+    public List<String> removeNodes(List<String> nodeNames) {
+        List<String> removedNodes = null;
+
+        String nodeName = null;
+
+        for (int i = 0; i < nodeNames.size(); i++) {
+            nodeName = nodeNames.get(i);
+            
+            if (allNodes.remove(nodeName) != null) {
+                removedNodes.add(nodeName);
+                setServerAvailable(nodeName);
+            } 
+        }
+
+        allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
+        // TODO: send metadata to all nodes/servers.
+
+        return removedNodes;
     }
 
     @Override
