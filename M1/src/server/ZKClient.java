@@ -1,6 +1,7 @@
 package server;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.io.IOException;
 
 import org.apache.log4j.Level;
@@ -8,10 +9,14 @@ import org.apache.log4j.Logger;
 
 import logger.LogSetup;
 
-import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
 
 public class ZKClient implements IZKClient {
     
@@ -19,8 +24,36 @@ public class ZKClient implements IZKClient {
 
     private ZooKeeper _zooKeeper = null;
 
-    public ZKClient(String connectString) throws Exception {
-        _zooKeeper = new ZooKeeper(connectString, 10000, null /* TODO*/);
+    private String _nodeName;
+
+    private CountDownLatch _connectionLatch = new CountDownLatch(1);
+
+    private String getPath() {
+        return "/kvclients/" + _nodeName;
+    }
+
+    public ZKClient(String connectString, String nodeName) throws Exception {
+        if (nodeName == null || nodeName.length() == 0) 
+            throw new IllegalArgumentException("Node name invalid");
+        _nodeName = nodeName;
+
+        _zooKeeper = new ZooKeeper(connectString, 10000, new Watcher() {
+            public void process(WatchedEvent we) {
+                if (we.getState() == Watcher.Event.KeeperState.SyncConnected) {
+                    _connectionLatch.countDown();
+                    return;
+                }
+                if (we.getPath().equals(getPath())) {
+                    // Event involving this node.
+                    if (we.getType() == Watcher.Event.EventType.NodeDataChanged) {
+
+                    }
+                }
+            }
+        });
+
+        _connectionLatch.await();
+
         attemptRegisterApp();
     }
 
@@ -40,14 +73,33 @@ public class ZKClient implements IZKClient {
     }
 
     @Override
-    public void registerNode(String nodeName) throws Exception {
+    public void registerNode() throws Exception {
         String path = _zooKeeper.create(
-            "/kvclients/" + nodeName,
+            getPath(),
             "some_data".getBytes(),
             ZooDefs.Ids.OPEN_ACL_UNSAFE,
             CreateMode.EPHEMERAL
         );
         logger.debug("Registered node: " + path);
+
+        // Create a watch for this node's data being changed
+        _zooKeeper.getData(
+            getPath(),
+            new Watcher() {
+                @Override
+                public void process(WatchedEvent we) {
+                    logger.info(we.toString());
+                }
+            },
+            new AsyncCallback.DataCallback() {
+                @Override
+                public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
+                    logger.info(data.length);
+                }
+            },
+            null
+        );
+
     }
 
 }

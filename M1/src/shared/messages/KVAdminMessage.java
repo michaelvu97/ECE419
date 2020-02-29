@@ -8,12 +8,23 @@ import shared.serialization.*;
 public class KVAdminMessage implements ISerializable {
 
     public enum StatusType {
-        TODO;
+        TRANSFER_REQUEST, /* ECS -> KV, tells KV to transfer data to other server */
+        TRANSFER_REQUEST_SUCCESS,
+        UPDATE_METADATA_REQUEST, /* ECS -> KV, tells KV the new metadata*/
+        UPDATE_METADATA_REQUEST_SUCCESS;
+
+
 
         public byte toByte() {
             switch (this) {
-                case TODO:
-                    return -1;
+                case TRANSFER_REQUEST:
+                    return 0;
+                case TRANSFER_REQUEST_SUCCESS:
+                    return 1;
+                case UPDATE_METADATA_REQUEST:
+                    return 2;
+                case UPDATE_METADATA_REQUEST_SUCCESS:
+                    return 3;
                 default:                
                     throw new IllegalArgumentException("s out of range");
             }
@@ -21,8 +32,14 @@ public class KVAdminMessage implements ISerializable {
 
         public static StatusType FromByte(byte b) {
             switch (b) {
-                case -1:
-                    return TODO;
+                case 0:
+                    return TRANSFER_REQUEST;
+                case 1:
+                    return TRANSFER_REQUEST_SUCCESS;
+                case 2:
+                    return UPDATE_METADATA_REQUEST;
+                case 3:
+                    return UPDATE_METADATA_REQUEST_SUCCESS;
                 default:                
                     throw new IllegalArgumentException("b out of range");
             }
