@@ -46,7 +46,7 @@ public class KVServer implements IKVServer {
 
 	private IZKClient _zkClient = null;
 
-	private IECSCommandReceiver ECSConnection;
+	private IECSCommandReceiver _ecsConnection;
 
 	private static String USAGE = "server <name> <port> <cache strategy> <cache size>\n" +
 		"<name> is the server znode name\n" +
@@ -64,14 +64,15 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */ 
-	public KVServer(String znodeName, int port, int cacheSize, String strategy, String diskStorageStr, String ECSLoc, int ECSPort) {
+	public KVServer(String znodeName, int port, int cacheSize, String strategy,
+				String diskStorageStr, String ecsLoc, int ecsPort) {
 		if (znodeName == null || znodeName.length() == 0)
 			throw new IllegalArgumentException("znodeName invalid");
 		if (port < 0)
 			throw new IllegalArgumentException("port is negative");
 		if (cacheSize < 0)
 			throw new IllegalArgumentException("cache size cannot be negative");
-		if(ECSPort < 0)
+		if(ecsPort < 0)
 			throw new IllegalArgumentException("ecs port is negative");
 
 		this._name = znodeName;
@@ -80,7 +81,13 @@ public class KVServer implements IKVServer {
 
 		strategy = strategy.toUpperCase();
 
-		ECSConnection = new ECSCommandReceiver(this, metaDataManager, ECSLoc, ECSPort);
+		try {
+			_ecsConnection = new ECSCommandReceiver(this, metaDataManager, 
+					ecsLoc, ecsPort);
+		} catch (Exception e) {
+			logger.error("Could not connect to ECS!", e);
+			_ecsConnection = null;
+		}
 		
 		switch (strategy) {
 			case "FIFO":
@@ -113,8 +120,8 @@ public class KVServer implements IKVServer {
     public HashRange getServerHR(){
     	return serverHR;
     }	    
-    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ECSLoc, int ECSPort) {
-        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ECSLoc, ECSPort);
+    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
+        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
     }
 	
 	@Override
@@ -180,6 +187,7 @@ public class KVServer implements IKVServer {
     public void run(){
     	this.running = initializeServer();
     	if (this.running) {
+            new Thread(this._ecsConnection).start();
     		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore, this.metaDataManager);
     		new Thread(this._clientAcceptor).start();
     	}
@@ -257,6 +265,16 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
+	public void requestLock() {
+		logger.warn("REQUESTLOCK NOT IMPLEMENTED");
+	}
+
+	@Override
+	public void requestUnlock() {
+		logger.warn("REQUESTUNLOCK NOT IMPLEMENTED");
+	}
+
+	@Override
 	public IKVServer.ServerStateType getServerState() {
 		throw new IllegalStateException(); // TODO
 	}
@@ -282,11 +300,11 @@ public class KVServer implements IKVServer {
 				int port = Integer.parseInt(args[1]);
 				String cacheStrategy = args[2];
 				int cacheSize = Integer.parseInt(args[3]);
-				String ECSLoc = args[4];
-				int ECSPort = Integer.parseInt(args[5]);
+				String ecsLoc = args[4];
+				int ecsPort = Integer.parseInt(args[5]);
 				IKVServer kvServer = null;
 				try {
-					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName, ECSLoc, ECSPort);
+					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName, ecsLoc, ecsPort);
 				} catch (IllegalArgumentException iae) {
 					System.out.println(iae.getMessage());
 				}

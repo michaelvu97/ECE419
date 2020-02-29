@@ -1,10 +1,14 @@
 package app_kvServer;
 
+import java.io.IOException;
+import java.net.Socket;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import logger.LogSetup;
 
 import app_kvServer.IKVServer;
+import shared.comms.*;
 import shared.messages.KVAdminMessage;
 import shared.metadata.*;
 import shared.serialization.*;
@@ -16,14 +20,19 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
     private IKVServer _kvServer;
     private IMetaDataManager _metaDataManager;
 
+    private String _ecsLoc;
+    private int _ecsPort;
+    private ICommChannel _commChannel;
+
+    private boolean _running = false;
+
     /**
      * Connects on construction.
      */
     public ECSCommandReceiver(IKVServer kvServer, 
             IMetaDataManager metaDataManager,
-            String ECSLoc,
-            int ECSPort) {
-
+            String ecsLoc,
+            int ecsPort) throws IOException {
         if (kvServer == null)
             throw new IllegalArgumentException("kvServer is null");
         if (metaDataManager == null)
@@ -32,31 +41,66 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         _kvServer = kvServer;
         _metaDataManager = metaDataManager;
 
+        _ecsLoc = ecsLoc;
+        _ecsPort = ecsPort;
+
         connect();
     }
 
-    public void connect() {
-        // TODO
+    public void connect() throws IOException{
+        Socket clientSocket = new Socket(
+            _ecsLoc,
+            _ecsPort
+        );
+
+        _commChannel = new CommChannel(clientSocket);
+        logger.info("Connected to ECS");
+    }
+
+    @Override
+    public void run() {
+        logger.info("ECS Command Receiver running");
+        _running = true;
+        while(_running) {
+            // Listen for commands
+            try {
+                byte[] recvBytes = _commChannel.recvBytes();
+                KVAdminMessage message = KVAdminMessage.Deserialize(recvBytes);
+                KVAdminMessage result = handleCommand(message);
+                _commChannel.sendBytes(result.serialize());
+            } catch (Exception e) {
+                logger.error(e);
+                _running = false;
+            }
+        }
+
+        logger.info("ECS Command Receiver stopped");
+    }
+
+    private KVAdminMessage handleCommand(KVAdminMessage request) 
+            throws Exception {
+        switch (request.getStatus()) {
+            case UPDATE_METADATA_REQUEST:
+                return onUpdateMetadataRequest(request);
+            case TRANSFER_REQUEST:
+                return onTransferRequest(request);
+            default:
+                throw new Exception("Invalid command from ECS: " + request.getStatus());
+        }
     }
 
     /**
      * Called when a transfer request is receieved.
      */
-    public void onTransferRequest(KVAdminMessage transferRequest) {
+    public KVAdminMessage onTransferRequest(KVAdminMessage transferRequest) {
         // TODO
-	//transferRequest.payloadBytes.Deserialize();
-	//get new HashRange that is taken by the new server.
-	//get server send information
-	//initialize KVStoreThing
-	//while(KVServer.popInRange()!=null)
-		//send message to new server
-	//return;
+        return null;
     }
 
     /**
      * Called when an update metadata request is received.
      */
-    public void onUpdateMetadataRequest(KVAdminMessage updateMetadataRequest) {
+    public KVAdminMessage onUpdateMetadataRequest(KVAdminMessage updateMetadataRequest) {
         
         // Deserialize the metadata
         MetaDataSet mds;
@@ -65,10 +109,14 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             mds = MetaDataSet.Deserialize(updateMetadataRequest.getPayload());
         } catch (Deserializer.DeserializationException dse) {
             logger.error("Received invalid metadata from server", dse);
-            return;
+            return new KVAdminMessage(
+                    KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_FAILURE,
+                    "Could not parse metadata payload".getBytes()
+            );
         }
 
         _metaDataManager.updateMetaData(mds);
+        return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }
 
 
