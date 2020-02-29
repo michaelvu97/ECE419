@@ -1,6 +1,6 @@
 package app_kvServer;
 import shared.metadata.*;
-import shared.Utils;
+import shared.*;
 
 public interface IKVServer {
     public enum CacheStrategy {
@@ -90,7 +90,7 @@ public interface IKVServer {
     /**
      * Grabs a key value pair in a hash range, returns the values, and removes it from storage 
      */
-    public Utils.Pair<String,String> popInRange(HashRange hr);
+    public Pair popInRange(HashRange hr);
 
     /**
      * Starts running the server

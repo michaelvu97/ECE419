@@ -17,7 +17,7 @@ import cache.*;
 import server.*;
 import storage.*;
 import shared.metadata.*;
-import shared.Utils;
+import shared.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -167,8 +167,8 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public Utils.Pair<String,String> popInRange(HashRange hr){
-		//this.serverStore.popInRange(hr);
+    public Pair popInRange(HashRange hr){
+		return this.serverStore.popInRange(hr);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package storage;
 import shared.metadata.*;
+import shared.*;
 
 public interface IDiskStorage {
 
@@ -26,6 +27,10 @@ public interface IDiskStorage {
     * @return true if complted succesfully
     */
     public boolean flush(HashRange hr);
+    /**
+     * returns a key value pair within a hash range, null if none exist
+     */
+    public Pair popInRange(HashRange hr);
 
     /**
     * @return deletes file on disk.

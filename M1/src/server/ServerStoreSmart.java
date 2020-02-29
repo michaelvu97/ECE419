@@ -6,6 +6,7 @@ import storage.*;
 
 import app_kvServer.IKVServer;
 import shared.metadata.*;
+import shared.*;
 
 /**
  * Implementation of IServerStore. This class is not thread safe.
@@ -102,6 +103,15 @@ public class ServerStoreSmart implements IServerStore {
         synchronized(_lock) {
             return _cache.get(key) == null ? false : true; 
         }
+    }
+
+    @Override
+    public Pair popInRange(HashRange hr){
+     Pair KV;
+	 synchronized(_lock) {
+	    KV = _disk.popInRange(hr);
+	    if(KV!=null) _cache.delete(KV.k);	    
+	}   	 
     }
 
     @Override

@@ -6,6 +6,8 @@ import java.nio.charset.*;
 import java.nio.file.*;
 import shared.metadata.*;
 import org.apache.log4j.Logger;
+import shared.*;
+
 
 /**
  * Implementation of IDiskStorage. This class is not thread safe.
@@ -87,7 +89,53 @@ public class DiskStorage implements IDiskStorage {
     	}
     	return lineRet;
 	}
-   
+    @Override
+    public Pair popInRange(HashRange hr){
+        String currLine = null;
+        boolean read_complete = false;
+        Pair KV  = new Pair(null,null);	
+        createNewFile();
+        correctnessCheck();
+
+        /**
+         * Create a new temp storage file
+         * Copy all existing file except the K/V to be deleted.
+         * Delete old storage file, rename new file to old file name.
+         */
+        try {
+            // TODO: close the reader/writers using 'finally'
+            BufferedReader br = new BufferedReader(new FileReader(_storagePath));
+            StringBuilder sb = new StringBuilder();
+
+            while((currLine = br.readLine()) != null) {
+                if (!(hr.isInRange(HashUtil.ComputeHashFromKey(currLine))) || read_complete) {
+                    sb.append(currLine).append("\n");
+                    br.readLine();
+                    sb.append(currLine).append("\n");
+                } else {
+		            KV.k = currLine;		
+                    currLine = br.readLine(); //read val
+		            KV.v = currLine;
+		            read_complete = true;
+                }
+            }
+            br.close();
+
+            FileWriter fw = new FileWriter(_storagePath);
+            fw.write(sb.toString());
+            fw.close();
+        } 
+        catch (FileNotFoundException fnfe) {
+            logger.error("Could not find file on disk.");
+            return KV;
+        } 
+        catch (IOException ioe) {
+            logger.error("Could not complete removal");
+            return KV;
+        }
+        return KV;
+    }	    
+    
     @Override
     public int put(String key, String value) {    	    	
         int opType = 0;
