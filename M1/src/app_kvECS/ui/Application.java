@@ -140,7 +140,7 @@ public class Application {
 		int numRmServers = 0;
 		List<String> removedServers = null;
 
-		if (serverName == "all") {
+		if (servers.get(0) == "all") {
 
 		} else {
 			// call ECSClinet method to remove servers.
