@@ -1,4 +1,5 @@
 package server;
+import shared.metadata.*;
 
 public interface IServerStore {
 
@@ -32,4 +33,9 @@ public interface IServerStore {
     public boolean inCache(String key);
 
     public String cacheGet(String key);
+
+    /**
+     * @return operation success.
+     */
+    public boolean flushStorage(HashRange hr);
 }

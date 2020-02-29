@@ -1,4 +1,5 @@
 package storage;
+import shared.metadata.*;
 
 public interface IDiskStorage {
 
@@ -19,6 +20,12 @@ public interface IDiskStorage {
     * @return true if the key existed and was successfully deleted
     */
     public boolean delete(String key);
+
+    /**
+    * removes all keys of a given hash range from storage
+    * @return true if complted succesfully
+    */
+    public boolean flush(HashRange hr);
 
     /**
     * @return deletes file on disk.

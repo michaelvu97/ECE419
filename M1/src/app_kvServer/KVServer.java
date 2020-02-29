@@ -79,7 +79,7 @@ public class KVServer implements IKVServer {
 
 		strategy = strategy.toUpperCase();
 
-		ECSConnection = new ECSCommandReceiver(ECSLoc, ECSPort);
+		ECSConnection = new ECSCommandReceiver(this, metaDataManager, ECSLoc, ECSPort);
 		
 		switch (strategy) {
 			case "FIFO":
@@ -110,8 +110,8 @@ public class KVServer implements IKVServer {
 		}
 	}
 
-    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy) {
-        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE");
+    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ECSLoc, int ECSPort) {
+        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ECSLoc, ECSPort);
     }
 	
 	@Override
@@ -252,6 +252,16 @@ public class KVServer implements IKVServer {
 		throw new IllegalStateException(); // TODO
 	}
 
+	/**
+    * Removes any entries from storage/cache that don't belong to the hash range.
+    */
+    @Override
+    public void refocus(HashRange hr){
+    	this.serverStore.flushStorage(hr);
+    	//TODO only flush within a hash range (not sure its required so not doing until I am sure there is time)
+    	clearCache();
+	}
+
 	public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
@@ -264,7 +274,7 @@ public class KVServer implements IKVServer {
 				String cacheStrategy = args[2];
 				int cacheSize = Integer.parseInt(args[3]);
 				String ECSLoc = args[4];
-				int ECSPort = Integer.ParseInt(args[5]);
+				int ECSPort = Integer.parseInt(args[5]);
 				IKVServer kvServer = null;
 				try {
 					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName, ECSLoc, ECSPort);

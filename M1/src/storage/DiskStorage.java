@@ -4,7 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.nio.charset.*;
 import java.nio.file.*;
-
+import shared.metadata.*;
 import org.apache.log4j.Logger;
 
 /**
@@ -176,6 +176,8 @@ public class DiskStorage implements IDiskStorage {
 	    	while((currLine = br.readLine()) != null) {
 	    		if (!currLine.equals(key)) {
 	    			sb.append(currLine).append("\n");
+                    br.readLine();
+                    sb.append(currLine).append("\n");
 	    		} else {
                     keyFound = true;
                     br.readLine(); // Skip line
@@ -196,6 +198,49 @@ public class DiskStorage implements IDiskStorage {
             return false;
     	}
         return keyFound;
+    }
+
+    @Override
+    public boolean flush(HashRange hr) {
+        String currLine = null;
+
+        createNewFile();
+        correctnessCheck();
+
+        /**
+         * Create a new temp storage file
+         * Copy all existing file except the K/V to be deleted.
+         * Delete old storage file, rename new file to old file name.
+         */
+        try {
+            // TODO: close the reader/writers using 'finally'
+            BufferedReader br = new BufferedReader(new FileReader(_storagePath));
+            StringBuilder sb = new StringBuilder();
+
+            while((currLine = br.readLine()) != null) {
+                if (!(hr.isInRange(HashUtil.ComputeHashFromKey(currLine)))) {
+                    sb.append(currLine).append("\n");
+                    br.readLine();
+                    sb.append(currLine).append("\n");
+                } else {
+                    br.readLine(); // Skip line
+                }
+            }
+            br.close();
+
+            FileWriter fw = new FileWriter(_storagePath);
+            fw.write(sb.toString());
+            fw.close();
+        } 
+        catch (FileNotFoundException fnfe) {
+            logger.error("Could not find file on disk.");
+            return false;
+        } 
+        catch (IOException ioe) {
+            logger.error("Could not delete all entries in hash range");
+            return false;
+        }
+        return true;
     }
 
     @Override
