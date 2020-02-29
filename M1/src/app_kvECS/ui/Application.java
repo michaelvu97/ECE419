@@ -140,7 +140,7 @@ public class Application {
 		int numRmServers = 0;
 		List<String> removedServers = null;
 
-		if (serverName = "all") {
+		if (serverName == "all") {
 
 		} else {
 			// call ECSClinet method to remove servers.
@@ -151,7 +151,7 @@ public class Application {
 		  	// sorry if this is a really ugly way to do it.
 		  	logger.info("Removed " + numRmServers + " servers:");
 
-		  	for (int i = 0; i < numNodes; i++) {
+		  	for (int i = 0; i < numRmServers; i++) {
 		  		logger.info(removedServers.get(i));
 		  	}
 		}
