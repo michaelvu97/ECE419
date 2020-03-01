@@ -108,7 +108,7 @@ public class ClientConnection extends Connection {
 		if(!metaDataManager.isInRange(HashUtil.ComputeHashFromKey(key))){
 			//return metadata if this is the wrong server
 			return new KVMessageImpl(
-				KVMessage.StatusType.GET_METADATA_SUCCESS,
+				KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
 				null,
 				this.metaDataManager.getMetaData().serialize()
 			);
@@ -128,7 +128,7 @@ public class ClientConnection extends Connection {
 		if(!metaDataManager.isInRange(HashUtil.ComputeHashFromKey(key))){
 			//return metadata if this is the wrong server
 			return new KVMessageImpl(
-				KVMessage.StatusType.GET_METADATA_SUCCESS,
+				KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
 				null,
 				this.metaDataManager.getMetaData().serialize()
 			);
@@ -149,7 +149,7 @@ public class ClientConnection extends Connection {
 		if(!metaDataManager.isInRange(HashUtil.ComputeHashFromKey(key))){
 			//return metadata if this is the wrong server
 			return new KVMessageImpl(
-				KVMessage.StatusType.GET_METADATA_SUCCESS,
+				KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
 				null,
 				this.metaDataManager.getMetaData().serialize()
 			);
