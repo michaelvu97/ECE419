@@ -35,6 +35,8 @@ public class KVServer implements IKVServer {
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;
 
+    private boolean _writeLocked = false;
+
     private ClientAcceptor _clientAcceptor;    
 
 	private IServerStore serverStore;
@@ -229,7 +231,7 @@ public class KVServer implements IKVServer {
     	this.running = initializeServer();
     	if (this.running) {
             new Thread(this._ecsConnection).start();
-    		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore, this.metaDataManager);
+    		this._clientAcceptor = new ClientAcceptor(this.serverSocket, this.serverStore, this.metaDataManager, this);
     		new Thread(this._clientAcceptor).start();
     	}
 	}
@@ -302,17 +304,17 @@ public class KVServer implements IKVServer {
 
 	@Override
 	public boolean isWriterLocked() {
-		throw new IllegalStateException(); // TODO
+		return _writeLocked;
 	}
 
 	@Override
-	public void requestLock() {
-		logger.warn("REQUESTLOCK NOT IMPLEMENTED");
+	public void writeLock() {
+		_writeLocked = true;
 	}
 
 	@Override
-	public void requestUnlock() {
-		logger.warn("REQUESTUNLOCK NOT IMPLEMENTED");
+	public void writeUnlock() {
+		_writeLocked = false;
 	}
 
 	@Override

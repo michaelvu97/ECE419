@@ -123,8 +123,8 @@ public interface IKVServer {
 
     public boolean isWriterLocked();
 
-    public void requestLock();
-    public void requestUnlock();
+    public void writeLock();
+    public void writeUnlock();
 
     public MetaData getMetaData();
 }
