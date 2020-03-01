@@ -71,14 +71,8 @@ public class MetaDataManager implements IMetaDataManager {
             return;
         }
 
-        _kvServer.requestLock();
-        try {
-            // _kvServer.refocus(newCurrentServerMetaData.getHashRange());
-
-            _currentServerMetaData = newCurrentServerMetaData;
-            _metaDataSet = mds;
-        } finally {
-            _kvServer.requestUnlock();
-        }
+        // _kvServer.refocus(newCurrentServerMetaData.getHashRange());
+        _currentServerMetaData = newCurrentServerMetaData;
+        _metaDataSet = mds;
     }
 }

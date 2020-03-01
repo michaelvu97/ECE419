@@ -124,11 +124,11 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
 
         MetaData targetServ = newMetaDataSet.getMetaDataByName(toServ);
 
+        _kvServer.writeLock();
         _kvServer.transferDataToServer(targetServ);
 
         _metaDataManager.updateMetaData(newMetaDataSet);
-
-        // TODO: unlock
+        _kvServer.writeUnlock();
 
         return new KVAdminMessage(
                 KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS,
@@ -157,6 +157,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         logger.debug("Received new metadata: " + mds.toString());
         
         _metaDataManager.updateMetaData(mds);
+        
         logger.debug("MetaData is: " + _metaDataManager.getMetaData().toString());
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }

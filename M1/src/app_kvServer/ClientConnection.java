@@ -38,7 +38,8 @@ public class ClientConnection extends Connection {
 	 * @param clientSocket the Socket object for the client connection.
 	 */
 	public ClientConnection(Socket clientSocket, IServerStore serverStore, 
-				IMetaDataManager metaDataManager, ClientAcceptor acceptor) {
+				IMetaDataManager metaDataManager, ClientAcceptor acceptor,
+				IKVServer kvServer) {
 		super(clientSocket, acceptor);
 
 		if (serverStore == null)
@@ -48,6 +49,7 @@ public class ClientConnection extends Connection {
 
 		this.serverStore = serverStore;
 		this.metaDataManager = metaDataManager;
+		this.kvServer = kvServer;
 	}
 
 
@@ -101,6 +103,14 @@ public class ClientConnection extends Connection {
 		}
 
 		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_SERVER) {
+
+			if (kvServer.isWriterLocked()) {
+				return new KVMessageImpl(
+					KVMessage.StatusType.SERVER_WRITE_LOCK,
+					null,
+					(byte[]) null
+				);
+			}
 
 			if (requestType == KVMessage.StatusType.PUT_SERVER)
 				logger.debug("Received PUT_SERVER: " + request.getKey());

@@ -15,11 +15,13 @@ import server.*;
 import shared.network.*;
 
 public final class ClientAcceptor extends Acceptor {
+    private IKVServer _kvServer;
     private IServerStore _serverStore;
     private IMetaDataManager _metaDataManager;
     
     public ClientAcceptor(ServerSocket serverSocket, IServerStore serverStore,
-            IMetaDataManager metaDataManager) {
+            IMetaDataManager metaDataManager,
+            IKVServer kvServer) {
         
         super(serverSocket);
 
@@ -30,6 +32,7 @@ public final class ClientAcceptor extends Acceptor {
 
         this._serverStore = serverStore;
         this._metaDataManager = metaDataManager;
+        this._kvServer = kvServer;
     }
     
     @Override
@@ -38,7 +41,8 @@ public final class ClientAcceptor extends Acceptor {
                 clientSocket,
                 this._serverStore,
                 this._metaDataManager,
-                this
+                this,
+                this._kvServer
         );
     }
 }
