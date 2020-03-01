@@ -90,7 +90,6 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean start() {
-        // i have no idea if this is right 
         logger.info("Initializing ECS Client...");
         
         try {
@@ -192,12 +191,8 @@ public class ECSClient implements IECSClient {
                 ioe.printStackTrace();
             }
 
-            // DO NOT DO THIS
-            // Thread.Sleep(1);
-
             return newNode;
         } else {
-            // TODO no servers left! do something about it.
             logger.error("No more available servers");
         }
         return null;
@@ -217,11 +212,6 @@ public class ECSClient implements IECSClient {
                 newNodes.add(newNode);
             }
         }
-
-        /* use CreateFromServerInfo from MetaDataSet to construct a 
-        *  metadata set from a collection of server infos.
-        *  sent metadata to all nodes/servers.
-        */
         
         logger.debug(allServerInfo.size());
 
