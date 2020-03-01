@@ -37,6 +37,8 @@ public class KVServer implements IKVServer {
 
     private boolean _writeLocked = false;
 
+    private ServerStateType _state = ServerStateType.STARTED;
+
     private ClientAcceptor _clientAcceptor;    
 
 	private IServerStore serverStore;
@@ -299,7 +301,7 @@ public class KVServer implements IKVServer {
 
 	@Override
 	public MetaData getMetaData() {
-		throw new IllegalStateException("NOT IMPLEMENTED"); // TODO
+		return metaDataManager.getMyMetaData();
 	}
 
 	@Override
@@ -318,9 +320,14 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-	public IKVServer.ServerStateType getServerState() {
-		throw new IllegalStateException(); // TODO
+	public ServerStateType getServerState() {
+		return _state;
 	}
+
+    @Override
+    public void setServerState(ServerStateType state) {
+        _state = state;
+    }
 
 	/**
     * Removes any entries from storage/cache that don't belong to the hash range.
