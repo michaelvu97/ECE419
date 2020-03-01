@@ -111,7 +111,8 @@ public class ServerStoreSmart implements IServerStore {
 	 synchronized(_lock) {
 	    KV = _disk.popInRange(hr);
 	    if(KV!=null) _cache.delete(KV.k);	    
-	}   	 
+	}
+    return KV;   	 
     }
 
     @Override
