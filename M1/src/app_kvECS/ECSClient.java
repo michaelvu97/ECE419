@@ -134,6 +134,7 @@ public class ECSClient implements IECSClient {
         try {
             ecsSocket.close();
             logger.info("ECSClient socket is closed.");
+            nodeAcceptor.stop();
             return true;
         } catch (IOException e) {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);
