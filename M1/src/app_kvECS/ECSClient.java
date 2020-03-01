@@ -38,6 +38,11 @@ public class ECSClient implements IECSClient {
     private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
 
+    @Override  
+    public List<ServerInfo> getAllServerInfo(){
+        return allServerInfo;
+    }
+    
     @Override
     public void setAllServers(String configFilePath) {
         /* put all server info from config into allServerInfo list.
@@ -219,16 +224,6 @@ public class ECSClient implements IECSClient {
         */
         
         logger.debug(allServerInfo.size());
-
-        List<ServerInfo> availableServers = new ArrayList<ServerInfo>();
-        for (ServerInfo s : allServerInfo) {
-            if (s.getAvailability())
-                continue;
-            availableServers.add(s);
-        }
-
-        allMetadata = MetaDataSet.CreateFromServerInfo(availableServers);
-        nodeAcceptor.broadcastMetadata(allMetadata);
 
         return newNodes;
     }

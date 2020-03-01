@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import ecs.*;
 import server.*;
+import java.util.*;
 import shared.network.*;
 import shared.metadata.*;
 import shared.comms.*;
@@ -157,6 +158,16 @@ public class NodeAcceptor extends Acceptor {
                 synchronized(connectionsLock) {
                     connections.add(connection);
                 }
+
+                List<ServerInfo> availableServers = new ArrayList<ServerInfo>();
+                for (ServerInfo s : _ecsClient.getAllServerInfo()) {
+                    if (s.getAvailability())
+                        continue;
+                    availableServers.add(s);
+                }
+
+                MetaDataSet allMetadata = MetaDataSet.CreateFromServerInfo(availableServers);
+                broadcastMetadata(allMetadata);
 
                 logger.info("Accepted connection from " 
                     + clientSocket.getInetAddress().getHostName() 

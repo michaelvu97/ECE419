@@ -37,7 +37,7 @@ public class KVServer implements IKVServer {
     private ClientAcceptor _clientAcceptor;    
 
 	private IServerStore serverStore;
-	private IMetaDataManager metaDataManager = new MetaDataManager(null, this);
+	private IMetaDataManager metaDataManager = null;
 
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
@@ -63,7 +63,7 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */ 
-	public KVServer(String znodeName, int port, int cacheSize, String strategy,
+	public KVServer(String znodeName, String host,  int port, int cacheSize, String strategy,
 				String diskStorageStr, String ecsLoc, int ecsPort) {
 		if (znodeName == null || znodeName.length() == 0)
 			throw new IllegalArgumentException("znodeName invalid");
@@ -77,7 +77,9 @@ public class KVServer implements IKVServer {
 		this._name = znodeName;
 		this._port = port;
 		this._cacheSize = cacheSize;
+		this._hostName = host;
 
+		metaDataManager = new MetaDataManager(null, this);
 		strategy = strategy.toUpperCase();
 
 		try {
@@ -117,8 +119,8 @@ public class KVServer implements IKVServer {
 		// }
 	}
 	
-    public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
-        this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
+    public KVServer(String znodeName, String host, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
+        this(znodeName, host, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
     }
 
     @Override
@@ -293,20 +295,21 @@ public class KVServer implements IKVServer {
 
 	public static void main(String[] args) {
 		try {
-			if(args.length != 6) {
+			if(args.length != 7) {
 				System.out.println("Error! Invalid number of arguments!");
 				System.out.println(USAGE);
 			} else {
 				new LogSetup("logs/kvserver-" + args[0] + ".log", Level.ALL);
 				String znodeName = args[0];
-				int port = Integer.parseInt(args[1]);
-				String cacheStrategy = args[2];
-				int cacheSize = Integer.parseInt(args[3]);
-				String ecsLoc = args[4];
-				int ecsPort = Integer.parseInt(args[5]);
+				String host = args[1];
+				int port = Integer.parseInt(args[2]);
+				String cacheStrategy = args[3];
+				int cacheSize = Integer.parseInt(args[4]);
+				String ecsLoc = args[5];
+				int ecsPort = Integer.parseInt(args[6]);
 				IKVServer kvServer = null;
 				try {
-					kvServer = new KVServer(znodeName, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName, ecsLoc, ecsPort);
+					kvServer = new KVServer(znodeName, host, port, cacheSize, cacheStrategy, "DISK_STORAGE_" + znodeName, ecsLoc, ecsPort);
 				} catch (IllegalArgumentException iae) {
 					System.out.println(iae.getMessage());
 				}

@@ -8,6 +8,8 @@ import shared.metadata.*;
 
 public interface IECSClient {
 
+    public List<ServerInfo> getAllServerInfo();
+    
     public void setAllServers(String configFilePath);
 
     /**
