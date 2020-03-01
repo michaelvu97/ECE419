@@ -43,6 +43,10 @@ public final class HashRange implements ISerializable {
         if (other == null)
             return false;
 
+        if (other.getIsEncompassing() || getIsEncompassing()) {
+            return other.getIsEncompassing() == getIsEncompassing();
+        }
+
         return _hashStart.compareTo(other._hashStart) == 0 &&
             _hashEnd.compareTo(other._hashEnd) == 0;
     }

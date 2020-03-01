@@ -59,7 +59,7 @@ public class MetaDataManager implements IMetaDataManager {
         if(_currentServerMetaData != null)
             logger.debug("new metadata = " + _currentServerMetaData.toString() + " old metadata = " + newCurrentServerMetaData.toString());
         if (_currentServerMetaData != null 
-                && newCurrentServerMetaData.equalTo(_currentServerMetaData) == 0) {
+                && newCurrentServerMetaData.equals(_currentServerMetaData)) {
             // No changes to the current server's data, don't have to fix up
             // server's storage.
             _metaDataSet = mds;

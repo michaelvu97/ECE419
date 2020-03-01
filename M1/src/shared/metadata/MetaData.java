@@ -108,9 +108,8 @@ public final class MetaData implements ISerializable, Comparable<MetaData> {
     /**
      * Get if the hash ranges are the same
      */    
-    public int equalTo(MetaData other) {
-        if(getHashRange().getStart().compareTo(other.getHashRange().getStart())==0 && getHashRange().getEnd().compareTo(other.getHashRange().getEnd())==0) return 0;
-        else return 1;
+    public boolean equals(MetaData other) {
+        return getHashRange().equals(other.getHashRange());
     }
 
     @Override

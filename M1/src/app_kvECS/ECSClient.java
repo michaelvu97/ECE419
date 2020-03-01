@@ -22,6 +22,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.net.InetAddress;
+import java.util.concurrent.CountDownLatch;
 
 public class ECSClient implements IECSClient {
 
@@ -37,6 +38,8 @@ public class ECSClient implements IECSClient {
     private static Logger logger = Logger.getRootLogger();
     private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
+
+    private CountDownLatch _waitForServerToConnectBack = new CountDownLatch(1);
 
     @Override  
     public List<ServerInfo> getAllServerInfo(){
@@ -156,46 +159,91 @@ public class ECSClient implements IECSClient {
     public ECSNode addNode(String cacheStrategy, int cacheSize) {
         
         ECSNode newNode = null;
+        MetaDataSet oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
         ServerInfo newServer = getNextAvailableServer();
         
-        if (newServer != null) {
-
-            // create new node using user input & available server info
-            newNode = new ECSNode(newServer.getHost(), newServer.getName(), 
-               newServer.getPort(), cacheStrategy, cacheSize); 
-
-            // add the new node to hashmap allNodes.
-            allNodes.put(newServer.getName(), newNode);
-
-            // ssh call to start KV server
-            Process proc = null;
-            String script = "./src/app_kvECS/kv_server.sh";
-
-            Runtime run = Runtime.getRuntime();
-            
-            String cmd[] = {
-                script,
-                _username,
-                newServer.getHost(), // config host
-                newServer.getName(), // server name
-                Integer.toString(newServer.getPort()), // server port
-                cacheStrategy, 
-                Integer.toString(cacheSize),
-                _host,           // ecs hostname
-                Integer.toString(_port),               // ecs port
-            };
-
-            try {
-                proc = run.exec(cmd);
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-
-            return newNode;
-        } else {
+        if (newServer == null) {
             logger.error("No more available servers");
+            return null;
         }
-        return null;
+
+        // create new node using user input & available server info
+        newNode = new ECSNode(newServer.getHost(), newServer.getName(), 
+             newServer.getPort(), cacheStrategy, cacheSize); 
+
+        // Set the countdown latch.
+        _waitForServerToConnectBack = new CountDownLatch(1);
+
+        // add the new node to hashmap allNodes.
+        allNodes.put(newServer.getName(), newNode);
+
+        // ssh call to start KV server
+        Process proc = null;
+        String script = "./src/app_kvECS/kv_server.sh";
+
+        Runtime run = Runtime.getRuntime();
+        
+        String cmd[] = {
+            script,
+            _username,
+            newServer.getHost(), // config host
+            newServer.getName(), // server name
+            Integer.toString(newServer.getPort()), // server port
+            cacheStrategy, 
+            Integer.toString(cacheSize),
+            _host,           // ecs hostname
+            Integer.toString(_port),               // ecs port
+        };
+
+        try {
+            proc = run.exec(cmd);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        // Block until the server connects.
+        try {
+            _waitForServerToConnectBack.await();
+        } catch (Exception e) {
+            logger.error("Server conenction callback interrupted, may not be connected", e);
+        }
+
+        // The new server is now connected.
+        List<ServerInfo> activeNodes = getActiveNodes();
+
+        // Recalculate metadata
+        MetaDataSet newMetadata = MetaDataSet.CreateFromServerInfo(activeNodes);
+
+        if (activeNodes.size() != 1) {
+            // Other nodes exist, transfer will be required.
+
+            // Tell the new node the new metadata
+            nodeAcceptor.sendMetadata(newMetadata, newServer.getName());
+
+            // See who shrunk
+            MetaData shrunkboy = oldMetaData.getServerForHash(
+                    HashUtil.ComputeHash(
+                        newServer.getHost(),
+                        newServer.getPort()
+                    )
+            );
+
+            // Send shrunk server a transfer request to the new server
+            nodeAcceptor.sendTransferRequest(
+                    new TransferRequest(
+                        shrunkboy.getName(),
+                        newServer.getName(),
+                        newMetadata
+                    )
+            );
+        }
+        
+        // Broadcast new metadata.
+        nodeAcceptor.broadcastMetadata(newMetadata);
+        
+        // Everyone now has the new metadata, and all data is transferred onto
+        // the new server.
+        return newNode;
     }
 
     @Override
@@ -232,12 +280,56 @@ public class ECSClient implements IECSClient {
         return false;
     }
 
+    private List<ServerInfo> getActiveNodes() {
+        List<ServerInfo> result = new ArrayList<ServerInfo>();
+        for (ServerInfo s : allServerInfo) {
+            if (s.getAvailability())
+                continue;
+
+            result.add(s);
+        }
+
+        return result;
+    }
+
     public void setServerAvailable(String serverName) {
         for (int i = 0; i < allServerInfo.size(); i++) {
             if (allServerInfo.get(i).getName() == serverName) {
                 allServerInfo.get(i).setAvailability(true);
             }
         }
+    }
+
+    public void removeNode(String nodeName) {
+        if (false) {
+            // If we're the only node, deny
+            // Can't remove the last node.
+        }
+
+        // Detect who will grow
+        MetaDataSet oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
+        setServerAvailable(nodeName);
+        MetaDataSet newMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
+
+        ECSNode nodeToDelete = getNodeByName(nodeName);
+        allNodes.remove(nodeName);
+
+        MetaData growboy = newMetaData.getServerForHash(
+            HashUtil.ComputeHash(
+                nodeToDelete.getNodeHost(),
+                nodeToDelete.getNodePort()
+            )
+        );
+
+        // Tell removed node to transfer all to the growing node
+        nodeAcceptor.sendTransferRequest(new TransferRequest(
+            nodeName,
+            growboy.getName(),
+            newMetaData
+        ));
+
+        // Broadcast metadata update
+        nodeAcceptor.broadcastMetadata(newMetaData);
     }
 
     public List<String> removeNodes(List<String> nodeNames) {
@@ -247,14 +339,11 @@ public class ECSClient implements IECSClient {
         for (int i = 0; i < nodeNames.size(); i++) {
             nodeName = nodeNames.get(i);
             
-            if (allNodes.remove(nodeName) != null) {
+            if (allNodes.containsKey(nodeName)) {
                 removedNodes.add(nodeName);
-                setServerAvailable(nodeName);
+                removeNode(nodeName);
             } 
         }
-
-        allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
-        nodeAcceptor.broadcastMetadata(allMetadata);
 
         return removedNodes;
     }
@@ -267,6 +356,13 @@ public class ECSClient implements IECSClient {
     @Override
     public ECSNode getNodeByName(String name) {
         return allNodes.get(name);
+    }
+
+    @Override
+    public void signalNodeConnected(String name) {
+        // Find the server with that name, mark is as online?
+
+        _waitForServerToConnectBack.countDown();
     }
 
     public static void main(String configFile, String username) {
