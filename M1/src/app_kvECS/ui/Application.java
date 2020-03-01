@@ -93,7 +93,7 @@ public class Application {
 		else if(tokens[0].equals("remove")) {	
 			if(tokens.length >= 2) {
 				try {
-					List<String> serversToRemove = null;
+					List<String> serversToRemove = new ArrayList<String>();
 					for (int i = 0; i < (tokens.length - 1); i++){
 						serversToRemove.add(tokens[i+1]);
 					}

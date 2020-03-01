@@ -189,7 +189,7 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override    
-    public void transferDataToServer(MetaData serverToSendTo){
+    public void transferDataToServer(MetaData serverToSendTo) {
     	ServerInfo transferserver = new ServerInfo(serverToSendTo.getName(), serverToSendTo.getHost(), serverToSendTo.getPort());
     	KVTransfer transferClient = new KVTransfer(transferserver);
     	try {

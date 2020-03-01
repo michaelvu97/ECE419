@@ -157,9 +157,14 @@ public class ECSClient implements IECSClient {
 
     @Override
     public ECSNode addNode(String cacheStrategy, int cacheSize) {
-        
+        MetaDataSet oldMetaData = null;
+        if (getActiveNodes().size() != 0) {
+            // This is the first ever node.
+            oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());    
+        }
+
         ECSNode newNode = null;
-        MetaDataSet oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
+        
         ServerInfo newServer = getNextAvailableServer();
         
         if (newServer == null) {
@@ -214,7 +219,7 @@ public class ECSClient implements IECSClient {
         // Recalculate metadata
         MetaDataSet newMetadata = MetaDataSet.CreateFromServerInfo(activeNodes);
 
-        if (activeNodes.size() != 1) {
+        if (oldMetaData != null && activeNodes.size() != 1) {
             // Other nodes exist, transfer will be required.
 
             // Tell the new node the new metadata
@@ -294,7 +299,7 @@ public class ECSClient implements IECSClient {
 
     public void setServerAvailable(String serverName) {
         for (int i = 0; i < allServerInfo.size(); i++) {
-            if (allServerInfo.get(i).getName() == serverName) {
+            if (allServerInfo.get(i).getName().equals(serverName)) {
                 allServerInfo.get(i).setAvailability(true);
             }
         }
@@ -304,6 +309,7 @@ public class ECSClient implements IECSClient {
         if (false) {
             // If we're the only node, deny
             // Can't remove the last node.
+            logger.error("TODO REMOVE NODE ON THE LAST NODE");
         }
 
         // Detect who will grow
@@ -334,7 +340,7 @@ public class ECSClient implements IECSClient {
 
     public List<String> removeNodes(List<String> nodeNames) {
         String nodeName = null;
-        List<String> removedNodes = null;
+        List<String> removedNodes = new ArrayList<String>();
 
         for (int i = 0; i < nodeNames.size(); i++) {
             nodeName = nodeNames.get(i);

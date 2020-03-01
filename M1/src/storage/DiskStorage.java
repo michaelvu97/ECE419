@@ -15,7 +15,7 @@ import shared.*;
 public class DiskStorage implements IDiskStorage {
 	
     private Logger logger = Logger.getRootLogger();
-	private static String BASE_PATH = "./src/storage/";
+	private static String BASE_PATH = "~/M1/src/storage/";
 
     private String _id;
     private String _storagePath;
@@ -40,10 +40,11 @@ public class DiskStorage implements IDiskStorage {
         File file = new File(_storagePath);
         try {
             if (!file.exists()){
+                logger.debug("Creating disk file at: " + _storagePath);
                 file.createNewFile();
             }
         } catch (IOException ioe) {
-            logger.error("Could not create new disk storage file.");
+            logger.error("Could not create new disk storage file.", ioe);
         }
     }
 

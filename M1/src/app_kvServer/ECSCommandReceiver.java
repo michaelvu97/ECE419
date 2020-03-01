@@ -126,6 +126,10 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
 
         _kvServer.transferDataToServer(targetServ);
 
+        _metaDataManager.updateMetaData(newMetaDataSet);
+
+        // TODO: unlock
+
         return new KVAdminMessage(
                 KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS,
                 "Done".getBytes()

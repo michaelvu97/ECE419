@@ -102,6 +102,9 @@ public class ClientConnection extends Connection {
 
 		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_SERVER) {
 
+			if (requestType == KVMessage.StatusType.PUT_SERVER)
+				logger.debug("Received PUT_SERVER: " + request.getKey());
+
 			if (request.getValue() == null || 
 				request.getValue().equals("null") || 
 				request.getValue().isEmpty()) {

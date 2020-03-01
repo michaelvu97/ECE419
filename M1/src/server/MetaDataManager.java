@@ -48,32 +48,35 @@ public class MetaDataManager implements IMetaDataManager {
             throw new IllegalArgumentException("mds is null");
 
         /**
-         * 1. Determine the range of hashvalues that this server used to be
-         *    responsible for
-         * 2. Tell the serverStore to remove any entries that belong to that
-         *    hash range.
+         * Case 1: This is the first metadata update
+         * Case 2: We have grown
+         * Case 3: We have shrunk
+         * Case 4: Nothing is different for us.
          */
+        
+        MetaData newCurrentServerMetaData = 
+                mds.getServerForHash(_currentServerHash);
 
-        MetaData newCurrentServerMetaData = mds.getServerForHash(
-                _currentServerHash);
-        if(_currentServerMetaData != null)
-            logger.debug("new metadata = " + _currentServerMetaData.toString() + " old metadata = " + newCurrentServerMetaData.toString());
+        
+        if (!newCurrentServerMetaData.getName().equals(_kvServer.getName())) {
+            newCurrentServerMetaData = null;
+        }
+
         if (_currentServerMetaData != null 
+                && newCurrentServerMetaData != null
                 && newCurrentServerMetaData.equals(_currentServerMetaData)) {
             // No changes to the current server's data, don't have to fix up
             // server's storage.
             _metaDataSet = mds;
-            logger.debug("1. _currentServerMetaData is " + _currentServerMetaData.toString());
             return;
         }
 
         _kvServer.requestLock();
         try {
-            _kvServer.refocus(newCurrentServerMetaData.getHashRange());
+            // _kvServer.refocus(newCurrentServerMetaData.getHashRange());
 
             _currentServerMetaData = newCurrentServerMetaData;
             _metaDataSet = mds;
-            logger.debug("2. _currentServerMetaData is " + _currentServerMetaData.toString());
         } finally {
             _kvServer.requestUnlock();
         }

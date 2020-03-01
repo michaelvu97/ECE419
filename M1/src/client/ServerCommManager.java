@@ -102,9 +102,6 @@ public final class ServerCommManager implements IServerCommManager {
     @Override
     public KVMessage sendRequest(KVMessage message) 
             throws Deserializer.DeserializationException, IOException {
-        if (_metaDataSet == null) {
-            // TODO: acquire initial metadata?
-        }
         if (message.getKey() == null)
             throw new IllegalArgumentException("Message contains a null key");
 

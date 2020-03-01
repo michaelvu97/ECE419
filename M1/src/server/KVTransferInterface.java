@@ -14,7 +14,7 @@ public interface KVTransferInterface {
 	/**
 	 * disconnects the client from the currently connected server.
 	 */
-	public void disconnect() throws IllegalStateException;
+	public void disconnect();
 
 	/**
 	 * Inserts a key-value pair into the KVServer.

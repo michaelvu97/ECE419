@@ -22,10 +22,11 @@ import shared.metadata.*;
 import client.*;
 
 public class KVTransfer implements KVTransferInterface {
-	private ICommChannel _commChannel = null; // TODO remove
+	private ICommChannel _commChannel = null;
 
-	private IServerCommManager _serverCommManager;
  	private Logger logger = Logger.getRootLogger();
+
+ 	private ServerInfo _entryPointServerInfo;
 
 	/**
 	 * Initialize KVStore with an initial server to connect to.
@@ -33,39 +34,57 @@ public class KVTransfer implements KVTransferInterface {
 	public KVTransfer(ServerInfo entryPointServerInfo) {
 		if (entryPointServerInfo == null)
 			throw new IllegalArgumentException("entryPointServerInfo is null");
-		_serverCommManager = new ServerCommManager(entryPointServerInfo);
+		_entryPointServerInfo = entryPointServerInfo;
 	}
 
 	public KVTransfer(String name, String host, int port) {
 		this(new ServerInfo(name, host, port));
 	}
 
-	@Override
-	public void connect() throws UnknownHostException, IOException {
-		try {
-			_serverCommManager.connect();
-		} catch (UnknownHostException uhe) {
-			logger.error("Host not found!");
-			throw uhe;
-		} finally {
 
-		}
-		logger.info("Connected to KVServer cloud");
-	}
+    @Override
+    public void connect() throws IOException {
+        logger.debug("Connecting to KVServer for transfer");
 
-	@Override
-	public synchronized void disconnect() {
-		logger.info("trying to close connection ...");
-		try {
-			if (_serverCommManager != null)
-				_serverCommManager.disconnect();
-			logger.info("Disconnected from KVServer cloud");
-		} catch (IOException ioe) {
-			logger.error("Unable to close connection to KVServer cloud");
-		} finally {
-			_serverCommManager = null;
-		}
-	}
+        Socket clientSocket = new Socket(
+            _entryPointServerInfo.getHost(),
+            _entryPointServerInfo.getPort()
+        );
+        _commChannel = new CommChannel(clientSocket);
+        logger.info("Connection established");
+    }
+
+    @Override
+    public synchronized void disconnect() {
+    	if (_commChannel != null) {
+    		try {
+    			_commChannel.getSocket().close();
+    		} catch (Exception e){
+    			logger.warn("Could not disconnect from server", e);
+    		}
+    	}
+    	_commChannel = null;
+    	logger.info("KVTransfer disconnected from KVServer");
+    }
+
+    public KVMessage sendRequest(KVMessage message) 
+            throws Deserializer.DeserializationException, IOException {
+        if (message.getKey() == null)
+            throw new IllegalArgumentException("Message contains a null key");
+
+        byte[] messageBytes = message.serialize();
+
+        _commChannel.sendBytes(messageBytes);
+
+        // Should probably trycatch?
+        byte[] response = _commChannel.recvBytes();
+
+        KVMessage responseObj = KVMessageImpl.Deserialize(response);
+
+        logger.debug("Received server response: " + responseObj.toString());
+
+        return responseObj;
+    }
 
 	@Override
 	public KVMessage put(String key, String value) throws Exception {
@@ -75,7 +94,7 @@ public class KVTransfer implements KVTransferInterface {
 			Utils.validateValue(value);
 
 			KVMessage message = new KVMessageImpl(KVMessage.StatusType.PUT_SERVER, key, value);
-			KVMessage response = _serverCommManager.sendRequest(message);
+			KVMessage response = sendRequest(message);
 
 			return response;
 		} 
@@ -90,7 +109,7 @@ public class KVTransfer implements KVTransferInterface {
 	}
 
 	private void validateConnected() {
-		if (_serverCommManager == null) {
+		if (_commChannel == null) {
 			logger.error(
 					"Attempted to connect to a disconnected KVServer Cloud");
 			throw new IllegalStateException("KVServer Cloud Disconnected");
