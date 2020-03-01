@@ -112,7 +112,7 @@ public class Application {
 		/*
 		* INPUT: logLevel <level>
 		*/
-		else if (tokens[0].equals("logLevel")){
+		else if (tokens[0].equals("logLevel")) {
 			if (tokens.length >= 2) {
 				setLevel(tokens[1]);
 			} else {
@@ -140,7 +140,7 @@ public class Application {
 
 		  	// log the number of and names for all servers added.
 		  	// sorry if this is a really ugly way to do it.
-		  	logger.info("Added " + numNodes + " new servers:");
+		  	logger.info("Added " + numNodes + " new server(s):");
 
 		  	for (int i = 0; i < numNodes; i++) {
 		  		logger.info(newNodes.get(i).getNodeName());
@@ -160,7 +160,7 @@ public class Application {
 
 			// log the number of and names for all servers removed.
 		  	// sorry if this is a really ugly way to do it.
-		  	logger.info("Removed " + numRmServers + " servers:");
+		  	logger.info("Removed " + numRmServers + " server(s):");
 
 		  	for (int i = 0; i < numRmServers; i++) {
 		  		logger.info(removedServers.get(i));
