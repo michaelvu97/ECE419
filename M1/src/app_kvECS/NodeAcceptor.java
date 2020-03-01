@@ -16,6 +16,7 @@ import ecs.*;
 import server.*;
 import shared.network.*;
 import shared.metadata.*;
+import shared.comms.*;
 
 public class NodeAcceptor extends Acceptor {
     
@@ -50,6 +51,7 @@ public class NodeAcceptor extends Acceptor {
     }
 
     public void sendMetadata(MetaDataSet mds, String targetServerName) {
+        logger.debug("sending metadata to " + targetServerName);
         synchronized(connectionsLock) {
             INodeConnection matchingConnection = 
                     getConnectionWithName(targetServerName);
@@ -63,6 +65,7 @@ public class NodeAcceptor extends Acceptor {
 
             try {
                 matchingConnection.sendMetadata(mds);
+                logger.debug("Metadata sent and recv'd");
             } catch (Exception e) {
                 logger.error("Failed to send metadata", e);
             }
@@ -74,7 +77,7 @@ public class NodeAcceptor extends Acceptor {
      * Synchronous, blocks until the transfer is complete.
      */
     public void sendTransferRequest(TransferRequest tr) {
-
+        logger.debug("sending transfer request");
         String sourceName = tr.getFromName();
 
         synchronized(connectionsLock) {
@@ -112,29 +115,33 @@ public class NodeAcceptor extends Acceptor {
     public Connection handleConnection(Socket clientSocket) {
         // Determine the node's name using zookeeper
         try {
-            String nodeName = getNodeName(clientSocket);
+            // Read the node name
+            String nodeName = new String(new CommChannel(clientSocket).recvBytes());
+            logger.debug("Node connected: " + nodeName);
             return new NodeConnection(clientSocket, this, nodeName);
         } catch (Exception e) {
-            logger.error(e);
+            logger.error("handleconnection error", e);
             return null;
         }
     }
 
-    private String getNodeName(Socket nodeConnectionSocket) throws Exception {
-        if (nodeConnectionSocket == null)
-            throw new IllegalArgumentException("node connection socket is null");
+    // private String getNodeName(Socket nodeConnectionSocket) throws Exception {
+    //     if (nodeConnectionSocket == null)
+    //         throw new IllegalArgumentException("node connection socket is null");
         
-        String hostName = nodeConnectionSocket.getInetAddress().getHostName();
-        int port = nodeConnectionSocket.getPort();
+    //     int port = nodeConnectionSocket.getPort();
 
-        for (Map.Entry<String, ECSNode> entry : this._ecsClient.getNodes().entrySet()) {
-            if (entry.getValue().getNodeHost().equals(hostName) && entry.getValue().getNodePort() == port) {
-                return entry.getKey();
-            }
-        }
+    //     logger.debug("searching for node on port " + port);
+
+    //     for (Map.Entry<String, ECSNode> entry : this._ecsClient.getNodes().entrySet()) {
+    //         logger.debug("")
+    //         if (entry.getValue().getNodePort() == port) {
+    //             return entry.getKey();
+    //         }
+    //     }
        
-        throw new Exception("Could not find server: " + hostName + ":" + port); 
-    }
+    //     throw new Exception("Could not find server on port " + port); 
+    // }
 
     @Override
     public void run() {

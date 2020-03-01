@@ -19,6 +19,8 @@ public interface IKVServer {
     
     public HashRange getServerHR();
 
+    public String getName();
+
     /**
      * Get the port number of the server
      * @return  port number

@@ -1,1 +1,3 @@
-ssh -o StrictHostKeyChecking=no -n -f $1@$2 "sh -c 'cd /ece419/lab1/ECE419/M1; nohup ./run_server $3 $4 $5 $6 $7 $8 $9> /dev/null & '"
+# ssh -o StrictHostKeyChecking=no $2 nohup java -cp ~/M1/m2-server.jar app_kvServer.KVServer $3 $4 $5 $6 $7 $8 $9> /dev/null &
+ssh -o StrictHostKeyChecking=no $2 nohup java -cp ~/M1/m2-server.jar app_kvServer.KVServer $3 $4 $5 $6 $7 $8 > logs/kvserver$3.log
+# ssh -n <host> nohup java -jar <path>/ms2-server.jar 50000 ERROR &

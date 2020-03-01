@@ -177,7 +177,6 @@ public class ECSClient implements IECSClient {
                 Integer.toString(newServer.getPort()), // server port
                 cacheStrategy, 
                 Integer.toString(cacheSize),
-                newServer.getName(), // disk storage string
                 _host,           // ecs hostname
                 Integer.toString(_port),               // ecs port
             };
@@ -187,8 +186,6 @@ public class ECSClient implements IECSClient {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            logger.info(proc);
 
             // DO NOT DO THIS
             // Thread.Sleep(1);

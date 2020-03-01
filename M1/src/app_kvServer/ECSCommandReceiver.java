@@ -47,13 +47,16 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         connect();
     }
 
-    public void connect() throws IOException{
+    public void connect() throws IOException {
+        logger.debug("ECS Command Receiver connecting to " + _ecsLoc + ":" 
+                + _ecsPort);
         Socket clientSocket = new Socket(
             _ecsLoc,
             _ecsPort
         );
 
         _commChannel = new CommChannel(clientSocket);
+        _commChannel.sendBytes(_kvServer.getName().getBytes());
         logger.info("Connected to ECS");
     }
 

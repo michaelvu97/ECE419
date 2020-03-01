@@ -19,7 +19,10 @@ public class MetaDataManager implements IMetaDataManager {
             kvServer.getPort()
         );
 
-        _currentServerMetaData = mds.getServerForHash(_currentServerHash);
+        if (mds == null)
+            _currentServerMetaData = null;
+        else
+            _currentServerMetaData = mds.getServerForHash(_currentServerHash);
     }
 
     @Override

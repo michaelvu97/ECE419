@@ -44,7 +44,7 @@ public class KVServer implements IKVServer {
 
 	private static Logger logger = Logger.getRootLogger();
 
-	private IZKClient _zkClient = null;
+	// private IZKClient _zkClient = null;
 
 	private IECSCommandReceiver _ecsConnection;
 
@@ -108,20 +108,25 @@ public class KVServer implements IKVServer {
 		IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
-		try {
-			this._zkClient = new ZKClient("localhost:2181", this._name);
-			// Test for now
-			this._zkClient.registerNode();
-		} catch (Exception e) {
-			logger.error("Could not connect to zookeeper!", e);
-			this._zkClient = null;
-		}
+		// try {
+		// 	this._zkClient = new ZKClient("localhost:2181", this._name);
+		// 	// Test for now
+		// 	this._zkClient.registerNode();
+		// } catch (Exception e) {
+		// 	logger.error("Could not connect to zookeeper!", e);
+		// 	this._zkClient = null;
+		// }
 	}
     public HashRange getServerHR(){
     	return serverHR;
     }	    
     public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
         this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
+    }
+
+    @Override
+    public String getName() {
+    	return this._name;
     }
 	
 	@Override
@@ -198,7 +203,7 @@ public class KVServer implements IKVServer {
     }
 
 	private boolean initializeServer() {
-		logger.info("Initializing server...");
+		logger.info("Initializing server on port " + _port);
 		
 		try {
 			serverSocket = new ServerSocket(_port);
@@ -211,7 +216,7 @@ public class KVServer implements IKVServer {
             return true;
 		}
 		catch (IOException e) {
-        	logger.error("Error! Cannot open server socket:");
+        	logger.error("Error! Cannot open server socket", e);
             if(e instanceof BindException){
             	logger.error("Port " + _port + " is already bound!");
             }
@@ -291,11 +296,11 @@ public class KVServer implements IKVServer {
 
 	public static void main(String[] args) {
 		try {
-			new LogSetup("logs/server.log", Level.ALL);
 			if(args.length != 6) {
 				System.out.println("Error! Invalid number of arguments!");
 				System.out.println(USAGE);
 			} else {
+				new LogSetup("logs/kvserver-" + args[0] + ".log", Level.ALL);
 				String znodeName = args[0];
 				int port = Integer.parseInt(args[1]);
 				String cacheStrategy = args[2];
@@ -309,6 +314,7 @@ public class KVServer implements IKVServer {
 					System.out.println(iae.getMessage());
 				}
 				kvServer.run();
+				logger.info("KV SERVER RUNNING");
 
 				// TODO: we might need a way to kill the server remotely
 				while(true);
