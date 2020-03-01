@@ -2,9 +2,10 @@ package server;
 
 import app_kvServer.IKVServer;
 import shared.metadata.*;
+import org.apache.log4j.*;
 
 public class MetaDataManager implements IMetaDataManager {
-        
+    private static Logger logger = Logger.getRootLogger();
     private IKVServer _kvServer;
     private MetaDataSet _metaDataSet;
     private HashValue _currentServerHash;
@@ -34,8 +35,10 @@ public class MetaDataManager implements IMetaDataManager {
     public synchronized boolean isInRange(HashValue value) {
         if (value == null)
             throw new IllegalArgumentException("value");
+
         if (_currentServerMetaData == null)
             return false;
+        logger.debug("_currentServerMetaData is " + _currentServerMetaData.toString());
         return _currentServerMetaData.getHashRange().isInRange(value);
     }
 
@@ -53,12 +56,14 @@ public class MetaDataManager implements IMetaDataManager {
 
         MetaData newCurrentServerMetaData = mds.getServerForHash(
                 _currentServerHash);
-
+        if(_currentServerMetaData != null)
+            logger.debug("new metadata = " + _currentServerMetaData.toString() + " old metadata = " + newCurrentServerMetaData.toString());
         if (_currentServerMetaData != null 
-                && newCurrentServerMetaData.compareTo(_currentServerMetaData) == 0) {
+                && newCurrentServerMetaData.equalTo(_currentServerMetaData) == 0) {
             // No changes to the current server's data, don't have to fix up
             // server's storage.
             _metaDataSet = mds;
+            logger.debug("1. _currentServerMetaData is " + _currentServerMetaData.toString());
             return;
         }
 
@@ -68,6 +73,7 @@ public class MetaDataManager implements IMetaDataManager {
 
             _currentServerMetaData = newCurrentServerMetaData;
             _metaDataSet = mds;
+            logger.debug("2. _currentServerMetaData is " + _currentServerMetaData.toString());
         } finally {
             _kvServer.requestUnlock();
         }
