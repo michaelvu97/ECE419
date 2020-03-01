@@ -17,8 +17,6 @@ public interface IKVServer {
         STOPPED // Default server status; server is stopped.
     };
     
-    public HashRange getServerHR();
-
     public String getName();
 
     /**

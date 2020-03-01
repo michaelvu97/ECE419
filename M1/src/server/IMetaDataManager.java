@@ -18,4 +18,6 @@ public interface IMetaDataManager {
      * this server.
      */
     public void updateMetaData(MetaDataSet mds);
+
+    public boolean isInRange(HashValue value);
 }

@@ -31,6 +31,15 @@ public class MetaDataManager implements IMetaDataManager {
     }
 
     @Override
+    public synchronized boolean isInRange(HashValue value) {
+        if (value == null)
+            throw new IllegalArgumentException("value");
+        if (_currentServerMetaData == null)
+            return false;
+        return _currentServerMetaData.getHashRange().isInRange(value);
+    }
+
+    @Override
     public synchronized void updateMetaData(MetaDataSet mds) {
         if (mds == null)
             throw new IllegalArgumentException("mds is null");

@@ -38,7 +38,6 @@ public class KVServer implements IKVServer {
 
 	private IServerStore serverStore;
 	private IMetaDataManager metaDataManager = new MetaDataManager(null, this);
-	private HashRange serverHR = null;
 
 	private Set<ClientConnection> clientConnections = new HashSet<ClientConnection>();
 
@@ -117,9 +116,7 @@ public class KVServer implements IKVServer {
 		// 	this._zkClient = null;
 		// }
 	}
-    public HashRange getServerHR(){
-    	return serverHR;
-    }	    
+	
     public KVServer(String znodeName, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
         this(znodeName, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
     }
