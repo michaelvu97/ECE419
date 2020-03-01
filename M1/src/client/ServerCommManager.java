@@ -71,7 +71,7 @@ public final class ServerCommManager implements IServerCommManager {
         if (message.getKey() == null)
             throw new IllegalArgumentException("Message contains a null key");
 
-        HashValue hash = HashValue.CreateFromHashString(message.getKey());
+        HashValue hash = HashUtil.ComputeHashFromKey(message.getKey());
 
         while (true) {
             MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
