@@ -1,6 +1,7 @@
 package app_kvServer;
 import shared.metadata.*;
 import shared.*;
+import java.util.*;
 
 public interface IKVServer {
     public enum CacheStrategy {
@@ -92,6 +93,10 @@ public interface IKVServer {
      */
     public Pair popInRange(HashRange hr);
 
+    /**
+    * Grabs a list of all key value pairs which are in a given hash range
+    */
+    public List<Pair> getAllInRange(HashRange hr);
     /**
      * Assumes that the server has already been write locked.
      * Sends all data that the new server is responsible for.

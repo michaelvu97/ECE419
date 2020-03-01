@@ -100,7 +100,7 @@ public class ClientConnection extends Connection {
 			}
 		}
 
-		if (requestType == KVMessage.StatusType.PUT) {
+		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_SERVER) {
 
 			if (request.getValue() == null || 
 				request.getValue().equals("null") || 

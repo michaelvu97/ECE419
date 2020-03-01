@@ -127,6 +127,15 @@ public final class MetaDataSet implements ISerializable {
         throw new IllegalStateException("Could not find server for hash " + hv);
     }
 
+    public MetaData getMetaDataByName(String name) {
+        for (MetaData srv : _data) {
+            if (srv.getName().equals(name))
+                return srv;
+        }
+
+        return null;
+    }
+
     public static MetaDataSet Deserialize(byte[] serializedBytes)
             throws Deserializer.DeserializationException {
         return new MetaDataSet(

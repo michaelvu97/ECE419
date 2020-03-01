@@ -16,12 +16,13 @@ import logger.LogSetup;
 import cache.*;
 import server.*;
 import storage.*;
+import java.util.*;
 import shared.metadata.*;
 import shared.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
+import java.net.UnknownHostException;
 import org.apache.zookeeper.ZooKeeper;
 
 public class KVServer implements IKVServer {
@@ -181,6 +182,40 @@ public class KVServer implements IKVServer {
     public Pair popInRange(HashRange hr){
 		return this.serverStore.popInRange(hr);
 	}
+
+	@Override
+    public List<Pair> getAllInRange(HashRange hr){
+		return this.serverStore.getAllInRange(hr);
+	}
+
+	@Override    
+    public void transferDataToServer(MetaData serverToSendTo){
+    	ServerInfo transferserver = new ServerInfo(serverToSendTo.getName(), serverToSendTo.getHost(), serverToSendTo.getPort());
+    	KVTransfer transferClient = new KVTransfer(transferserver);
+    	try {
+    		transferClient.connect();
+    	}
+    	catch (UnknownHostException unknown) {
+    		logger.error("Could not connect to given server! (unknown host)");
+    		return;
+    	}
+    	catch (IOException io) {
+    		logger.error("Could not connect to given server! (i/o)");
+    		return;
+    	}
+
+    	List<Pair> toTransfer = getAllInRange(serverToSendTo.getHashRange());
+    	for (Pair KV : toTransfer) {
+    		try{
+    			transferClient.put(KV.k,KV.v);
+    		}
+    		catch (Exception ex) {
+    			logger.error("Could not tranfser KV pair <" + KV.k + "," + KV.v + ">");
+    		}
+    	}
+    	transferClient.disconnect();
+    }
+
 
 	@Override
     public void clearStorage(){

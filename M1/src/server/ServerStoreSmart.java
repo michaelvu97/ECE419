@@ -3,6 +3,7 @@ package server;
 import java.util.concurrent.locks.Lock;
 import cache.*;
 import storage.*;
+import java.util.*;
 
 import app_kvServer.IKVServer;
 import shared.metadata.*;
@@ -113,6 +114,11 @@ public class ServerStoreSmart implements IServerStore {
 	    if(KV!=null) _cache.delete(KV.k);	    
 	}
     return KV;   	 
+    }
+
+    @Override
+    public List<Pair> getAllInRange(HashRange hr){
+        return _disk.getAllInRange(hr);
     }
 
     @Override

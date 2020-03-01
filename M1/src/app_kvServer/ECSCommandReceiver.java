@@ -7,6 +7,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import logger.LogSetup;
 
+import app_kvECS.*;
 import app_kvServer.IKVServer;
 import shared.comms.*;
 import shared.messages.KVAdminMessage;
@@ -97,7 +98,38 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
      */
     public KVAdminMessage onTransferRequest(KVAdminMessage transferRequest) {
         // TODO
-        return null;
+        //parse message
+        TransferRequest tr = null;
+        try {
+            tr = TransferRequest.Deserialize(transferRequest.getPayload());
+        } catch (Deserializer.DeserializationException dse) {
+            logger.error("Received invalid transfer request from server", dse);
+            return new KVAdminMessage(
+                    KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE,
+                    "Could not parse transfer request payload".getBytes()
+            );
+        }
+
+        // Confirm that we are the source
+        String fromServ = tr.getFromName();
+        if (!fromServ.equals(_kvServer.getName())) {
+            logger.warn("Received transfer request, not responsible.");
+            return new KVAdminMessage(
+                    KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE,
+                    "This is not the right server for transfer request".getBytes()
+            );
+        }
+        String toServ = tr.getToName();
+        MetaDataSet newMetaDataSet = tr.getNewMetaDataset();
+
+        MetaData targetServ = newMetaDataSet.getMetaDataByName(toServ);
+
+        _kvServer.transferDataToServer(targetServ);
+
+        return new KVAdminMessage(
+                KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS,
+                "Done".getBytes()
+        );
     }
 
     /**

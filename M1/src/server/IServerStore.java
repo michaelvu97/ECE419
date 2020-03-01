@@ -1,6 +1,7 @@
 package server;
 import shared.metadata.*;
 import shared.*;
+import java.util.*;
 public interface IServerStore {
 
     /**
@@ -35,7 +36,7 @@ public interface IServerStore {
     public String cacheGet(String key);
     
     public Pair popInRange(HashRange hr);
-    
+    public List<Pair> getAllInRange(HashRange hr);
     /**
      * @return operation success.
      */

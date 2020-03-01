@@ -1,6 +1,7 @@
 package storage;
 import shared.metadata.*;
 import shared.*;
+import java.util.*;
 
 public interface IDiskStorage {
 
@@ -31,6 +32,11 @@ public interface IDiskStorage {
      * returns a key value pair within a hash range, null if none exist
      */
     public Pair popInRange(HashRange hr);
+
+    /**
+     * returns a list of key value pairs within a hash range
+     */
+    public List<Pair> getAllInRange(HashRange hr);
 
     /**
     * @return deletes file on disk.
