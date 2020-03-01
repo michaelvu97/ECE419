@@ -119,14 +119,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean stop() {
-        try {
-            ecsSocket.close();
-            logger.info("ECSClient socket is closed.");
-            return true;
-        } catch (IOException e) {
-            logger.error("Error! " + "Unable to close socket on port: " + _port, e);
-            return false;
-        }
+      // stop is removed!
     }
 
     @Override
