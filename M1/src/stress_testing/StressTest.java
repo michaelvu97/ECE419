@@ -11,9 +11,12 @@ import logger.LogSetup;
 import app_kvClient.*;
 import app_kvServer.*;
 
-public class StressTest {
+public class StressTest implements Runnable {
 
-    private class StressTestResults {
+    private static String INITIALHOSTNAME;
+    private static int INITIALPORT;
+
+    private static class StressTestResults {
 
         // Latencies
         public double avg_put_RTT = 0;
@@ -25,6 +28,8 @@ public class StressTest {
     }
     private double _putRTTTotal = 0;
     private double _getRTTTotal = 0;
+
+    public StressTestResults _results = null;
 
     private static int NUM_REQUESTS = 10000;
 
@@ -58,14 +63,12 @@ public class StressTest {
         return GetRandomInsertedKey();
     }
 
-    private static void printResultsHeader() {
-        System.out.println("cacheSize,cacheStrategy,numClients,putRatio,put_rtt_nanos,get_rtt_nanos");
+    public static void printResultsHeader() {
+        System.out.println("numClients,throughput");
     }
 
-    private static void printResults(
+    public static void printResults(
         StressTestResults results, 
-        int cacheSize, 
-        String cacheStrategy, 
         int numClients,
         int putRatio) {
 
@@ -77,7 +80,17 @@ public class StressTest {
         } else {
             putRatioString = "20%";
         }
-        System.out.println(cacheSize + "," + cacheStrategy + "," + numClients + "," + putRatioString + "," + results.avg_put_RTT + "," + results.avg_get_RTT);
+        System.out.println(numClients + "," + putRatioString + "," + results.avg_put_RTT + "," + results.avg_get_RTT);
+    }
+
+    private int numRequests;
+    private int putRatio;
+
+    public StressTest(
+        int numRequests,
+        int putRatio) {
+        this.numRequests = numRequests;
+        this.putRatio = putRatio;
     }
 
     /**
@@ -86,47 +99,36 @@ public class StressTest {
      *                  3=1:4
      */
 
-    public StressTest(
-        String cacheStrategy, 
-        int cacheSize, 
-        int numClients,
-        int putRatio) {
+    @Override
+    public void run() {
 
-        IKVServer kvServer = null; // TODO
         IKVClient kvClient = null; // TODO
 
         StressTestResults results = new StressTestResults();
 
         double num_puts = 0;
         if (putRatio == 1) {
-            num_puts = 0.8 * NUM_REQUESTS;
+            num_puts = 0.8 * numRequests;
         } else if (putRatio == 2) {
-            num_puts = 0.5 * NUM_REQUESTS;
+            num_puts = 0.5 * numRequests;
         } else {
-            num_puts = 0.2 * NUM_REQUESTS;
+            num_puts = 0.2 * numRequests;
         }
 
-        double num_gets = NUM_REQUESTS - num_puts;
+        double num_gets = numRequests - num_puts;
 
         try {
-            
-
-            // Initialize server
-            // kvServer = new KVServer("znode", 0, cacheSize, cacheStrategy, "STRESS_TEST_STORAGE","localhost",6969);
-            kvServer.run();
-
-            // Wipe the server memory
-            kvServer.clearStorage();
-            kvServer.clearCache();
-
             // Initialize & connect client(s)
             kvClient = new KVClient();
-            kvClient.newConnection("TODO", kvServer.getHostname(), 
-                    kvServer.getPort());
+            kvClient.newConnection(
+                "INTIAIL", 
+                INITIALHOSTNAME, 
+                INITIALPORT
+            );
 
             // Perform put put put get, etc.
             // Each GET must get a random key that has previously been PUT.
-            for (int reqNum = 0; reqNum < NUM_REQUESTS; reqNum++) {
+            for (int reqNum = 0; reqNum < numRequests; reqNum++) {
                 boolean isPut = false;
                 if (putRatio == 1 && reqNum % 5 != 4) {
                     isPut = true;
@@ -173,33 +175,56 @@ public class StressTest {
         } finally {
             try {
                 kvClient.getStore().disconnect();
-                kvServer.clearStorage();
-                kvServer.kill();
             } catch (Exception e) {
-                System.out.println("Failed to teardown server");
+                System.out.println("Failed to teardown client");
             }
         }
 
-        printResults(results, cacheSize, cacheStrategy, numClients, putRatio);
+        _results = results;
     }
 
     public static void main (String[] args) {
+        if (args.length != 2) {
+            System.out.println("usage: <initial server host> <initial server port>");
+            return;
+        }
+
+        INITIALHOSTNAME = args[0];
+        INITIALPORT = Integer.parseInt(args[1]);
+
         Logger logger = Logger.getRootLogger();
         logger.info("running stress test");
         StressTest.printResultsHeader();
 
-        String[] cacheStrategies = {"FIFO", "LRU", "LFU"};
-        int[] cacheSizes = {10, 100, 1000};
-        int[] putRatios = {1, 2, 3};
+        int[] numClients = {1, 10, 100};
 
-        int numClients = 1;
+        for (int numClient : numClients) {
 
-        for (String cacheStrategy : cacheStrategies) {
-            for (int cacheSize : cacheSizes) {
-                for (int putRatio : putRatios) {
-                    new StressTest(cacheStrategy, cacheSize, numClients, putRatio);
+
+            Thread[] threads = new Thread[numClient];
+            StressTest[] stressTests = new StressTest[numClient];
+
+            long startTimeNano = System.nanoTime();
+
+            for (int i = 0; i < numClient; i++) {
+                stressTests[i] = new StressTest(NUM_REQUESTS / numClient, 1);
+                threads[i] = new Thread(stressTests[i]);
+                threads[i].run();
+            }
+
+            for (int i = 0; i < numClient; i++) {
+                try {
+                    threads[i].join();
+                } catch (Exception e) {
+                    System.out.println(e);
                 }
             }
+
+            long endTimeNano = System.nanoTime();
+
+            double throughput = NUM_REQUESTS * 1.0 / (endTimeNano - startTimeNano);
+
+            System.out.println(numClient + "," + throughput);
         }
         System.out.println("all tests completed");
         return;
