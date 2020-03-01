@@ -118,6 +118,8 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             );
         }
 
+        logger.debug("Received new metadata: " + mds.toString());
+        
         _metaDataManager.updateMetaData(mds);
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }

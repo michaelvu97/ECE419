@@ -45,7 +45,8 @@ public class MetaDataManager implements IMetaDataManager {
         MetaData newCurrentServerMetaData = mds.getServerForHash(
                 _currentServerHash);
 
-        if (newCurrentServerMetaData.compareTo(_currentServerMetaData) == 0) {
+        if (_currentServerMetaData != null 
+                && newCurrentServerMetaData.compareTo(_currentServerMetaData) == 0) {
             // No changes to the current server's data, don't have to fix up
             // server's storage.
             _metaDataSet = mds;

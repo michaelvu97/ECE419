@@ -25,7 +25,6 @@ public class ClientConnection extends Connection {
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 	
-	private ICommChannel commChannel;
 	private IServerStore serverStore;
 	private IKVServer kvServer;
 
