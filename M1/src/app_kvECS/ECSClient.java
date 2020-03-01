@@ -38,6 +38,7 @@ public class ECSClient implements IECSClient {
     private static Logger logger = Logger.getRootLogger();
     private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
+    private Set<String> runningNodes = new HashSet<String>();
 
     private CountDownLatch _waitForServerToConnectBack = new CountDownLatch(1);
 
@@ -167,45 +168,50 @@ public class ECSClient implements IECSClient {
             return null;
         }
 
-        // create new node using user input & available server info
         newNode = new ECSNode(newServer.getHost(), newServer.getName(), 
-             newServer.getPort(), cacheStrategy, cacheSize); 
-
-        // Set the countdown latch.
-        _waitForServerToConnectBack = new CountDownLatch(1);
-
-        // add the new node to hashmap allNodes.
-        allNodes.put(newServer.getName(), newNode);
-
-        // ssh call to start KV server
-        Process proc = null;
-        String script = "./src/app_kvECS/kv_server.sh";
-
-        Runtime run = Runtime.getRuntime();
+                newServer.getPort(), cacheStrategy, cacheSize); 
         
-        String cmd[] = {
-            script,
-            _username,
-            newServer.getHost(), // config host
-            newServer.getName(), // server name
-            Integer.toString(newServer.getPort()), // server port
-            cacheStrategy, 
-            Integer.toString(cacheSize),
-            _host,           // ecs hostname
-            Integer.toString(_port),               // ecs port
-        };
+        if (!runningNodes.contains(newServer.getName())) {
 
-        try {
-            proc = run.exec(cmd);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
+            // Set the countdown latch.
+            _waitForServerToConnectBack = new CountDownLatch(1);
 
-        // Block until the server connects.
-        try {
-            _waitForServerToConnectBack.await();
-        } catch (Exception e) {
-            logger.error("Server conenction callback interrupted, may not be connected", e);
+            // add the new node to hashmap allNodes.
+            allNodes.put(newServer.getName(), newNode);
+
+            // ssh call to start KV server
+            Process proc = null;
+            String script = "./src/app_kvECS/kv_server.sh";
+
+            Runtime run = Runtime.getRuntime();
+            
+            String cmd[] = {
+                script,
+                _username,
+                newServer.getHost(), // config host
+                newServer.getName(), // server name
+                Integer.toString(newServer.getPort()), // server port
+                cacheStrategy, 
+                Integer.toString(cacheSize),
+                _host,           // ecs hostname
+                Integer.toString(_port),               // ecs port
+            };
+
+            try {
+                proc = run.exec(cmd);
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+
+            // Block until the server connects.
+            try {
+                _waitForServerToConnectBack.await();
+            } catch (Exception e) {
+                logger.error("Server conenction callback interrupted, may not be connected", e);
+            }
+
+            runningNodes.add(newServer.getName());
+
         }
 
         // The new server is now connected.
