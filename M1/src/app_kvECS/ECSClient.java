@@ -107,7 +107,6 @@ public class ECSClient implements IECSClient {
             }
             return false;
         }
-        return false;
     }
 
     @Override
@@ -120,7 +119,6 @@ public class ECSClient implements IECSClient {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);
             return false;
         }
-        return false;
     }
 
     @Override
@@ -133,7 +131,6 @@ public class ECSClient implements IECSClient {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);
             return false;
         }
-        return false;
     }
 
     @Override
@@ -176,12 +173,12 @@ public class ECSClient implements IECSClient {
                 _username,
                 newServer.getHost(), // config host
                 newServer.getName(), // server name
-                newServer.getPort(), // server port
+                Integer.toString(newServer.getPort()), // server port
                 cacheStrategy, 
-                cacheSize,
+                Integer.toString(cacheSize),
                 newServer.getName(), // disk storage string
                 _host,           // ecs hostname
-                _port,               // ecs port
+                Integer.toString(_port),               // ecs port
             };
 
             try {
