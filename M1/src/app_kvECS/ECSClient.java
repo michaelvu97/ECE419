@@ -305,11 +305,12 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    public void removeNode(String nodeName) {
-        if (false) {
+    public boolean removeNode(String nodeName) {
+        if (getActiveNodes().size() == 1) {
             // If we're the only node, deny
             // Can't remove the last node.
-            logger.error("TODO REMOVE NODE ON THE LAST NODE");
+            logger.error("Can't remove the last node in the cluster.");
+            return false;
         }
 
         // Detect who will grow
@@ -336,6 +337,7 @@ public class ECSClient implements IECSClient {
 
         // Broadcast metadata update
         nodeAcceptor.broadcastMetadata(newMetaData);
+        return true;
     }
 
     public List<String> removeNodes(List<String> nodeNames) {
@@ -346,8 +348,9 @@ public class ECSClient implements IECSClient {
             nodeName = nodeNames.get(i);
             
             if (allNodes.containsKey(nodeName)) {
-                removedNodes.add(nodeName);
-                removeNode(nodeName);
+                if (removeNode(nodeName)) {
+                    removedNodes.add(nodeName);    
+                }
             } 
         }
 
