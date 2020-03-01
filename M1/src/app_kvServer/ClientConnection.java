@@ -88,6 +88,14 @@ public class ClientConnection extends Connection {
 		if (requestType == KVMessage.StatusType.PUT 
 				|| requestType == KVMessage.StatusType.GET) {
 			// Verify that this server is responsible.
+			if (kvServer.getServerState() == IKVServer.ServerStateType.STOPPED) {
+				return new KVMessageImpl(
+					KVMessage.StatusType.SERVER_STOPPED,
+					null,
+					this.metaDataManager.getMetaData().serialize()
+				);
+			}
+			
 			if (!metaDataManager.isInRange(
 						HashUtil.ComputeHashFromKey(request.getKey()))) {
 				logger.debug("Not responsible for key " + request.getKey());
@@ -103,7 +111,6 @@ public class ClientConnection extends Connection {
 		}
 
 		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_SERVER) {
-
 			if (kvServer.isWriterLocked()) {
 				return new KVMessageImpl(
 					KVMessage.StatusType.SERVER_WRITE_LOCK,

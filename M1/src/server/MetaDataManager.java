@@ -43,6 +43,11 @@ public class MetaDataManager implements IMetaDataManager {
     }
 
     @Override
+    public synchronized MetaData getMyMetaData() {
+        return _currentServerMetaData;
+    }
+
+    @Override
     public synchronized void updateMetaData(MetaDataSet mds) {
         if (mds == null)
             throw new IllegalArgumentException("mds is null");
@@ -76,6 +81,12 @@ public class MetaDataManager implements IMetaDataManager {
             _kvServer.clearStorage();
         }
         _currentServerMetaData = newCurrentServerMetaData;
+        
+        if (_currentServerMetaData == null)
+            _kvServer.setServerState(IKVServer.ServerStateType.STOPPED);
+        else
+            _kvServer.setServerState(IKVServer.ServerStateType.STARTED);
+
         _metaDataSet = mds;
     }
 }

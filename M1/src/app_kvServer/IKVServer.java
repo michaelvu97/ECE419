@@ -120,6 +120,7 @@ public interface IKVServer {
     public void close();
 
     public ServerStateType getServerState();
+    public void setServerState(ServerStateType state);
 
     public boolean isWriterLocked();
 

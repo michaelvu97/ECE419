@@ -147,10 +147,10 @@ public final class ServerCommManager implements IServerCommManager {
 
                 // Retry
             } else if (status == KVMessage.StatusType.SERVER_STOPPED) {
-                // TODO
-                // TODO
-                // TODO
-                // TODO
+                  _metaDataSet = MetaDataSet.Deserialize(
+                    responseObj.getValueRaw()
+                );
+                logger.info("New Meta Data: " + _metaDataSet.toString());
             } else if (status == KVMessage.StatusType.SERVER_WRITE_LOCK) {
                 // TODO
                 // TODO
