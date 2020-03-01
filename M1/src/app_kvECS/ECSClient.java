@@ -119,7 +119,8 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean stop() {
-      // stop is removed!
+      // stop is implemented in the remove function
+      return true;
     }
 
     @Override
