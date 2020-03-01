@@ -110,6 +110,17 @@ public class Application {
 		} 
 
 		/*
+		* INPUT: logLevel <level>
+		*/
+		else if (tokens[0].equals("logLevel")) {
+			if (tokens.length >= 2) {
+				setLevel(tokens[1]);
+			} else {
+				printError("Incorrect Number of Arguments");
+			}
+		}
+
+		/*
 		* INPUT: <unknown command>
 		*/
 		else {
@@ -129,7 +140,7 @@ public class Application {
 
 		  	// log the number of and names for all servers added.
 		  	// sorry if this is a really ugly way to do it.
-		  	logger.info("Added " + numNodes + " new servers:");
+		  	logger.info("Added " + numNodes + " new server(s):");
 
 		  	for (int i = 0; i < numNodes; i++) {
 		  		logger.info(newNodes.get(i).getNodeName());
@@ -149,21 +160,12 @@ public class Application {
 
 			// log the number of and names for all servers removed.
 		  	// sorry if this is a really ugly way to do it.
-		  	logger.info("Removed " + numRmServers + " servers:");
+		  	logger.info("Removed " + numRmServers + " server(s):");
 
 		  	for (int i = 0; i < numRmServers; i++) {
 		  		logger.info(removedServers.get(i));
 		  	}
-		}
-				
-		// try {
-		// 	//remove needs to beimplemented
-		// 	//client.remove(nodeIndex);
-		// 	// client.addListener(this);
-		// } catch (IOException e) {
-		// 	printError("Could not establish connection!");
-		// 	logger.warn("Could not establish connection!", e);
-		// }
+		}		
 	}
 
 	private void disconnect() {
@@ -229,23 +231,6 @@ public class Application {
 			return LogSetup.UNKNOWN_LEVEL;
 		}
 	}
-	
-	// @Override
-	// public void handleStatus(SocketStatus status) {
-	// 	if(status == SocketStatus.CONNECTED) {
-
-	// 	} else if (status == SocketStatus.DISCONNECTED) {
-	// 		System.out.print(PROMPT);
-	// 		System.out.println("Connection terminated: " 
-	// 				+ serverAddress + " / " + serverPort);
-			
-	// 	} else if (status == SocketStatus.CONNECTION_LOST) {
-	// 		System.out.println("Connection lost: " 
-	// 				+ serverAddress + " / " + serverPort);
-	// 		System.out.print(PROMPT);
-	// 	}
-		
-	// }
 
 	private void printError(String error){
 		System.out.println(PROMPT + "Error! " +  error);
