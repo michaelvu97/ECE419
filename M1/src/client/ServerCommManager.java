@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -152,6 +153,11 @@ public final class ServerCommManager implements IServerCommManager {
 
         ICommChannel commChannel = new CommChannel(clientSocket);
         _serverCommChannels.put(serverInfo.getName(), commChannel);
+
+        // Make a dummy metadata set
+        ArrayList<ServerInfo> fakeServerInfo = new ArrayList<ServerInfo>();
+        fakeServerInfo.add(_initialServerInfo);
+        _metaDataSet = MetaDataSet.CreateFromServerInfo(fakeServerInfo);
 
         logger.info("connection established");
     }
