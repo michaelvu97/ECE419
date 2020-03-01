@@ -112,7 +112,7 @@ public class StressTest {
             
 
             // Initialize server
-            kvServer = new KVServer("znode", 0, cacheSize, cacheStrategy, "STRESS_TEST_STORAGE","localhost",6969);
+            // kvServer = new KVServer("znode", 0, cacheSize, cacheStrategy, "STRESS_TEST_STORAGE","localhost",6969);
             kvServer.run();
 
             // Wipe the server memory

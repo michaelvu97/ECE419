@@ -83,6 +83,23 @@ public class ClientConnection extends Connection {
 
 		KVMessage.StatusType requestType = request.getStatus();
 
+		if (requestType == KVMessage.StatusType.PUT 
+				|| requestType == KVMessage.StatusType.GET) {
+			// Verify that this server is responsible.
+			if (!metaDataManager.isInRange(
+						HashUtil.ComputeHashFromKey(request.getKey()))) {
+				logger.debug("Not responsible for key " + request.getKey());
+				logger.debug("Sending metadata: " 
+						+ this.metaDataManager.getMetaData().toString());
+				
+				return new KVMessageImpl(
+					KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
+					null,
+					this.metaDataManager.getMetaData().serialize()
+				);
+			}
+		}
+
 		if (requestType == KVMessage.StatusType.PUT) {
 
 			if (request.getValue() == null || 
@@ -105,14 +122,6 @@ public class ClientConnection extends Connection {
 
 	private KVMessage handleGet(KVMessage getMessage) {
 		String key = getMessage.getKey();
-		if(!metaDataManager.isInRange(HashUtil.ComputeHashFromKey(key))){
-			//return metadata if this is the wrong server
-			return new KVMessageImpl(
-				KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
-				null,
-				this.metaDataManager.getMetaData().serialize()
-			);
-		}
 		String result = serverStore.get(key);
 		if (result != null) {
 			return new KVMessageImpl(KVMessage.StatusType.GET_SUCCESS, key, result);
@@ -125,14 +134,6 @@ public class ClientConnection extends Connection {
 	private KVMessage handlePut(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
-		if(!metaDataManager.isInRange(HashUtil.ComputeHashFromKey(key))){
-			//return metadata if this is the wrong server
-			return new KVMessageImpl(
-				KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
-				null,
-				this.metaDataManager.getMetaData().serialize()
-			);
-		}
 		IServerStore.PutResult putResult = serverStore.put(key, value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
 			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
@@ -146,14 +147,6 @@ public class ClientConnection extends Connection {
 
 	private KVMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
-		if(!metaDataManager.isInRange(HashUtil.ComputeHashFromKey(key))){
-			//return metadata if this is the wrong server
-			return new KVMessageImpl(
-				KVMessage.StatusType.SERVER_NOT_RESPONSIBLE,
-				null,
-				this.metaDataManager.getMetaData().serialize()
-			);
-		}
 		boolean success = serverStore.delete(key);
 		if (success) {
 			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key);

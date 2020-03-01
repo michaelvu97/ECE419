@@ -15,6 +15,7 @@ public final class ObjectFactory {
      * Creates a KVServer object for auto-testing purposes
      */
 	public static IKVServer createKVServerObject(int port, int cacheSize, String strategy, String ECSLoc, int ECSPort) {
-		return new app_kvServer.KVServer("some_name", port, cacheSize, strategy,"KV_SERVER_STORAGE",ECSLoc,ECSPort);
+		// return new app_kvServer.KVServer("some_name", port, cacheSize, strategy,"KV_SERVER_STORAGE",ECSLoc,ECSPort);
+        return null;
 	}
 }

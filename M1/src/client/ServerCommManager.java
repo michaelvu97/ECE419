@@ -36,7 +36,43 @@ public final class ServerCommManager implements IServerCommManager {
 
     @Override
     public void connect() throws IOException {
-        connectToServer(_initialServerInfo);
+        logger.debug("Connecting to initial server");
+
+        Socket clientSocket = new Socket(
+            _initialServerInfo.getHost(),
+            _initialServerInfo.getPort()
+        );
+
+        try {
+
+            ICommChannel commChannel = new CommChannel(clientSocket);
+
+            // Get the initial metadata
+            commChannel.sendBytes(
+                    new KVMessageImpl(
+                            KVMessage.StatusType.GET_METADATA,
+                            null,
+                            (byte[]) null
+                    )
+                    .serialize()
+            );
+
+            KVMessage response = KVMessageImpl.Deserialize(commChannel.recvBytes());
+
+            if (response.getStatus() == KVMessage.StatusType.GET_METADATA_SUCCESS) {
+                _metaDataSet = MetaDataSet.Deserialize(response.getValueRaw());
+                logger.debug("Received initial metadata set: " + _metaDataSet);
+            } else {
+                throw new IOException(
+                        "Invalid response from server: " + response.getStatus());
+            }
+        } catch (Deserializer.DeserializationException dse) {
+            throw new IOException(dse);
+        } finally {
+            clientSocket.close();
+        }
+
+        logger.info("connection established");
     }
 
     @Override
@@ -76,6 +112,7 @@ public final class ServerCommManager implements IServerCommManager {
 
         while (true) {
             MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
+            logger.debug("sending to " + responsibleServer.getName());
 
             if (!_serverCommChannels.containsKey(responsibleServer.getName())) {
                 // May throw an IOException.
@@ -137,27 +174,25 @@ public final class ServerCommManager implements IServerCommManager {
 
     private void connectToServer(MetaData serverMetaData) 
             throws IOException {
-        connectToServer(new ServerInfo(
-            serverMetaData.getName(),
-            serverMetaData.getHost(),
-            serverMetaData.getPort())
-        );
-    }
 
-    private void connectToServer(ServerInfo serverInfo) 
-            throws IOException {
+        String name = serverMetaData.getName();
+        String host = serverMetaData.getHost();
+        int port = serverMetaData.getPort();
+
+        // Check if we're already connected to this server
+        if (_serverCommChannels.containsKey(name)) {
+            return;
+        }
+
+        logger.debug("Connecting to " + name);
         Socket clientSocket = new Socket(
-            serverInfo.getHost(),
-            serverInfo.getPort()
+            host,
+            port
         );
 
         ICommChannel commChannel = new CommChannel(clientSocket);
-        _serverCommChannels.put(serverInfo.getName(), commChannel);
 
-        // Make a dummy metadata set
-        ArrayList<ServerInfo> fakeServerInfo = new ArrayList<ServerInfo>();
-        fakeServerInfo.add(_initialServerInfo);
-        _metaDataSet = MetaDataSet.CreateFromServerInfo(fakeServerInfo);
+        _serverCommChannels.put(name, commChannel);
 
         logger.info("connection established");
     }

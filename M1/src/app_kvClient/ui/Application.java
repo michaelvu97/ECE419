@@ -25,7 +25,11 @@ public class Application implements ClientSocketListener {
 	private String serverAddress;
 	private int serverPort;
 	
-	public void run() {
+	public void run(String host, String port) {
+		if (host != null && port != null) {
+			logger.debug("Starting connection to " + host + " " + port);
+			this.handleCommand("connect " + host + " " + port);
+		}
 		while(running) {
 			stdin = new BufferedReader(new InputStreamReader(System.in));
 			System.out.print(PROMPT);
@@ -60,7 +64,7 @@ public class Application implements ClientSocketListener {
 				try{
 					serverAddress = tokens[1];
 					serverPort = Integer.parseInt(tokens[2]);
-					connect("PLEASE PUT THE NAME HERE", serverAddress, 
+					connect("<UNKNOWN SERVER NAME>", serverAddress, 
 							serverPort);
 				} catch(NumberFormatException nfe) {
 					printError("No valid address. Port must be a number!");
@@ -234,14 +238,17 @@ public class Application implements ClientSocketListener {
 	
     /**
      * Main entry point for the echo server application. 
-     * @param args contains the port number at args[0].
      */
     public static void main(String[] args) {
     	try {
     		// TODO log level?
 			new LogSetup("logs/client.log", Level.ALL);
 			Application app = new Application();
-			app.run();
+			if (args.length == 2) {
+				app.run(args[0], args[1]);
+			} else {
+				app.run(null, null);
+			}
 		} catch (IOException e) {
 			System.out.println("Error! Unable to initialize logger!");
 			e.printStackTrace();
