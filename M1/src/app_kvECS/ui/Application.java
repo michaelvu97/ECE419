@@ -58,7 +58,7 @@ public class Application {
 		* INPUT: add <num of nodes> <cache strategy> <cache size>
 		*/
 		else if(tokens[0].equals("add")) {	
-			if(tokens.length == 5) {
+			if(tokens.length == 4) {
 				try {
 					int numNodes = Integer.parseInt(tokens[1]);
 					String cacheStrategy = tokens[2];
@@ -258,7 +258,7 @@ public class Application {
 			Application app = new Application();
 			
 			client = new ECSClient(args[0], args[1]); 
-			
+			client.start();
 			app.run();
 
 		} catch (IOException e) {

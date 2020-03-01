@@ -104,4 +104,15 @@ public final class MetaData implements ISerializable, Comparable<MetaData> {
             other.getHashRange().getStart()
         );
     }
+
+    @Override
+    public String toString() {
+        String result = "{"
+                + "name=" + getName() + ", "
+                + "host=" + getHost() + ", "
+                + "port=" + getPort() + ", "
+                + "range=" + getHashRange().toString()
+            + "}";
+        return result;
+    }
 }

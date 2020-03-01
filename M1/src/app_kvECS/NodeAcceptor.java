@@ -35,6 +35,8 @@ public class NodeAcceptor extends Acceptor {
         if (mds == null)
             throw new IllegalArgumentException("mds is null");
 
+        logger.debug("Broadcasting metadata: " + mds.toString());
+
         synchronized(connectionsLock) {
             for (Connection connection : this.connections) {
                 INodeConnection nodeConnection = (INodeConnection) connection;
@@ -137,6 +139,7 @@ public class NodeAcceptor extends Acceptor {
     @Override
     public void run() {
         this.running = true;
+        logger.info("Node acceptor running\n");
         while (isRunning()) {
             try {
                 Socket clientSocket = this.serverSocket.accept();

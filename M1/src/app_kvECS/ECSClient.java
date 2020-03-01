@@ -97,6 +97,7 @@ public class ECSClient implements IECSClient {
 			logger.info("ECSClient " + _host + " listening on port: " + ecsSocket.getLocalPort());    
             
             nodeAcceptor = new NodeAcceptor(ecsSocket, this);
+            new Thread(nodeAcceptor).start();
             
             return true;
 		}
@@ -164,7 +165,7 @@ public class ECSClient implements IECSClient {
 
             // ssh call to start KV server
             Process proc = null;
-            String script = "kv_server.sh";
+            String script = "./src/app_kvECS/kv_server.sh";
 
             Runtime run = Runtime.getRuntime();
             
@@ -187,10 +188,15 @@ public class ECSClient implements IECSClient {
                 ioe.printStackTrace();
             }
 
-            return newNode;
+            logger.info(proc);
 
+            // DO NOT DO THIS
+            // Thread.Sleep(1);
+
+            return newNode;
         } else {
             // TODO no servers left! do something about it.
+            logger.error("No more available servers");
         }
         return null;
     }
@@ -213,9 +219,18 @@ public class ECSClient implements IECSClient {
         /* use CreateFromServerInfo from MetaDataSet to construct a 
         *  metadata set from a collection of server infos.
         *  sent metadata to all nodes/servers.
-        */        
+        */
         
-        allMetadata = MetaDataSet.CreateFromServerInfo(allServerInfo);
+        logger.debug(allServerInfo.size());
+
+        List<ServerInfo> availableServers = new ArrayList<ServerInfo>();
+        for (ServerInfo s : allServerInfo) {
+            if (s.getAvailability())
+                continue;
+            availableServers.add(s);
+        }
+
+        allMetadata = MetaDataSet.CreateFromServerInfo(availableServers);
         nodeAcceptor.broadcastMetadata(allMetadata);
 
         return newNodes;

@@ -103,4 +103,12 @@ public final class HashRange implements ISerializable {
             HashValue.Deserialize(hashEndBytes)
         );
     }
+
+    @Override
+    public String toString() {
+        if (getIsEncompassing()){
+            return "Everything";
+        }
+        return "[" + getStart().toString() + "," + getEnd().toString() + "]";
+    }
 }

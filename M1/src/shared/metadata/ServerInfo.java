@@ -19,7 +19,6 @@ public class ServerInfo implements Comparable<ServerInfo> {
         _host = host;
         _port = port;
         _hash = HashUtil.ComputeHashString(_host, _port);
-        available = false;
     }
 
     public boolean setAvailability(boolean availability) {

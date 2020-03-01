@@ -98,21 +98,18 @@ public final class MetaDataSet implements ISerializable {
         ArrayList<MetaData> result = new ArrayList<MetaData>();
 
         for (int i = 0; i < infoList.size(); i++) {
-            // added: server availability check.
-            if (infoList.get(i).getAvailability()) {
-                ServerInfo curr = infoList.get(i);
-                ServerInfo next = infoList.get((i + 1) % infoList.size());
+            ServerInfo curr = infoList.get(i);
+            ServerInfo next = infoList.get((i + 1) % infoList.size());
 
-                result.add(
-                    new MetaData(
-                        curr.getName(),
-                        curr.getHost(), 
-                        curr.getPort(),
-                        curr.getHash(),
-                        next.getHash()
-                    )
-                );
-            }
+            result.add(
+                new MetaData(
+                    curr.getName(),
+                    curr.getHost(), 
+                    curr.getPort(),
+                    curr.getHash(),
+                    next.getHash()
+                )
+            );
         }
         return new MetaDataSet(result);
     }
@@ -136,6 +133,16 @@ public final class MetaDataSet implements ISerializable {
             new Deserializer(serializedBytes)
                 .getList(MetaData.Deserialize)
         );
+    }
+
+    @Override
+    public String toString() {
+        String result = "[";
+        for (MetaData m : _data) {
+            result += m.toString() + ", ";
+        }
+        result += "]";
+        return result;
     }
 
     @Override
