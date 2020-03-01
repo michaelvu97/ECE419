@@ -83,4 +83,6 @@ public interface IECSClient {
 
     public ServerInfo getNextAvailableServer();
 
+    public void signalNodeConnected(String name);
+
 }

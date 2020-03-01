@@ -158,16 +158,9 @@ public class NodeAcceptor extends Acceptor {
                 synchronized(connectionsLock) {
                     connections.add(connection);
                 }
-
-                List<ServerInfo> availableServers = new ArrayList<ServerInfo>();
-                for (ServerInfo s : _ecsClient.getAllServerInfo()) {
-                    if (s.getAvailability())
-                        continue;
-                    availableServers.add(s);
-                }
-
-                MetaDataSet allMetadata = MetaDataSet.CreateFromServerInfo(availableServers);
-                broadcastMetadata(allMetadata);
+                // Signal to ECS that the server is connected
+                String connectedNodeName = ((NodeConnection) connection).getNodeName();
+                _ecsClient.signalNodeConnected(connectedNodeName);
 
                 logger.info("Accepted connection from " 
                     + clientSocket.getInetAddress().getHostName() 
