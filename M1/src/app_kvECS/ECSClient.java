@@ -274,9 +274,8 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean awaitNodes(int count, int timeout) throws Exception {
-        // figure this out.
-        // TODO
-        return false;
+        nodeAcceptor.broadcastMetadata(MetaDataSet.CreateFromServerInfo(getActiveNodes()));
+        return true;
     }
 
     private List<ServerInfo> getActiveNodes() {
