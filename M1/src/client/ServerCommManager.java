@@ -73,6 +73,7 @@ public final class ServerCommManager implements IServerCommManager {
             throw new IllegalArgumentException("Message contains a null key");
 
         HashValue hash = HashUtil.ComputeHashFromKey(message.getKey());
+        logger.info("Hash of key is " + hash);
 
         while (true) {
             MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
@@ -106,8 +107,9 @@ public final class ServerCommManager implements IServerCommManager {
             if (status == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
                 // Need to update metadata and try again.
                 _metaDataSet = MetaDataSet.Deserialize(
-                        responseObj.getValueRaw()
+                    responseObj.getValueRaw()
                 );
+                logger.info("New Meta Data: " + _metaDataSet.toString());
 
                 // Retry
             } else if (status == KVMessage.StatusType.SERVER_STOPPED) {
