@@ -107,7 +107,8 @@ public class KVServer implements IKVServer {
 
 		// Create the cache
 		ICache cache = new Cache(this._cacheSize, this._strategy);
-		IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
+		// IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
+        IDiskStorage diskStorage = new DiskStorageInMemory();
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
 		// try {
@@ -205,6 +206,7 @@ public class KVServer implements IKVServer {
     	}
 
     	List<Pair> toTransfer = getAllInRange(serverToSendTo.getHashRange());
+        logger.info("Transferring " + toTransfer.size() + " items to " + serverToSendTo.getName());
     	for (Pair KV : toTransfer) {
     		try{
     			transferClient.put(KV.k,KV.v);
