@@ -75,11 +75,12 @@ public class MetaDataManager implements IMetaDataManager {
             _metaDataSet = mds;
             return;
         }
-        if(newCurrentServerMetaData != null){
-            _kvServer.refocus(newCurrentServerMetaData.getHashRange());
-        } else {
-            _kvServer.clearStorage();
-        }
+        // Disabled because it messes up data transfer
+        // if(newCurrentServerMetaData != null){
+        //     _kvServer.refocus(newCurrentServerMetaData.getHashRange());
+        // } else {
+        //     _kvServer.clearStorage();
+        // }
         _currentServerMetaData = newCurrentServerMetaData;
         
         if (_currentServerMetaData == null)
