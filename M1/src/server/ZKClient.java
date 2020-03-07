@@ -18,6 +18,8 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 
+import shared.ZooKeeperConstants;
+
 public class ZKClient implements IZKClient {
     
     private static Logger logger = Logger.getRootLogger();
@@ -29,7 +31,7 @@ public class ZKClient implements IZKClient {
     private CountDownLatch _connectionLatch = new CountDownLatch(1);
 
     private String getPath() {
-        return "/kvclients/" + _nodeName;
+        return ZooKeeperConstants.APP_FOLDER + "/" + _nodeName;
     }
 
     public ZKClient(String connectString, String nodeName) throws Exception {
@@ -62,7 +64,7 @@ public class ZKClient implements IZKClient {
         try {
             // TODO: some of this might be wrong.
             String path = _zooKeeper.create(
-                "/kvclients",
+                ZooKeeperConstants.APP_FOLDER,
                 "this_is_the_app_folder".getBytes(),
                 ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT
