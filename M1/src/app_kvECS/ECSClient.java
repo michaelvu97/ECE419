@@ -360,7 +360,10 @@ public class ECSClient implements IECSClient {
 
     @Override
     public List<String> killNodes(List<String> nodeNames) {
-        return removeNodes(nodeNames);
+
+        nodeAcceptor.broadcastKillMsg(nodeNames); 
+
+        return nodeNames;
     }
 
     @Override

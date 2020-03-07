@@ -2,6 +2,9 @@ package app_kvServer;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -88,9 +91,18 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
                 return onUpdateMetadataRequest(request);
             case TRANSFER_REQUEST:
                 return onTransferRequest(request);
+            case KYS:
+                onKillNodeRequest();
             default:
                 throw new Exception("Invalid command from ECS: " + request.getStatus());
         }
+    }
+
+    /**
+     * Called when a kill node request is receieved.
+     */
+    public void onKillNodeRequest() {
+        _kvServer.kill(); // bye bye 
     }
 
     /**

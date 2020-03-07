@@ -1,7 +1,10 @@
 package app_kvECS;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.net.Socket;
+import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
@@ -44,6 +47,27 @@ public final class NodeConnection extends Connection implements INodeConnection 
     @Override
     public String getNodeName() {
         return _name;
+    }
+
+    @Override
+    public void sendKillMessage() throws Exception {
+        try {
+            KVAdminMessage messageToSend = new KVAdminMessage(
+                    KVAdminMessage.StatusType.KYS,
+                    null
+            );
+
+            this.commChannel.sendBytes(messageToSend.serialize());
+            byte[] responseBytes = this.commChannel.recvBytes();
+            KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
+
+        } catch (IOException ioe) {
+            _logger.error("Send kill message failed I/O", ioe);
+            throw ioe;
+        } catch (Deserializer.DeserializationException dse) {
+            _logger.error("Send mill failed, invalid node response", dse);
+            throw dse;
+        }
     }
 
     @Override

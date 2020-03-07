@@ -76,12 +76,20 @@ public interface IECSClient {
      */
     public Map<String, ECSNode> getNodes();
 
+    /**
+     * Kills the nodes specifed by user by broadcasting the list of server names 
+     * to be killed. Servers then invoke kill on themselves if they are in the list.
+     */
     public List<String> killNodes(List<String> nodeNames);
+    
     /**
      * Get the specific node responsible for the given key
      */
     public ECSNode getNodeByName(String name);
 
+    /**
+     * Get the next server that is available. 
+     */
     public ServerInfo getNextAvailableServer();
 
     public void signalNodeConnected(String name);
