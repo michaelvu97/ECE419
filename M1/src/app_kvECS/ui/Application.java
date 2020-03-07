@@ -194,7 +194,7 @@ public class Application {
 		List<String> killedServers = null;
 
 		// call ECSClinet method to kill servers.
-		killedServers = client.KillNodes(servers);
+		killedServers = client.killNodes(servers);
 		numKillServers = killedServers.size();
 
 		// log the number of and names for all servers killed.
@@ -204,7 +204,6 @@ public class Application {
 	  	for (int i = 0; i < numKillServers; i++) {
 	  		logger.info(killedServers.get(i));
 	  	}
-		}		
 	}
 
 	private void disconnect() {
