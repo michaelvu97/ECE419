@@ -58,6 +58,7 @@ public class ZKClient implements IZKClient {
     }
 
     private void attemptRegisterApp() {
+        // TODO, move this to ECS instead.
         try {
             // TODO: some of this might be wrong.
             String path = _zooKeeper.create(
@@ -74,6 +75,12 @@ public class ZKClient implements IZKClient {
 
     @Override
     public void registerNode() throws Exception {
+        try {
+            _zooKeeper.delete(getPath(), -1);
+        } catch (Exception e) {
+            // Nothing
+        }
+
         String path = _zooKeeper.create(
             getPath(),
             "some_data".getBytes(),
@@ -81,25 +88,6 @@ public class ZKClient implements IZKClient {
             CreateMode.EPHEMERAL
         );
         logger.debug("Registered node: " + path);
-
-        // Create a watch for this node's data being changed
-        _zooKeeper.getData(
-            getPath(),
-            new Watcher() {
-                @Override
-                public void process(WatchedEvent we) {
-                    logger.info(we.toString());
-                }
-            },
-            new AsyncCallback.DataCallback() {
-                @Override
-                public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
-                    logger.info(data.length);
-                }
-            },
-            null
-        );
-
     }
 
 }

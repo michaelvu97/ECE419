@@ -6,7 +6,7 @@ import java.util.Collection;
 import ecs.*;
 import shared.metadata.*;
 
-public interface IECSClient {
+public interface IECSClient extends INodeFailureDetector.IOnNodeFailedCallback {
 
     public List<ServerInfo> getAllServerInfo();
     
@@ -62,7 +62,7 @@ public interface IECSClient {
      */
     public boolean awaitNodes(int count, int timeout) throws Exception;
 
-    public void setServerAvailable(String serverName);
+    // public void setServerAvailable(String serverName);
 
     /**
      * Removes nodes with names matching the nodeNames array

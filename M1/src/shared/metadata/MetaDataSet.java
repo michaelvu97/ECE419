@@ -127,6 +127,21 @@ public final class MetaDataSet implements ISerializable {
         throw new IllegalStateException("Could not find server for hash " + hv);
     }
 
+    public MetaData getReplicaForHash(HashValue hv, int replica_num) {
+        if (replica_num > 2 || replica_num <= 0)
+            throw new IllegalArgumentException("replica_num is out of range: " 
+                    + replica_num);
+
+        for (int i = 0; i < _data.length; i++) {
+            if (_data[i].getHashRange().isInRange(hv)) {
+                return _data[(i + replica_num) % _data.length];
+            }
+        }
+
+        throw new IllegalStateException("Could not find a hash match for " + 
+                hv.toString());
+    }
+
     public MetaData getMetaDataByName(String name) {
         for (MetaData srv : _data) {
             if (srv.getName().equals(name))
