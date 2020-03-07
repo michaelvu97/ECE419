@@ -76,6 +76,7 @@ public interface IECSClient {
      */
     public Map<String, ECSNode> getNodes();
 
+    public List<String> killNodes(List<String> nodeNames)
     /**
      * Get the specific node responsible for the given key
      */

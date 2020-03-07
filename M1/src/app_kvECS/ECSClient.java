@@ -358,6 +358,11 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
+    public List<String> killNodes(List<String> nodeNames) {
+        return removeNodes(NodeNames);
+    }
+
+    @Override
     public Map<String, ECSNode> getNodes() {
         return allNodes;
     }

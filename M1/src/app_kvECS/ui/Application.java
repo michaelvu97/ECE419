@@ -97,7 +97,6 @@ public class Application {
 					for (int i = 0; i < (tokens.length - 1); i++){
 						serversToRemove.add(tokens[i+1]);
 					}
-					//int serverName = Integer.parseInt(tokens[1]);
 					remove_servers(serversToRemove);
 				} 
 				catch(NumberFormatException nfe) {
@@ -108,6 +107,27 @@ public class Application {
 				printError("Invalid number of parameters!");
 			}
 		} 
+
+		/*
+		* INPUT: kill <name of server>
+		*/
+		else if(tokens[0].equals("kill")) {	
+			if(tokens.length >= 2) {
+				try {
+					List<String> serversToKill = new ArrayList<String>();
+					for (int i = 0; i < (tokens.length - 1); i++){
+						serversToKill.add(tokens[i+1]);
+					}
+					kill_servers(serversToKill);
+				} 
+				catch(NumberFormatException nfe) {
+					printError("Index must be a number!");
+					logger.info("Unable to parse argument <serverName>", nfe);
+				}
+			}  else {
+				printError("Invalid number of parameters!");
+			}
+		}
 
 		/*
 		* INPUT: logLevel <level>
@@ -165,6 +185,25 @@ public class Application {
 		  	for (int i = 0; i < numRmServers; i++) {
 		  		logger.info(removedServers.get(i));
 		  	}
+		}		
+	}
+
+
+	private void kill_servers(List<String> servers) {
+		int numKillServers = 0;
+		List<String> killedServers = null;
+
+		// call ECSClinet method to kill servers.
+		killedServers = client.KillNodes(servers);
+		numKillServers = killedServers.size();
+
+		// log the number of and names for all servers killed.
+	  	// sorry if this is a really ugly way to do it.
+	  	logger.info("Killed " + numKillServers + " server(s):");
+
+	  	for (int i = 0; i < numKillServers; i++) {
+	  		logger.info(killedServers.get(i));
+	  	}
 		}		
 	}
 
