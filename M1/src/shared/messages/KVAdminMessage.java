@@ -13,9 +13,8 @@ public class KVAdminMessage implements ISerializable {
         TRANSFER_REQUEST_FAILURE,
         UPDATE_METADATA_REQUEST, /* ECS -> KV, tells KV the new metadata*/
         UPDATE_METADATA_REQUEST_SUCCESS,
-        UPDATE_METADATA_REQUEST_FAILURE;
-
-
+        UPDATE_METADATA_REQUEST_FAILURE,
+        KYS; /* Kills the KVServer */
 
         public byte toByte() {
             switch (this) {
@@ -31,6 +30,8 @@ public class KVAdminMessage implements ISerializable {
                     return 4;
                 case TRANSFER_REQUEST_FAILURE:
                     return 5;
+                case KYS:
+                    return 6;
                 default:                
                     throw new IllegalArgumentException("s out of range");
             }
@@ -50,6 +51,8 @@ public class KVAdminMessage implements ISerializable {
                     return UPDATE_METADATA_REQUEST_FAILURE;
                 case 5:
                     return TRANSFER_REQUEST_FAILURE;
+                case 6:
+                    return KYS;
                 default:                
                     throw new IllegalArgumentException("b out of range");
             }
