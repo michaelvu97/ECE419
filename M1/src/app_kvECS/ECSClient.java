@@ -42,6 +42,8 @@ public class ECSClient implements IECSClient {
 
     private CountDownLatch _waitForServerToConnectBack = new CountDownLatch(1);
 
+    private INodeFailureDetector _nodeFailureDetector;
+
     @Override  
     public List<ServerInfo> getAllServerInfo(){
         return allServerInfo;
@@ -105,6 +107,14 @@ public class ECSClient implements IECSClient {
 
 			logger.info("ECSClient " + _host + " listening on port: " + ecsSocket.getLocalPort());    
             
+
+            _nodeFailureDetector = new NodeFailureDetector(
+                    "TODO_ZK_STRING",
+                    "TODO_ZK_FOLDER_NODE_NAME"
+            );
+            _nodeFailureDetector.addNodeFailedListener(this);
+            new Thread(_nodeFailureDetector).start();
+
             nodeAcceptor = new NodeAcceptor(ecsSocket, this);
             new Thread(nodeAcceptor).start();
             
@@ -153,7 +163,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public ECSNode addNode(String cacheStrategy, int cacheSize) {
+    public synchronized ECSNode addNode(String cacheStrategy, int cacheSize) {
         MetaDataSet oldMetaData = null;
         if (getActiveNodes().size() != 0) {
             // This is the first ever node.
@@ -254,7 +264,8 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public List<ECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
+    public synchronized List<ECSNode> addNodes(int count, String cacheStrategy,
+            int cacheSize) {
         ECSNode newNode = null;
         ArrayList<ECSNode> newNodes = new ArrayList<ECSNode>();
 
@@ -281,7 +292,8 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public boolean awaitNodes(int count, int timeout) throws Exception {
+    public synchronized boolean awaitNodes(int count, int timeout) 
+            throws Exception {
         nodeAcceptor.broadcastMetadata(MetaDataSet.CreateFromServerInfo(getActiveNodes()));
         return true;
     }
@@ -298,7 +310,7 @@ public class ECSClient implements IECSClient {
         return result;
     }
 
-    public void setServerAvailable(String serverName) {
+    private void setServerAvailable(String serverName) {
         for (int i = 0; i < allServerInfo.size(); i++) {
             if (allServerInfo.get(i).getName().equals(serverName)) {
                 allServerInfo.get(i).setAvailability(true);
@@ -306,7 +318,7 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    public boolean removeNode(String nodeName) {
+    public synchronized boolean removeNode(String nodeName) {
         if (getActiveNodes().size() == 1) {
             // If we're the only node, deny
             // Can't remove the last node.
@@ -341,7 +353,7 @@ public class ECSClient implements IECSClient {
         return true;
     }
 
-    public List<String> removeNodes(List<String> nodeNames) {
+    public synchronized List<String> removeNodes(List<String> nodeNames) {
         String nodeName = null;
         List<String> removedNodes = new ArrayList<String>();
 
@@ -381,6 +393,12 @@ public class ECSClient implements IECSClient {
         // Find the server with that name, mark is as online?
 
         _waitForServerToConnectBack.countDown();
+    }
+
+    @Override
+    public synchronized void onNodeFailed(String nodeName) {
+        throw new IllegalStateException("NOT IMPLEMENTED");
+        // TODO
     }
 
     public static void main(String configFile, String username) {

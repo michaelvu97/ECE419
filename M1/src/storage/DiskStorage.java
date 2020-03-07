@@ -15,7 +15,7 @@ import shared.*;
 public class DiskStorage implements IDiskStorage {
 	
     private Logger logger = Logger.getRootLogger();
-	private static String BASE_PATH = "~/M1/src/storage/";
+	private static String BASE_PATH = System.getProperty("user.home") + "/M1/src/storage/";
 
     private String _id;
     private String _storagePath;

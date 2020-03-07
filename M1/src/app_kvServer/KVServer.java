@@ -111,8 +111,7 @@ public class KVServer implements IKVServer {
 
 		// Create the cache
 		ICache cache = new Cache(this._cacheSize, this._strategy);
-		// IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
-        IDiskStorage diskStorage = new DiskStorageInMemory();
+		IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
 		// try {
