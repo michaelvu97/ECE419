@@ -1,8 +1,15 @@
 package app_kvECS;
 
 import shared.metadata.*;
+import java.util.List;
 
 public interface INodeConnection {
+
+    /**
+     * Sends a list of nodes to kill to a node.
+     */
+    public void sendKillMessage() throws Exception;
+
     /**
      * Sends a metadata set to a node.
      */

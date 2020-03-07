@@ -422,6 +422,14 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
+    public List<String> killNodes(List<String> nodeNames) {
+
+        nodeAcceptor.broadcastKillMsg(nodeNames); 
+
+        return nodeNames;
+    }
+
+    @Override
     public Map<String, ECSNode> getNodes() {
         return allNodes;
     }

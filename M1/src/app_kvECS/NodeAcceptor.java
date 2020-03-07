@@ -30,6 +30,30 @@ public class NodeAcceptor extends Acceptor {
     }
 
     /** 
+     * Broadcasts the list of nodes to be killed.
+     * Synchronous, blocks until all servers are up to date.
+     */
+    public void sendKillMessage(List<String> nodeNames) {
+
+        logger.debug("sending kill messages.");
+
+        synchronized(connectionsLock) {
+            for (Connection connection : this.connections) {
+                INodeConnection nodeConnection = (INodeConnection) connection;
+                // check if the nodeConnection is one to a node that needs 
+                // to be killed. if yes, send kill message. otherwise ignore.
+                if (nodeNames.contains(nodeConnection.getNodeName())) {
+                    try {
+                        nodeConnection.sendKillMessage();
+                    } catch (Exception e) {
+                        logger.error("Failed to send kill message", e);
+                    }  
+                }
+            }
+        }
+    }
+
+    /** 
      * Broadcasts the metadata set to all active connections.
      * Synchronous, blocks until all servers are up to date.
      */
