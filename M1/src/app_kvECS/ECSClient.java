@@ -100,7 +100,8 @@ public class ECSClient implements IECSClient {
 			ecsSocket = new ServerSocket(ecsClientPort);
 			
 			_port = ecsSocket.getLocalPort();
-			_host = ecsSocket.getInetAddress().getHostName();
+			// _host = ecsSocket.getInetAddress().getHostName();
+            _host = InetAddress.getLocalHost().getHostAddress();
 
 			logger.info("ECSClient " + _host + " listening on port: " + ecsSocket.getLocalPort());    
             
@@ -207,7 +208,7 @@ public class ECSClient implements IECSClient {
             try {
                 _waitForServerToConnectBack.await();
             } catch (Exception e) {
-                logger.error("Server conenction callback interrupted, may not be connected", e);
+                logger.error("Server connection callback interrupted, may not be connected", e);
             }
 
             runningNodes.add(newServer.getName());
