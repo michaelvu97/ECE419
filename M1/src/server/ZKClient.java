@@ -34,25 +34,24 @@ public class ZKClient implements IZKClient {
         return ZooKeeperConstants.APP_FOLDER + "/" + _nodeName;
     }
 
-    public ZKClient(String connectString, String nodeName) throws Exception {
+    public ZKClient(String ecsHostName, String nodeName) throws Exception {
         if (nodeName == null || nodeName.length() == 0) 
             throw new IllegalArgumentException("Node name invalid");
         _nodeName = nodeName;
 
-        _zooKeeper = new ZooKeeper(connectString, 10000, new Watcher() {
-            public void process(WatchedEvent we) {
-                if (we.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                    _connectionLatch.countDown();
-                    return;
-                }
-                if (we.getPath().equals(getPath())) {
-                    // Event involving this node.
-                    if (we.getType() == Watcher.Event.EventType.NodeDataChanged) {
-
+        _zooKeeper = new ZooKeeper(
+                ecsHostName + ":" + ZooKeeperConstants.ZK_PORT,
+                10000,
+                new Watcher() {
+                    public void process(WatchedEvent we) {
+                        if (we.getState() == 
+                                    Watcher.Event.KeeperState.SyncConnected) {
+                            _connectionLatch.countDown();
+                            return;
+                        }
                     }
                 }
-            }
-        });
+        );
 
         _connectionLatch.await();
 

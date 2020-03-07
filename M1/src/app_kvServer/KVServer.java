@@ -48,7 +48,7 @@ public class KVServer implements IKVServer {
 
 	private static Logger logger = Logger.getRootLogger();
 
-	// private IZKClient _zkClient = null;
+	private IZKClient _zkClient = null;
 
 	private IECSCommandReceiver _ecsConnection;
 
@@ -114,14 +114,14 @@ public class KVServer implements IKVServer {
 		IDiskStorage diskStorage = new DiskStorage(diskStorageStr);
 
 		this.serverStore = new ServerStoreSmart(cache, diskStorage);
-		// try {
-		// 	this._zkClient = new ZKClient("localhost:2181", this._name);
-		// 	// Test for now
-		// 	this._zkClient.registerNode();
-		// } catch (Exception e) {
-		// 	logger.error("Could not connect to zookeeper!", e);
-		// 	this._zkClient = null;
-		// }
+		try {
+			this._zkClient = new ZKClient(ecsLoc, this._name);
+			// Test for now
+			this._zkClient.registerNode();
+		} catch (Exception e) {
+			logger.error("Could not connect to zookeeper!", e);
+			this._zkClient = null;
+		}
 	}
 	
     public KVServer(String znodeName, String host, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {

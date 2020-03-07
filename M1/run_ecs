@@ -1,3 +1,5 @@
 #!/bin/csh
 pkill java
+zookeeper stop
+zookeeper start
 java -cp m2-ecs.jar app_kvECS.ui.Application ./src/app_kvECS/ecs.config $1

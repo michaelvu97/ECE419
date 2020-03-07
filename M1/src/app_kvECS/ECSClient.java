@@ -15,6 +15,7 @@ import java.net.BindException;
 import java.net.InetAddress;
 
 import shared.metadata.*;
+import shared.ZooKeeperConstants;
 import org.apache.zookeeper.*;
 
 import logger.LogSetup;
@@ -28,7 +29,7 @@ public class ECSClient implements IECSClient {
 
     private int _port = 0;
     private String _host = null;
-    private ZooKeeper _zoo = null;
+    private ZooKeeper _zooKeeper = null;
     private String _username = null;
     private int ecsClientPort = 6969;
     private ServerSocket ecsSocket;
@@ -40,6 +41,7 @@ public class ECSClient implements IECSClient {
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
     private Set<String> runningNodes = new HashSet<String>();
 
+    private CountDownLatch _zkConnectionLatch = new CountDownLatch(1);
     private CountDownLatch _waitForServerToConnectBack = new CountDownLatch(1);
 
     private INodeFailureDetector _nodeFailureDetector;
@@ -105,12 +107,57 @@ public class ECSClient implements IECSClient {
 			// _host = ecsSocket.getInetAddress().getHostName();
             _host = InetAddress.getLocalHost().getHostAddress();
 
-			logger.info("ECSClient " + _host + " listening on port: " + ecsSocket.getLocalPort());    
+			logger.info("ECSClient " + _host + " listening on port: " + 
+                    ecsSocket.getLocalPort());    
             
+             logger.info("Connecting to ZK");
+
+            _zooKeeper = new ZooKeeper(_host + ":" + ZooKeeperConstants.ZK_PORT,
+                10000,
+                new Watcher() {
+                    @Override
+                    public void process(WatchedEvent we) {
+                        if (we.getState() == 
+                                    Watcher.Event.KeeperState.SyncConnected) {
+                             try {
+                                // TODO: some of this might be wrong.
+                                _zooKeeper.delete(
+                                        ZooKeeperConstants.APP_FOLDER,
+                                        -1
+                                );
+                            } catch (Exception e) {
+                                //Nothing bad
+                            }
+
+                            try {
+                                String path = _zooKeeper.create(
+                                    ZooKeeperConstants.APP_FOLDER,
+                                    "this_is_the_app_folder".getBytes(),
+                                    ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                                    CreateMode.PERSISTENT
+                                );
+                                logger.info("Created zk path: " + path);
+                            } catch (Exception e) {
+                                logger.error("Could not register app", e);
+                            }
+                            _zkConnectionLatch.countDown();
+                            return;
+                        }
+                    }
+                }
+            );
+
+            logger.info("Connected to ZK");
+
+            try {
+                _zkConnectionLatch.await();
+            } catch (Exception e) {
+                logger.warn("oopsie");
+            }
 
             _nodeFailureDetector = new NodeFailureDetector(
-                    "TODO_ZK_STRING",
-                    "TODO_ZK_FOLDER_NODE_NAME"
+                    _host + ":" + ZooKeeperConstants.ZK_PORT,
+                    ZooKeeperConstants.APP_FOLDER
             );
             _nodeFailureDetector.addNodeFailedListener(this);
             new Thread(_nodeFailureDetector).start();
@@ -146,6 +193,10 @@ public class ECSClient implements IECSClient {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);
             return false;
         }
+    }
+
+    private void initializeZkApp() {
+
     }
 
     @Override

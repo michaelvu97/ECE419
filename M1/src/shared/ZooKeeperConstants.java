@@ -8,4 +8,6 @@ public final class ZooKeeperConstants {
     }
 
     public final static String APP_FOLDER = "/kvclients";
+
+    public final static String ZK_PORT = "2181";
 }
