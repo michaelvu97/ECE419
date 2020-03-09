@@ -424,7 +424,7 @@ public class ECSClient implements IECSClient {
     @Override
     public List<String> killNodes(List<String> nodeNames) {
 
-        nodeAcceptor.broadcastKillMsg(nodeNames); 
+        nodeAcceptor.sendKillMessage(nodeNames); 
 
         return nodeNames;
     }

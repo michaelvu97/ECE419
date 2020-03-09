@@ -1,5 +1,7 @@
 #!/bin/csh
 pkill java
+rm -rf ~/logs
+rm -rf ~/M1/logs
 zookeeper stop
 zookeeper start
 java -cp m2-ecs.jar app_kvECS.ui.Application ./src/app_kvECS/ecs.config $1

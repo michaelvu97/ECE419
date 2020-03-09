@@ -54,24 +54,6 @@ public class ZKClient implements IZKClient {
         );
 
         _connectionLatch.await();
-
-        attemptRegisterApp();
-    }
-
-    private void attemptRegisterApp() {
-        // TODO, move this to ECS instead.
-        try {
-            // TODO: some of this might be wrong.
-            String path = _zooKeeper.create(
-                ZooKeeperConstants.APP_FOLDER,
-                "this_is_the_app_folder".getBytes(),
-                ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT
-            );
-            logger.info("Created zk path: " + path);
-        } catch (Exception e) {
-            logger.warn("Could not register app", e);
-        }
     }
 
     @Override
