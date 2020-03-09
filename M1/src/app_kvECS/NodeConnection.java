@@ -58,15 +58,9 @@ public final class NodeConnection extends Connection implements INodeConnection 
             );
 
             this.commChannel.sendBytes(messageToSend.serialize());
-            byte[] responseBytes = this.commChannel.recvBytes();
-            KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
-
         } catch (IOException ioe) {
             _logger.error("Send kill message failed I/O", ioe);
             throw ioe;
-        } catch (Deserializer.DeserializationException dse) {
-            _logger.error("Send mill failed, invalid node response", dse);
-            throw dse;
         }
     }
 

@@ -34,15 +34,14 @@ public class NodeAcceptor extends Acceptor {
      * Synchronous, blocks until all servers are up to date.
      */
     public void sendKillMessage(List<String> nodeNames) {
-
-        logger.debug("sending kill messages.");
-
         synchronized(connectionsLock) {
             for (Connection connection : this.connections) {
                 INodeConnection nodeConnection = (INodeConnection) connection;
                 // check if the nodeConnection is one to a node that needs 
                 // to be killed. if yes, send kill message. otherwise ignore.
                 if (nodeNames.contains(nodeConnection.getNodeName())) {
+                    logger.debug("Sending kill message to " + 
+                            nodeConnection.getNodeName());
                     try {
                         nodeConnection.sendKillMessage();
                     } catch (Exception e) {

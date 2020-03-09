@@ -267,12 +267,8 @@ public class KVServer implements IKVServer {
     // NOTE: this includes performing saving to storage.
 	@Override
     public void kill() {
-   		try {
-			serverSocket.close();
-			logger.info("Server socket is closed.");
-		} catch (IOException e) {
-			logger.error("Error! " + "Unable to close socket on port: " + _port, e);
-		}
+        logger.warn("Server killed!");
+   		System.exit(0);
 	}
 
     // Gracefully stop the server, can perform any additional actions.
@@ -287,6 +283,7 @@ public class KVServer implements IKVServer {
 		// Stop the client acceptor
 		// Client acceptor is responsible for cleaning up client threads
 		this._clientAcceptor.stop();
+        this._zkClient.close();
 
 		try {
 			serverSocket.close();

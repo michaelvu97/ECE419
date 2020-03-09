@@ -73,4 +73,11 @@ public class ZKClient implements IZKClient {
         logger.debug("Registered node: " + path);
     }
 
+    public void close() {
+        try {
+            _zooKeeper.close();
+        } catch (Exception e) {
+            logger.warn("failed to kill zkclient", e);
+        }
+    }
 }
