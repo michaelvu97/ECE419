@@ -83,13 +83,7 @@ public final class ServerCommManager implements IServerCommManager {
         // Close all sockets
         for (Map.Entry<String, ICommChannel> entry : 
                 _serverCommChannels.entrySet()) {
-            try {
-                entry.getValue().getSocket().close();
-            } catch (IOException e) {
-                ioe = e;
-                logger.error("Could not disconnect from server: " 
-                        + entry.getKey());
-            }
+            entry.getValue().close();
         }
 
         _serverCommChannels.clear();

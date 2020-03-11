@@ -57,11 +57,7 @@ public class KVTransfer implements KVTransferInterface {
     @Override
     public synchronized void disconnect() {
     	if (_commChannel != null) {
-    		try {
-    			_commChannel.getSocket().close();
-    		} catch (Exception e){
-    			logger.warn("Could not disconnect from server", e);
-    		}
+  			_commChannel.close();
     	}
     	_commChannel = null;
     	logger.info("KVTransfer disconnected from KVServer");

@@ -4,10 +4,18 @@ import java.net.Socket;
 import java.io.IOException;
 
 public interface ICommChannel {
+
     /**
-     * Gets the comm channel socket.
+     * Returns true while the channel is open. If an endpoint fails, the channel
+     * (and socket) will close.
      */
-    public Socket getSocket();
+    public boolean isOpen();
+
+    /**
+     * Closes the comm channel.
+     * No-op if the channel is already closed.
+     */
+    public void close();
     
     /**
      * Sends a byte array message to the target.
