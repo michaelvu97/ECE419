@@ -28,6 +28,9 @@ public interface KVTransferInterface {
 	 *             if put command cannot be executed (e.g. not connected to any
 	 *             KV server).
 	 */
-	public KVMessage put(String key, String value) throws Exception,
+	public KVMessage put_dump(String key, String value) throws Exception,
+			IllegalStateException;
+
+	public KVMessage put_backup(String key, String value) throws Exception,
 			IllegalStateException;
 }

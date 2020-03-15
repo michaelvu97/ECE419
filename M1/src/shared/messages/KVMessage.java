@@ -19,7 +19,8 @@ public interface KVMessage extends ISerializable {
   		SERVER_NOT_RESPONSIBLE,  /* Request not successful, server not responsible for key */
   		GET_METADATA,            /* Pls give me the metadata - request */
   		GET_METADATA_SUCCESS,    /* Ok here you go, let me introduce you to my friends - request successful */
-  		PUT_SERVER; /*Put request from one server to another, recieving server does not check for whether it is in the correct hash range*/
+  		PUT_DUMP,				 /* Put request from one server to another, recieving server does not check for whether it is in the correct hash range*/
+  		PUT_BACKUP;				 /* Put request from one server to another, recieving server checks if it lies in its backup range*/				
 
 		public byte toByte() {
 			switch (this) {
@@ -51,8 +52,10 @@ public interface KVMessage extends ISerializable {
 					return 12;
 				case GET_METADATA_SUCCESS:
 					return 13;
-				case PUT_SERVER:
+				case PUT_DUMP:
 					return 14;
+				case PUT_BACKUP:
+					return 15;
                 default:                
                     throw new IllegalArgumentException("s out of range");
             }
@@ -89,7 +92,9 @@ public interface KVMessage extends ISerializable {
 				case 13:
 					return GET_METADATA_SUCCESS;
 				case 14:
-					return PUT_SERVER;
+					return PUT_DUMP;
+				case 15:
+					return PUT_BACKUP;
                 default:                
                     throw new IllegalArgumentException("b out of range");
             }
