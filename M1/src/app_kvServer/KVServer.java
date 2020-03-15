@@ -211,8 +211,13 @@ public class KVServer implements IKVServer {
     	List<Pair> toTransfer = getAllInRange(serverToSendTo.getHashRange());
         logger.info("Transferring " + toTransfer.size() + " items to " + serverToSendTo.getName());
     	for (Pair KV : toTransfer) {
+<<<<<<< HEAD
     		try {
     			transferClient.put(KV.k,KV.v);
+=======
+    		try{
+    			transferClient.put_dump(KV.k,KV.v);
+>>>>>>> 986e7cf31ecd85fe6cc2d178dfbc462ed5aa93cb
     		}
     		catch (Exception ex) {
 				logger.error("Could not tranfser KV pair <" + KV.k + "," + KV.v + ">");

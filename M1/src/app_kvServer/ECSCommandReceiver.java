@@ -147,8 +147,8 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         _kvServer.writeUnlock();
 
         return new KVAdminMessage(
-                success ? KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS 
-                : KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS
+                (success ? KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS 
+                : KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS),
                 "Done".getBytes()
         );
     }
