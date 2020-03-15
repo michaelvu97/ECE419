@@ -3,6 +3,8 @@ package client;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.ArrayList;
 
@@ -102,24 +104,50 @@ public final class ServerCommManager implements IServerCommManager {
         HashValue hash = HashUtil.ComputeHashFromKey(message.getKey());
         logger.info("Hash of key is " + hash);
 
-        while (true) {
-            MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
-            logger.debug("sending to " + responsibleServer.getName());
+        int attempts = 0;
+        int max_attempts = 3;
 
-            if (!_serverCommChannels.containsKey(responsibleServer.getName())) {
+        while (attempts < max_attempts) {
+
+            MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
+            String targetName = responsibleServer.getName();
+            logger.debug("sending to " + targetName);
+
+            // Check our connection to the target server
+            if (!_serverCommChannels.containsKey(targetName)) {
                 // May throw an IOException.
+                connectToServer(responsibleServer);
+            } else if (!_serverCommChannels.get(targetName).isOpen()) {
+                // Clean up this connection
+                _serverCommChannels.get(targetName).close();
+                _serverCommChannels.remove(targetName);
                 connectToServer(responsibleServer);
             }
 
             ICommChannel responsibleCommChannel = 
-                    _serverCommChannels.get(responsibleServer.getName());
+                    _serverCommChannels.get(targetName);
 
-            byte[] messageBytes = message.serialize();
+            byte[] response = null;
 
-            responsibleCommChannel.sendBytes(messageBytes);
+            try {
+                byte[] messageBytes = message.serialize();
 
-            // Should probably trycatch?
-            byte[] response = responsibleCommChannel.recvBytes();
+                responsibleCommChannel.sendBytes(messageBytes);
+
+                response = responsibleCommChannel.recvBytes();
+            } catch (IOException e) {
+                logger.warn("Comm failed, retrying", e);
+                // Wait, and then try to refresh metadata
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e_sleep){
+                    // Swallow
+                }
+                tryRefreshMetadata();
+                continue;
+            } finally {
+                attempts++;
+            }
 
             KVMessage responseObj = KVMessageImpl.Deserialize(response);
 
@@ -156,6 +184,9 @@ public final class ServerCommManager implements IServerCommManager {
                 );
             }
         }
+
+        throw new IOException("Could not send message to server, attempted " 
+                + attempts + " times");
     }
 
     private static boolean isStatusSuitableForClient(
@@ -188,5 +219,136 @@ public final class ServerCommManager implements IServerCommManager {
         _serverCommChannels.put(name, commChannel);
 
         logger.info("connection established");
+    }
+
+    private void cleanupConnections() {
+        Set<String> deadConnections = new HashSet<String>();
+        for (Map.Entry<String, ICommChannel> kvp : _serverCommChannels.entrySet()) {
+            if (!kvp.getValue().isOpen()) {
+                deadConnections.add(kvp.getKey());
+            }
+        }
+
+        for (String deadConn : deadConnections) {
+            logger.debug("removing dead connection: " + deadConn);
+            _serverCommChannels.remove(deadConn);
+        }
+    }
+
+    /**
+     * Attempts to find a valid metadata set from any of the server's it knows
+     * about.
+     */
+    private void tryRefreshMetadata() {
+        cleanupConnections();
+        
+        // In the event that a server fails, we should try to contact another
+        // server to get an updated metadata set.
+        for (MetaData m : _metaDataSet) {
+            // First try to get metadata from a server that we have a valid
+            // connection with.
+            if (!_serverCommChannels.containsKey(m.getName()))
+                continue;
+
+            try {
+                ICommChannel commChannel = _serverCommChannels
+                        .get(m.getName());
+                commChannel.sendBytes(
+                        new KVMessageImpl(
+                            KVMessage.StatusType.GET_METADATA,
+                            null
+                        ).serialize()
+                );
+                KVMessage res = KVMessageImpl.Deserialize(
+                        commChannel.recvBytes());
+
+                if (res.getStatus() == 
+                        KVMessage.StatusType.GET_METADATA_SUCCESS) {
+
+                    _metaDataSet = MetaDataSet.Deserialize(
+                            res.getValueRaw());
+
+                    logger.info("Metadata refreshed: " + 
+                            _metaDataSet.toString());
+                    return; // Metadata successfully refreshed
+                }
+            } catch (Exception e) {
+                logger.warn("Could not refresh metadata", e);
+            }
+        }
+
+        if (!_serverCommChannels.containsKey(_initialServerInfo.getName())) {
+            ICommChannel commChannel = null;
+            try {
+                commChannel = new CommChannel(
+                        new Socket(
+                            _initialServerInfo.getHost(),
+                            _initialServerInfo.getPort()
+                        )
+                );
+                commChannel.sendBytes(new KVMessageImpl(
+                        KVMessage.StatusType.GET_METADATA, null).serialize());
+
+                KVMessage res = KVMessageImpl.Deserialize(
+                        commChannel.recvBytes());
+
+                if (res.getStatus() == 
+                        KVMessage.StatusType.GET_METADATA_SUCCESS) {
+
+                    _metaDataSet = MetaDataSet.Deserialize(
+                            res.getValueRaw());
+
+                    logger.info("Metadata refreshed" +
+                            _metaDataSet.toString());
+                    return; // Metadata successfully refreshed
+                }
+            } catch (Exception e) {
+                logger.warn("Could not refresh metadata", e);
+            } finally {
+                if (commChannel != null)
+                    commChannel.close();
+            }
+        }
+
+        // Iterate through all known servers that don't have a connection
+        // and try to get metadata
+        for (MetaData m : _metaDataSet) {
+            // First try to get metadata from a server that we have a valid
+            // connection with.
+            if (_serverCommChannels.containsKey(m.getName()))
+                continue;
+
+            ICommChannel commChannel = null;
+            try {
+                commChannel = new CommChannel(
+                        new Socket(m.getHost(), m.getPort())
+                );
+
+                commChannel.sendBytes(
+                        new KVMessageImpl(
+                            KVMessage.StatusType.GET_METADATA,
+                            null
+                        ).serialize()
+                );
+                KVMessage res = KVMessageImpl.Deserialize(
+                        commChannel.recvBytes());
+
+                if (res.getStatus() == 
+                        KVMessage.StatusType.GET_METADATA_SUCCESS) {
+
+                    _metaDataSet = MetaDataSet.Deserialize(
+                            res.getValueRaw());
+
+                    logger.info("Metadata refreshed" + 
+                            _metaDataSet.toString());
+                    return; // Metadata successfully refreshed
+                }
+            } catch (Exception e) {
+                logger.warn("Could not refresh metadata", e);
+            } finally {
+                if (commChannel != null)
+                    commChannel.close();
+            }
+        }
     }
 }
