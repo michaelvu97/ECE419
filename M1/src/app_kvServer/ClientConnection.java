@@ -110,7 +110,11 @@ public class ClientConnection extends Connection {
 			}
 		}
 
-		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_SERVER) {
+		if (requestType == KVMessage.StatusType.PUT_BACKUP){
+			//do nothing for now
+		}
+
+		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_DUMP || requestType == KVMessage.StatusType.PUT_BACKUP) {
 			if (kvServer.isWriterLocked()) {
 				return new KVMessageImpl(
 					KVMessage.StatusType.SERVER_WRITE_LOCK,
@@ -119,8 +123,8 @@ public class ClientConnection extends Connection {
 				);
 			}
 
-			if (requestType == KVMessage.StatusType.PUT_SERVER)
-				logger.debug("Received PUT_SERVER: " + request.getKey());
+			if (requestType == KVMessage.StatusType.PUT_DUMP)
+				logger.debug("Received PUT_DUMP: " + request.getKey());
 
 			if (request.getValue() == null || 
 				request.getValue().equals("null") || 
