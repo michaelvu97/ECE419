@@ -93,7 +93,7 @@ public final class NodeConnection extends Connection implements INodeConnection 
     }
 
     @Override
-    public void sendTransferRequest(TransferRequest tr) throws Exception {
+    public KVAdminMessage sendTransferRequest(TransferRequest tr) throws Exception {
         try {
             KVAdminMessage messageToSend = new KVAdminMessage(
                     KVAdminMessage.StatusType.TRANSFER_REQUEST,
@@ -103,11 +103,16 @@ public final class NodeConnection extends Connection implements INodeConnection 
             this.commChannel.sendBytes(messageToSend.serialize());
              byte[] responseBytes = this.commChannel.recvBytes();
             KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
-            if (response.getStatus() != KVAdminMessage.StatusType
-                        .TRANSFER_REQUEST_SUCCESS) {
-                _logger.warn("Send transfer request failed on node");
-                throw new Exception("Send transfer request failed on node");
-            }
+
+            // if (response.getStatus() != KVAdminMessage.StatusType
+            //             .TRANSFER_REQUEST_SUCCESS) {
+            //     _logger.warn("Send transfer request failed on node");
+            //     throw new Exception("Send transfer request failed on node");
+            // }
+
+            // return KVAdminMessage containing transfer success or failure.
+            return response;
+
         } catch (IOException ioe) {
             _logger.error("Send transfer request failed I/O", ioe);
             throw ioe;
