@@ -101,7 +101,7 @@ public interface IKVServer {
      * Assumes that the server has already been write locked.
      * Sends all data that the new server is responsible for.
      */
-    public void transferDataToServer(MetaData serverToSendTo);
+    public boolean transferDataToServer(MetaData serverToSendTo);
 
     /**
      * Starts running the server
