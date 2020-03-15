@@ -474,25 +474,17 @@ public class ECSClient implements IECSClient {
         ECSNode nodeToDelete = getNodeByName(nodeName);
         allNodes.remove(nodeName);
 
-        MetaData growboy = newMetaData.getServerForHash(
-            HashUtil.ComputeHash(
-                nodeToDelete.getNodeHost(),
-                nodeToDelete.getNodePort()
-            )
-        );
-
-        // Tell a replica to transfer all to the growing node?
-        // TODO TODO TODO
-
-        // Tell removed node to transfer all to the growing node
-        // nodeAcceptor.sendTransferRequest(new TransferRequest(
-        //     nodeName,
-        //     growboy.getName(),
-        //     newMetaData
-        // ));
+        // MetaData growboy = newMetaData.getServerForHash(
+        //     HashUtil.ComputeHash(
+        //         nodeToDelete.getNodeHost(),
+        //         nodeToDelete.getNodePort()
+        //     )
+        // );
 
         // Broadcast metadata update
         nodeAcceptor.broadcastMetadata(newMetaData);
+
+        // TODO: add a new node?
     }
 
     public static void main(String configFile, String username) {
