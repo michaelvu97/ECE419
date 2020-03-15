@@ -17,6 +17,7 @@ import java.net.InetAddress;
 import shared.metadata.*;
 import shared.ZooKeeperConstants;
 import org.apache.zookeeper.*;
+import shared.messages.KVAdminMessage;
 
 import logger.LogSetup;
 import org.apache.log4j.Level;
@@ -36,7 +37,7 @@ public class ECSClient implements IECSClient {
     private String _configFilePath = null;
     private MetaDataSet allMetadata = null;
     private NodeAcceptor nodeAcceptor = null;
-    private static Logger logger = Logger.getRootLogger();
+    private static Logger logger = org.apache.log4j.Logger.getRootLogger();
     private List<ServerInfo> allServerInfo = new ArrayList<ServerInfo>();
     private Map<String, ECSNode> allNodes = new HashMap<String, ECSNode>();
     private Set<String> runningNodes = new HashSet<String>();
@@ -206,6 +207,8 @@ public class ECSClient implements IECSClient {
     @Override
     public synchronized ECSNode addNode(String cacheStrategy, int cacheSize) {
         MetaDataSet oldMetaData = null;
+        KVAdminMessage transferStatus = null;
+
         if (getActiveNodes().size() != 0) {
             // This is the first ever node.
             oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());    
@@ -287,7 +290,7 @@ public class ECSClient implements IECSClient {
             );
 
             // Send shrunk server a transfer request to the new server
-            nodeAcceptor.sendTransferRequest(
+            transferStatus = nodeAcceptor.sendTransferRequest(
                     new TransferRequest(
                         shrunkboy.getName(),
                         newServer.getName(),
@@ -296,11 +299,22 @@ public class ECSClient implements IECSClient {
             );
         }
         
-        // Broadcast new metadata.
-        nodeAcceptor.broadcastMetadata(newMetadata);
-        
-        // Everyone now has the new metadata, and all data is transferred onto
-        // the new server.
+        // Do something with transferStatus.
+        if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
+            logger.warn("ECS: could not complete server transfer request.");
+
+            // return false;
+        } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
+
+            // Broadcast new metadata.
+            nodeAcceptor.broadcastMetadata(newMetadata);
+            
+            // Everyone now has the new metadata, and all data is transferred onto
+            // the new server.
+            return newNode;
+        }
+   
+        // TODO: default return?
         return newNode;
     }
 
@@ -360,6 +374,8 @@ public class ECSClient implements IECSClient {
     }
 
     public synchronized boolean removeNode(String nodeName) {
+        KVAdminMessage transferStatus = null;
+
         if (getActiveNodes().size() == 1) {
             // If we're the only node, deny
             // Can't remove the last node.
@@ -383,15 +399,23 @@ public class ECSClient implements IECSClient {
         );
 
         // Tell removed node to transfer all to the growing node
-        nodeAcceptor.sendTransferRequest(new TransferRequest(
+        transferStatus = nodeAcceptor.sendTransferRequest(new TransferRequest(
             nodeName,
             growboy.getName(),
             newMetaData
         ));
 
-        // Broadcast metadata update
-        nodeAcceptor.broadcastMetadata(newMetaData);
-        return true;
+        // TODO: something with transferStatus
+        if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
+            logger.warn("ECS: could not complete server transfer request.");
+
+            return false;
+        } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
+            // Broadcast metadata update
+            nodeAcceptor.broadcastMetadata(newMetaData);
+            return true;
+        }
+        return false;
     }
 
     public synchronized List<String> removeNodes(List<String> nodeNames) {

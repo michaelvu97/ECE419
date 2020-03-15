@@ -131,19 +131,25 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
                     "This is not the right server for transfer request".getBytes()
             );
         }
+        boolean success = false;
         String toServ = tr.getToName();
         MetaDataSet newMetaDataSet = tr.getNewMetaDataset();
 
         MetaData targetServ = newMetaDataSet.getMetaDataByName(toServ);
 
         _kvServer.writeLock();
-        _kvServer.transferDataToServer(targetServ);
-
-        _metaDataManager.updateMetaData(newMetaDataSet);
+        
+        success = _kvServer.transferDataToServer(targetServ);
+        
+        if (success) {
+            _metaDataManager.updateMetaData(newMetaDataSet);
+        }
         _kvServer.writeUnlock();
 
+        // create new KVAdminMessage based on transfer success or failure.
         return new KVAdminMessage(
-                KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS,
+                (success ? KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS 
+                : KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE),
                 "Done".getBytes()
         );
     }

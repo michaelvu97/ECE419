@@ -18,6 +18,7 @@ import java.util.*;
 import shared.network.*;
 import shared.metadata.*;
 import shared.comms.*;
+import shared.messages.KVAdminMessage;
 
 public class NodeAcceptor extends Acceptor {
     
@@ -100,27 +101,29 @@ public class NodeAcceptor extends Acceptor {
      * Sends a transfer request to the appropriate node.
      * Synchronous, blocks until the transfer is complete.
      */
-    public void sendTransferRequest(TransferRequest tr) {
+    public KVAdminMessage sendTransferRequest(TransferRequest tr) {
         logger.debug("sending transfer request");
         String sourceName = tr.getFromName();
+        KVAdminMessage transferStatus = null;
 
         synchronized(connectionsLock) {
-            // TODO find the server that matches this name
             INodeConnection matchingConnection = 
                     getConnectionWithName(sourceName);
 
             if (matchingConnection == null) {
                 logger.error(new Exception("Could not find matching server for "
                         + "transfer request"));
-                return;
+                return new KVAdminMessage(KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE, null);
             }
 
             try {
-                matchingConnection.sendTransferRequest(tr);
+                transferStatus = matchingConnection.sendTransferRequest(tr);
             } catch (Exception e) {
                 logger.error("Failed to send transfer request", e);
             }
         }
+
+        return transferStatus;
     } 
 
     private INodeConnection getConnectionWithName(String name) {

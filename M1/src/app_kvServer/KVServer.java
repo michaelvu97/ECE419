@@ -188,24 +188,25 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public List<Pair> getAllInRange(HashRange hr){
+    public List<Pair> getAllInRange(HashRange hr) {
 		return this.serverStore.getAllInRange(hr);
 	}
 
+	// this function now returns true or false based on transfer success or failure.
 	@Override    
-    public void transferDataToServer(MetaData serverToSendTo) {
-    	ServerInfo transferserver = new ServerInfo(serverToSendTo.getName(), serverToSendTo.getHost(), serverToSendTo.getPort());
+    public boolean transferDataToServer(MetaData serverToSendTo) {
+		ServerInfo transferserver = new ServerInfo(serverToSendTo.getName(), serverToSendTo.getHost(), serverToSendTo.getPort());
     	KVTransfer transferClient = new KVTransfer(transferserver);
     	try {
     		transferClient.connect();
     	}
     	catch (UnknownHostException unknown) {
     		logger.error("Could not connect to given server! (unknown host)");
-    		return;
+    		return false;
     	}
     	catch (IOException io) {
     		logger.error("Could not connect to given server! (i/o)");
-    		return;
+    		return false;
     	}
 
     	List<Pair> toTransfer = getAllInRange(serverToSendTo.getHashRange());
@@ -215,10 +216,12 @@ public class KVServer implements IKVServer {
     			transferClient.put_dump(KV.k,KV.v);
     		}
     		catch (Exception ex) {
-    			logger.error("Could not tranfser KV pair <" + KV.k + "," + KV.v + ">");
+				logger.error("Could not tranfser KV pair <" + KV.k + "," + KV.v + ">");
+				return false;
     		}
     	}
-    	transferClient.disconnect();
+		transferClient.disconnect();
+		return true;
     }
 
 

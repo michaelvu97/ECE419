@@ -2,6 +2,7 @@ package app_kvECS;
 
 import shared.metadata.*;
 import java.util.List;
+import shared.messages.KVAdminMessage;
 
 public interface INodeConnection {
 
@@ -18,7 +19,7 @@ public interface INodeConnection {
     /** 
      * Sends a transfer request to a node.
      */
-    public void sendTransferRequest(TransferRequest tr) throws Exception;
+    public KVAdminMessage sendTransferRequest(TransferRequest tr) throws Exception;
     
     /**
      * Returns the name of this node
