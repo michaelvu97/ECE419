@@ -111,7 +111,13 @@ public class ClientConnection extends Connection {
 		}
 
 		if (requestType == KVMessage.StatusType.PUT_BACKUP){
-			//do nothing for now
+			if(!this.metaDataManager.getMetaData().inReplicaRange(HashUtil.ComputeHashFromKey(request.getKey()),this.metaDataManager.getMyMetaData())){
+				return new KVMessageImpl(
+					KVMessage.StatusType.INCORRECT_BACKUP_LOCATION,
+					null,
+					(byte[]) null
+				);
+			}
 		}
 
 		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_DUMP || requestType == KVMessage.StatusType.PUT_BACKUP) {
