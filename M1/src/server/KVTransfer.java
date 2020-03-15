@@ -82,14 +82,38 @@ public class KVTransfer implements KVTransferInterface {
         return responseObj;
     }
 
-	@Override
-	public KVMessage put(String key, String value) throws Exception {
+    @Override
+	public KVMessage put_dump(String key, String value) throws Exception {
 		validateConnected();
 		try {
 			Utils.validateKey(key);
 			Utils.validateValue(value);
 
-			KVMessage message = new KVMessageImpl(KVMessage.StatusType.PUT_SERVER, key, value);
+			KVMessage message = new KVMessageImpl(KVMessage.StatusType.PUT_DUMP, key, value);
+			KVMessage response = sendRequest(message);
+
+			return response;
+		} 
+		catch (IOException ioe){
+			logger.error("PUT failed I/O", ioe);
+			throw ioe;
+		}
+		catch (Deserializer.DeserializationException dse) {
+			logger.error("PUT failed, invalid server response", dse);
+			throw dse;
+		}
+	}
+
+
+
+	@Override
+	public KVMessage put_backup(String key, String value) throws Exception {
+		validateConnected();
+		try {
+			Utils.validateKey(key);
+			Utils.validateValue(value);
+
+			KVMessage message = new KVMessageImpl(KVMessage.StatusType.PUT_BACKUP, key, value);
 			KVMessage response = sendRequest(message);
 
 			return response;

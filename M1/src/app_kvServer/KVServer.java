@@ -212,7 +212,7 @@ public class KVServer implements IKVServer {
         logger.info("Transferring " + toTransfer.size() + " items to " + serverToSendTo.getName());
     	for (Pair KV : toTransfer) {
     		try{
-    			transferClient.put(KV.k,KV.v);
+    			transferClient.put_dump(KV.k,KV.v);
     		}
     		catch (Exception ex) {
     			logger.error("Could not tranfser KV pair <" + KV.k + "," + KV.v + ">");
