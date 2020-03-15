@@ -27,6 +27,8 @@ public final class NodeFailureDetector implements INodeFailureDetector {
     private String _folderZNode;
     private CountDownLatch _connectionLatch = new CountDownLatch(1);
 
+    private ClusterWatcher _clusterWatcher = null;
+
     public NodeFailureDetector(String zkConnectString, String folderZNode) {
         if (zkConnectString == null || zkConnectString.length() == 0)
             throw new IllegalArgumentException("zkConnectString is null");
@@ -36,8 +38,9 @@ public final class NodeFailureDetector implements INodeFailureDetector {
 
     @Override
     public void run() {
+        logger.info("NodeFailureDetector running");
         try {
-            _zooKeeper = new ZooKeeper(_zkConnectString, 10000, new Watcher() {
+            _zooKeeper = new ZooKeeper(_zkConnectString, 5000, new Watcher() {
                 public void process(WatchedEvent we) {
                     if (we.getState() == Watcher.Event.KeeperState.SyncConnected) {
                         _connectionLatch.countDown();
@@ -48,6 +51,7 @@ public final class NodeFailureDetector implements INodeFailureDetector {
 
             // Block until we are connected to zk
             _connectionLatch.await();
+            _clusterWatcher = new ClusterWatcher(_zooKeeper, _folderZNode, this);
         } catch (IOException ioe){
             logger.error("Zookeeper connection failed", ioe);
             _zooKeeper = null; // Represents disconnected.
@@ -144,9 +148,19 @@ public final class NodeFailureDetector implements INodeFailureDetector {
             _currentChildren = new HashSet<String>(children);
 
             logger.debug("Current alive nodes: " + 
-                    String.join(", ", _currentChildren));
+                    String.join(", ",   _currentChildren));
 
             // Watch for the next event.
+            try {
+                // Zookeeper API is actually the worst thing I've ever tried to
+                // use. Please reconsider in the future, I would much rather
+                // have written the whole heartbeat/failure detection
+                // mechanisms myself. At least then, I would've learned 
+                // something relevant to the course.
+                Thread.sleep(2500 /* ms */);
+            } catch (Exception e) {
+                // Swallow
+            }
             _zooKeeper.getChildren(_folderZNode, true, this, null);
         }
     }
