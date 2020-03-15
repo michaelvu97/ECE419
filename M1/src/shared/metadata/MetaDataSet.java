@@ -3,6 +3,7 @@ package shared.metadata;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import shared.serialization.*;
 
@@ -10,8 +11,35 @@ import shared.serialization.*;
  * Immutable meta data set object.
  * Modificiations are made through functional methods.
  */
-public final class MetaDataSet implements ISerializable {
+public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
     private MetaData[] _data = new MetaData[0];
+
+    private class MetaDataSetIterator implements Iterator<MetaData> {
+
+        private MetaData[] _data;
+        private int length;
+        private int index = 0;
+
+        public MetaDataSetIterator(MetaData[] data) {
+            _data = data;
+            length = data.length;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < length;
+        }
+
+        @Override 
+        public MetaData next() {
+            return _data[index++];
+        }
+
+        @Override
+        public void remove() {
+            throw new IllegalStateException("Remove not allowed");
+        }
+    }
 
     public MetaDataSet(Collection<MetaData> items) {
         if (items == null)
@@ -79,6 +107,11 @@ public final class MetaDataSet implements ISerializable {
                     "Non-last metadata entry wraps around: [" + i + "]");
             }
         }
+    }
+
+    @Override
+    public Iterator<MetaData> iterator() {
+        return new MetaDataSetIterator(_data);
     }
 
     /**
