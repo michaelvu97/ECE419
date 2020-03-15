@@ -297,23 +297,22 @@ public class ECSClient implements IECSClient {
                         newMetadata
                     )
             );
-        }
-        
-        // Do something with transferStatus.
-        if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
-            logger.warn("ECS: could not complete server transfer request.");
+     
+            // Do something with transferStatus.
+            if (transferStatus.getStatus() == KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE) {
+                logger.warn("ECS: could not complete server transfer request.");
 
-            // return false;
-        } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
+                // return false;
+            } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
 
-            // Broadcast new metadata.
-            nodeAcceptor.broadcastMetadata(newMetadata);
-            
-            // Everyone now has the new metadata, and all data is transferred onto
-            // the new server.
-            return newNode;
+                // Broadcast new metadata.
+                nodeAcceptor.broadcastMetadata(newMetadata);
+                
+                // Everyone now has the new metadata, and all data is transferred onto
+                // the new server.
+                return newNode;
+            }
         }
-   
         // TODO: default return?
         return newNode;
     }
@@ -405,7 +404,7 @@ public class ECSClient implements IECSClient {
             newMetaData
         ));
 
-        // TODO: something with transferStatus
+        // do something with transferStatus.
         if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
             logger.warn("ECS: could not complete server transfer request.");
 
