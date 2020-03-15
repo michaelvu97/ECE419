@@ -140,7 +140,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         _kvServer.writeLock();
         
         success = _kvServer.transferDataToServer(targetServ);
-        
+
         if (success) {
             _metaDataManager.updateMetaData(newMetaDataSet);
         }

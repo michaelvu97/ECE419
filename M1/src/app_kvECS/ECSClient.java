@@ -120,16 +120,6 @@ public class ECSClient implements IECSClient {
                     public void process(WatchedEvent we) {
                         if (we.getState() == 
                                     Watcher.Event.KeeperState.SyncConnected) {
-                             try {
-                                // TODO: some of this might be wrong.
-                                _zooKeeper.delete(
-                                        ZooKeeperConstants.APP_FOLDER,
-                                        -1
-                                );
-                            } catch (Exception e) {
-                                //Nothing bad
-                            }
-
                             try {
                                 String path = _zooKeeper.create(
                                     ZooKeeperConstants.APP_FOLDER,
@@ -139,7 +129,7 @@ public class ECSClient implements IECSClient {
                                 );
                                 logger.info("Created zk path: " + path);
                             } catch (Exception e) {
-                                logger.error("Could not register app", e);
+                                logger.info("Could not register app", e);
                             }
                             _zkConnectionLatch.countDown();
                             return;
@@ -307,23 +297,22 @@ public class ECSClient implements IECSClient {
                         newMetadata
                     )
             );
-        }
-        
-        // Do something with transferStatus.
-        if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
-            logger.warn("ECS: could not complete server transfer request.");
+     
+            // Do something with transferStatus.
+            if (transferStatus.getStatus() == KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE) {
+                logger.warn("ECS: could not complete server transfer request.");
 
-            // return false;
-        } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
+                // return false;
+            } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
 
-            // Broadcast new metadata.
-            nodeAcceptor.broadcastMetadata(newMetadata);
-            
-            // Everyone now has the new metadata, and all data is transferred onto
-            // the new server.
-            return newNode;
+                // Broadcast new metadata.
+                nodeAcceptor.broadcastMetadata(newMetadata);
+                
+                // Everyone now has the new metadata, and all data is transferred onto
+                // the new server.
+                return newNode;
+            }
         }
-   
         // TODO: default return?
         return newNode;
     }
@@ -415,7 +404,7 @@ public class ECSClient implements IECSClient {
             newMetaData
         ));
 
-        // TODO: something with transferStatus
+        // do something with transferStatus.
         if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
             logger.warn("ECS: could not complete server transfer request.");
 
@@ -472,8 +461,37 @@ public class ECSClient implements IECSClient {
 
     @Override
     public synchronized void onNodeFailed(String nodeName) {
-        throw new IllegalStateException("NOT IMPLEMENTED");
-        // TODO
+        logger.info("NODE FAILED: " + nodeName);
+        
+        // TODO: HANDLE ERRORS
+
+        // Detect who will grow
+        MetaDataSet oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
+        setServerAvailable(nodeName);
+        MetaDataSet newMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
+
+        ECSNode nodeToDelete = getNodeByName(nodeName);
+        allNodes.remove(nodeName);
+
+        MetaData growboy = newMetaData.getServerForHash(
+            HashUtil.ComputeHash(
+                nodeToDelete.getNodeHost(),
+                nodeToDelete.getNodePort()
+            )
+        );
+
+        // Tell a replica to transfer all to the growing node?
+        // TODO TODO TODO
+
+        // Tell removed node to transfer all to the growing node
+        // nodeAcceptor.sendTransferRequest(new TransferRequest(
+        //     nodeName,
+        //     growboy.getName(),
+        //     newMetaData
+        // ));
+
+        // Broadcast metadata update
+        nodeAcceptor.broadcastMetadata(newMetaData);
     }
 
     public static void main(String configFile, String username) {
