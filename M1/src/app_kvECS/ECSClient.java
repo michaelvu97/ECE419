@@ -493,7 +493,6 @@ public class ECSClient implements IECSClient {
 
         // Broadcast metadata update
         nodeAcceptor.broadcastMetadata(newMetaData);
-        return true;
     }
 
     public static void main(String configFile, String username) {
