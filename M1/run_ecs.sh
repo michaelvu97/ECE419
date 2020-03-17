@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/bash
 pkill java
 rm -rf ~/logs
 rm -rf ~/M1/logs
