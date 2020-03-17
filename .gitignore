@@ -27,7 +27,8 @@ hs_err_pid*
 /M1/src/storage/*.diskstorage
 /M1/logs/testing/test.log
 /M1/data
-/zookeeper-3.4.11/data
+/zookeeper-3.6.0/data
 /M1/zookeeper.out
-/zookeeper-3.4.11/.revision/*
+/zookeeper-3.6.0/.revision/*
+/zookeeper-3.6.0/logs/*
 /M1/.nfs*
