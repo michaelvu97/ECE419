@@ -279,8 +279,8 @@ public class Application {
 			new LogSetup("logs/ecs-client.log", Level.ALL);
 			
 			Application app = new Application();
-			
-			client = new ECSClient(args[0], args[1]); 
+
+			client = new ECSClient(args[0], args.length > 1 ? args[1] : null); 
 			client.start();
 			app.run();
 

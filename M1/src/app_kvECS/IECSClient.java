@@ -28,10 +28,9 @@ public interface IECSClient extends INodeFailureDetector.IOnNodeFailedCallback {
 
     /**
      * Stops all server instances and exits the remote processes.
-     * @throws Exception    some meaningfull exception on failure
      * @return  true on success, false on failure
      */
-    public boolean shutdown() throws Exception;
+    public boolean shutdown();
 
     /**
      * Create a new KVServer with the specified cache size and replacement strategy and add it to the storage service at an arbitrary position.

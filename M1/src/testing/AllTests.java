@@ -37,6 +37,7 @@ public class AllTests {
 		clientSuite.addTestSuite(UtilsTest.class);
 		clientSuite.addTestSuite(CacheTest.class);
 		clientSuite.addTestSuite(MetaDataTest.class);
+		clientSuite.addTestSuite(M3IntegrationTesting.class);
 		return clientSuite;
 	}
 	

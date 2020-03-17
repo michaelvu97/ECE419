@@ -92,7 +92,7 @@ public class ECSClient implements IECSClient {
             throw new IllegalArgumentException("configFilePath");
 
         _configFilePath = configFilePath;
-        _username = username;
+        _username = username != null ? username : System.getProperty("user.name");
 
         setAllServers(_configFilePath);
     }
@@ -175,10 +175,16 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean shutdown() {
+        // TODO: kill all servers
         try {
             ecsSocket.close();
             logger.info("ECSClient socket is closed.");
             nodeAcceptor.stop();
+            List<String> serversToKill = new ArrayList<String>();
+            for (ServerInfo s : getActiveNodes()) {
+                serversToKill.add(s.getName());
+            }
+            killNodes(serversToKill);
             return true;
         } catch (IOException e) {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);

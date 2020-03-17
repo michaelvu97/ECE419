@@ -49,24 +49,28 @@ public abstract class Acceptor implements Runnable {
     }
 
     public void stop() {
-        //Send kill message to client handler threads.
-        for(int i = 0; i < connections.size(); i++){
-            Connection connection = connections.get(i);
-            connection.kill();
+        this.running = false;
+
+        synchronized(connectionsLock) {
+
+            //Send kill message to client handler threads.
+            for(int i = 0; i < connections.size(); i++){
+                Connection connection = connections.get(i);
+                connection.kill();
+            }
         }
 
         //5 second timeout on close
-        int i = 0;
-        while (connections.size() != 0 && i != 500){
-            i++;
-            try {
-                Thread.sleep(10);
-            } catch (Exception InterruptedException){
-                //if we cant sleep, just go
-            } 
-        } 
+        // int i = 0;
+        // while (connections.size() != 0 && i != 500){
+        //     i++;
+        //     try {
+        //         Thread.sleep(10);
+        //     } catch (Exception InterruptedException){
+        //         //if we cant sleep, just go
+        //     } 
+        // } 
 
-        this.running = false;
     }
 
     public abstract Connection handleConnection(Socket clientSocket);
