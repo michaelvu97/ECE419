@@ -15,10 +15,6 @@ public class AllTests {
 	static {
 		try {
 			new LogSetup("logs/testing/test.log", Level.ERROR);
-			// KVServer kvServer = new KVServer("testznode", 50000, 10, "FIFO", "STORAGE_FOR_TEST");
-			// kvServer.run();
-			// kvServer.clearStorage();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

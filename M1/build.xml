@@ -133,7 +133,7 @@
 
   <!-- run test cases -->
   <target name="test" depends="build">
-    <junit>
+    <junit threads="1">
       <classpath refid="project.classpath" />
       <formatter type="brief" usefile="false" />
       <test name="testing.AllTests" />

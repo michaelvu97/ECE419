@@ -105,6 +105,7 @@ public class ECSClient implements IECSClient {
 			ecsSocket = new ServerSocket(ecsClientPort);
 			
 			_port = ecsSocket.getLocalPort();
+
 			// _host = ecsSocket.getInetAddress().getHostName();
             _host = InetAddress.getLocalHost().getHostAddress();
 
@@ -152,16 +153,20 @@ public class ECSClient implements IECSClient {
             );
             _nodeFailureDetector.addNodeFailedListener(this);
             new Thread(_nodeFailureDetector).start();
+            _nodeFailureDetector.awaitStart();
 
             nodeAcceptor = new NodeAcceptor(ecsSocket, this);
             new Thread(nodeAcceptor).start();
+            nodeAcceptor.awaitStart();
+
+            logger.info("All ECS startup threads are running");
             
             return true;
 		}
 		catch (IOException e) {
         	logger.error("Error! Cannot open server socket:");
             if(e instanceof BindException){
-            	logger.error("Port " + _port + " is already bound!");
+            	logger.error("Port " + _port + " is already bound! Requested port: " + ecsClientPort);
             }
             return false;
         }
@@ -180,11 +185,8 @@ public class ECSClient implements IECSClient {
             ecsSocket.close();
             logger.info("ECSClient socket is closed.");
             nodeAcceptor.stop();
-            List<String> serversToKill = new ArrayList<String>();
-            for (ServerInfo s : getActiveNodes()) {
-                serversToKill.add(s.getName());
-            }
-            killNodes(serversToKill);
+            _nodeFailureDetector.stop();
+            nodeAcceptor.broadcastKillMessage();
             return true;
         } catch (IOException e) {
             logger.error("Error! " + "Unable to close socket on port: " + _port, e);
@@ -229,6 +231,8 @@ public class ECSClient implements IECSClient {
             return null;
         }
 
+        logger.info("Attempting to add server: " + newServer.getName());
+
         newNode = new ECSNode(newServer.getHost(), newServer.getName(), 
                 newServer.getPort(), cacheStrategy, cacheSize); 
         
@@ -258,6 +262,7 @@ public class ECSClient implements IECSClient {
                 Integer.toString(_port),               // ecs port
             };
 
+            logger.info("Running KVServer start script");
             try {
                 proc = run.exec(cmd);
             } catch (IOException ioe) {
@@ -270,6 +275,7 @@ public class ECSClient implements IECSClient {
             } catch (Exception e) {
                 logger.error("Server connection callback interrupted, may not be connected", e);
             }
+            logger.info("KVServer connected");
 
             runningNodes.add(newServer.getName());
 
@@ -281,6 +287,7 @@ public class ECSClient implements IECSClient {
         // Recalculate metadata
         MetaDataSet newMetadata = MetaDataSet.CreateFromServerInfo(activeNodes);
 
+        logger.debug(oldMetaData + ", " + activeNodes.size());
         if (oldMetaData != null && activeNodes.size() != 1) {
             // Other nodes exist, transfer will be required.
 
@@ -318,6 +325,9 @@ public class ECSClient implements IECSClient {
                 // the new server.
                 return newNode;
             }
+        } else if (oldMetaData == null) {
+            // This is the first node to connect
+            nodeAcceptor.sendMetadata(newMetadata, newServer.getName());
         }
         // TODO: default return?
         return newNode;
@@ -326,6 +336,8 @@ public class ECSClient implements IECSClient {
     @Override
     public synchronized List<ECSNode> addNodes(int count, String cacheStrategy,
             int cacheSize) {
+        logger.info("ECS: Adding " + count + " nodes");
+
         ECSNode newNode = null;
         ArrayList<ECSNode> newNodes = new ArrayList<ECSNode>();
 
@@ -411,21 +423,25 @@ public class ECSClient implements IECSClient {
         ));
 
         // do something with transferStatus.
-        if (transferStatus.getStatus().equals("TRANSFER_REQUEST_FAILURE")) {
+        if (transferStatus.getStatus() == KVAdminMessage.StatusType.TRANSFER_REQUEST_FAILURE) {
             logger.warn("ECS: could not complete server transfer request.");
 
             return false;
-        } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
+        } else if (transferStatus.getStatus() == KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS) {
             // Broadcast metadata update
             nodeAcceptor.broadcastMetadata(newMetaData);
             return true;
+        } else {
+            logger.error("Unknown transfer request response: " + transferStatus.getStatus());
+            return false;
         }
-        return false;
     }
 
     public synchronized List<String> removeNodes(List<String> nodeNames) {
         String nodeName = null;
         List<String> removedNodes = new ArrayList<String>();
+
+        logger.info("Removing " + nodeNames.size() + " nodes");
 
         for (int i = 0; i < nodeNames.size(); i++) {
             nodeName = nodeNames.get(i);

@@ -25,9 +25,10 @@ public final class NodeFailureDetector implements INodeFailureDetector {
     private ZooKeeper _zooKeeper = null;
     private String _zkConnectString;
     private String _folderZNode;
-    private CountDownLatch _connectionLatch = new CountDownLatch(1);
 
     private ClusterWatcher _clusterWatcher = null;
+
+    private CountDownLatch _startedLatch = new CountDownLatch(1);
 
     public NodeFailureDetector(String zkConnectString, String folderZNode) {
         if (zkConnectString == null || zkConnectString.length() == 0)
@@ -36,22 +37,33 @@ public final class NodeFailureDetector implements INodeFailureDetector {
         _folderZNode = folderZNode;
     }
 
+    public void awaitStart() {
+        try {
+            _startedLatch.await();
+        } catch (Exception e) {
+            // Swallow
+        }
+    }
+
     @Override
     public void run() {
         logger.info("NodeFailureDetector running");
         try {
+            final CountDownLatch _zkConnectionLatch = new CountDownLatch(1);
+
             _zooKeeper = new ZooKeeper(_zkConnectString, 5000, new Watcher() {
                 public void process(WatchedEvent we) {
                     if (we.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                        _connectionLatch.countDown();
+                        _zkConnectionLatch.countDown();
                         return;
                     }
                 }
             });
 
             // Block until we are connected to zk
-            _connectionLatch.await();
+            _zkConnectionLatch.await();
             _clusterWatcher = new ClusterWatcher(_zooKeeper, _folderZNode, this);
+            _startedLatch.countDown();
         } catch (IOException ioe){
             logger.error("Zookeeper connection failed", ioe);
             _zooKeeper = null; // Represents disconnected.
@@ -59,6 +71,10 @@ public final class NodeFailureDetector implements INodeFailureDetector {
             logger.error("Zookeeper connection timedout", ie);
             _zooKeeper = null;
         }
+    }
+
+    public void stop() {
+        _clusterWatcher.stop();
     }
 
     private void validateConnected() {
@@ -104,6 +120,8 @@ public final class NodeFailureDetector implements INodeFailureDetector {
 
         private NodeFailureDetector _parent;
 
+        private boolean _running = true;
+
         public ClusterWatcher(ZooKeeper zkClient, String folderZNode, 
                 NodeFailureDetector parent) {
             if (zkClient == null)
@@ -117,9 +135,17 @@ public final class NodeFailureDetector implements INodeFailureDetector {
             _zooKeeper.getChildren(_folderZNode, true, this, null);
         }
 
+        public void stop() {
+            _running = false;
+        }
+
         @Override
         public void processResult(int rc, String path, Object ctx, 
                 List<String> children) {
+            if (children == null) {
+                logger.warn("children is null");
+                return;
+            }
             // ZK.GetChildren takes us here.
             
             List<String> deadChildren = new ArrayList<String>();
@@ -161,7 +187,9 @@ public final class NodeFailureDetector implements INodeFailureDetector {
             } catch (Exception e) {
                 // Swallow
             }
-            _zooKeeper.getChildren(_folderZNode, true, this, null);
+            
+            if (_running)
+                _zooKeeper.getChildren(_folderZNode, true, this, null);
         }
     }
 }

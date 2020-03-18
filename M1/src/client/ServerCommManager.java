@@ -144,9 +144,8 @@ public final class ServerCommManager implements IServerCommManager {
                     // Swallow
                 }
                 tryRefreshMetadata();
-                continue;
-            } finally {
                 attempts++;
+                continue;
             }
 
             KVMessage responseObj = KVMessageImpl.Deserialize(response);
@@ -166,18 +165,32 @@ public final class ServerCommManager implements IServerCommManager {
                     responseObj.getValueRaw()
                 );
                 logger.info("New Meta Data: " + _metaDataSet.toString());
-
+                  try {
+                    Thread.sleep(1000);
+                } catch (Exception e_sleep){
+                    // Swallow
+                }
                 // Retry
             } else if (status == KVMessage.StatusType.SERVER_STOPPED) {
-                  _metaDataSet = MetaDataSet.Deserialize(
+                _metaDataSet = MetaDataSet.Deserialize(
                     responseObj.getValueRaw()
                 );
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e_sleep){
+                    // Swallow
+                }
                 logger.info("New Meta Data: " + _metaDataSet.toString());
             } else if (status == KVMessage.StatusType.SERVER_WRITE_LOCK) {
                 // TODO
                 // TODO
                 // TODO
                 // TODO
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e_sleep){
+                    // Swallow
+                }
             } else {
                 throw new IllegalStateException(
                     "Unknown server status: " + status

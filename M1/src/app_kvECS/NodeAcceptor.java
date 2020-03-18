@@ -7,6 +7,7 @@ import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.CountDownLatch;
 
 import logger.LogSetup;
 import org.apache.log4j.Level;
@@ -22,12 +23,21 @@ import shared.messages.KVAdminMessage;
 
 public class NodeAcceptor extends Acceptor {
     
+    private CountDownLatch _started = new CountDownLatch(1);
     private IECSClient _ecsClient;
 
     public NodeAcceptor(ServerSocket serverSocket, IECSClient ecsClient) {
         super(serverSocket);
 
         _ecsClient = ecsClient;
+    }
+
+    public void awaitStart() {
+        try {
+            _started.await();
+        } catch (Exception e) {
+            // Swallow
+        }
     }
 
     /** 
@@ -48,6 +58,20 @@ public class NodeAcceptor extends Acceptor {
                     } catch (Exception e) {
                         logger.error("Failed to send kill message", e);
                     }  
+                }
+            }
+        }
+    }
+
+    public void broadcastKillMessage() {
+        synchronized(connectionsLock) {
+            for (Connection connection : this.connections) {
+                INodeConnection nc = (INodeConnection) connection;
+                logger.debug("Sending kill message to " + nc.getNodeName());
+                try {
+                    nc.sendKillMessage();
+                } catch (Exception e) {
+                    logger.error("Failed to send kill message", e);
                 }
             }
         }
@@ -174,8 +198,15 @@ public class NodeAcceptor extends Acceptor {
     public void run() {
         this.running = true;
         logger.info("Node acceptor running\n");
+        CountDownLatch runningLatch = this._started;
         while (isRunning()) {
             try {
+
+                // Hopefully this race condition will never happen :)
+                if (runningLatch != null) {
+                    runningLatch.countDown();
+                    runningLatch = null;
+                }
                 Socket clientSocket = this.serverSocket.accept();
 
                 Connection connection = handleConnection(clientSocket);
@@ -193,7 +224,8 @@ public class NodeAcceptor extends Acceptor {
                     + " on port " + clientSocket.getPort()
                 );
             } catch (IOException ioe) {
-                logger.error("Unable to accept connection", ioe);
+                logger.warn("Unable to accept connection. Stopping node acceptor.", ioe);
+                this.running = false;
             }
         }
     }

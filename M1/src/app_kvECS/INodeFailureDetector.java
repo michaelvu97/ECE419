@@ -16,6 +16,10 @@ public interface INodeFailureDetector extends Runnable {
         void onNodeFailed(String nodeName);
     }
 
+    public void awaitStart();
+
+    public void stop();
+
     /**
      * Returns the list of node names, that are currently alive.
      */

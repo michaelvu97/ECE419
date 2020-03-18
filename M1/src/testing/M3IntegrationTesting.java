@@ -1,6 +1,8 @@
 package testing;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import junit.framework.TestCase;
@@ -14,6 +16,19 @@ public class M3IntegrationTesting extends TestCase {
 
 	private static String DEFAULT_ECS_CONFIG = "./src/app_kvECS/ecs.config";
 
+	private IECSClient getECS() {
+		wipeZk();
+		IECSClient ecs = new ECSClient(DEFAULT_ECS_CONFIG, null);
+		try {
+			ecs.start();
+			return ecs;
+		} catch (Exception e) {
+			e.printStackTrace();
+			assertTrue(false);
+		}
+		return null;
+	}
+
 	private KVStore getKVS() {
 		KVStore kvs = new KVStore(new ServerInfo("unknown?!", "localhost", 50000));
 		try {
@@ -23,6 +38,10 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(false);
 		}
 		return kvs;
+	}
+
+	private void wipeZk() {
+		runScript("./src/testing/integration_wipe_zk.sh");
 	}
 
 	private void put(KVStore kvs, String key, String value) {
@@ -77,13 +96,7 @@ public class M3IntegrationTesting extends TestCase {
 		/**
 		 * Create an ecs server, add 3 kv servers, perform simple I/O, make sure it works.
 		 */
-		IECSClient ecsClient = new ECSClient(DEFAULT_ECS_CONFIG, null);
-		try {
-			ecsClient.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-			assertTrue(false);
-		}
+		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(3, "FIFO", 10);
 
 		KVStore kvs = getKVS();
@@ -97,6 +110,34 @@ public class M3IntegrationTesting extends TestCase {
 		assertTrue(get(kvs, "3").equals("3"));
 		assertTrue(get(kvs, "4").equals("4"));
 
-		ecsClient.shutdown();		
+		ecsClient.shutdown();	
+	}
+
+	@Test
+	public void testRemovalTransferBasic() {
+		/**
+		 * Creates 4 zk servers, adds 10 entries, and confirms that the entries still exist after removing a server
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "FIFO", 10);
+
+		KVStore kvs = getKVS();
+
+		String[] entries = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+
+		for (String key : entries) {
+			put(kvs, key, key);
+		}
+
+		// Remove the server
+		List<String> serversToRemove = new ArrayList<String>();
+		serversToRemove.add("server1");
+		ecsClient.removeNodes(serversToRemove); // Will fail if they're renamed, so I guess don't do that.
+
+		for (String key : entries) {
+			assertTrue(get(kvs, key).equals(key));
+		}		
+
+		ecsClient.shutdown();
 	}
 }
