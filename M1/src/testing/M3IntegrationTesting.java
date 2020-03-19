@@ -19,7 +19,7 @@ public class M3IntegrationTesting extends TestCase {
 	private static String[] A_BUNCH_OF_KEYS;
 
 	static {
-		int N_keys = 100;
+		int N_keys = 20;
 		A_BUNCH_OF_KEYS = new String[N_keys];
 		for (int i = 0; i < N_keys; i++) {
 			A_BUNCH_OF_KEYS[i] = Integer.toString(i);
@@ -104,7 +104,8 @@ public class M3IntegrationTesting extends TestCase {
 	@Test
 	public void testBasic() {
 		/**
-		 * Create an ecs server, add 3 kv servers, perform simple I/O, make sure it works.
+		 * Create an ecs server, add 3 kv servers, perform simple I/O, make 
+		 * sure it works.
 		 */
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(3, "FIFO", 10);
@@ -149,6 +150,16 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(get(kvs, key).equals(key));
 		}		
 
+		serversToRemove.clear();
+		serversToRemove.add("server2");
+		serversToRemove.add("server3");
+
+		ecsClient.removeNodes(serversToRemove);
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}		
+
 		ecsClient.shutdown();
 	}
 
@@ -156,7 +167,7 @@ public class M3IntegrationTesting extends TestCase {
 	public void testAddingTransferBasic() {
 		/**
 		 * Creates 4 zk servers, adds 10 entries, and confirms that the entries
-		 * still exist after adding a 5th server.
+		 * still exist after  adding a 5th server.
 		 */
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "FIFO", 10);
@@ -167,8 +178,13 @@ public class M3IntegrationTesting extends TestCase {
 			put(kvs, key, key);
 		}
 
-		// Will fail if they're renamed, so I guess don't do that.
 		ecsClient.addNodes(1, "FIFO", 10);
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		ecsClient.addNodes(2, "FIFO", 10);
 
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(get(kvs, key).equals(key));
