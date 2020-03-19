@@ -16,6 +16,16 @@ public class M3IntegrationTesting extends TestCase {
 
 	private static String DEFAULT_ECS_CONFIG = "./src/app_kvECS/ecs.config";
 
+	private static String[] A_BUNCH_OF_KEYS;
+
+	static {
+		int N_keys = 100;
+		A_BUNCH_OF_KEYS = new String[N_keys];
+		for (int i = 0; i < N_keys; i++) {
+			A_BUNCH_OF_KEYS[i] = Integer.toString(i);
+		}
+	}
+
 	private IECSClient getECS() {
 		wipeZk();
 		IECSClient ecs = new ECSClient(DEFAULT_ECS_CONFIG, null);
@@ -116,27 +126,53 @@ public class M3IntegrationTesting extends TestCase {
 	@Test
 	public void testRemovalTransferBasic() {
 		/**
-		 * Creates 4 zk servers, adds 10 entries, and confirms that the entries still exist after removing a server
+		 * Creates 4 zk servers, adds 10 entries, and confirms that the entries
+		 * still exist after removing a server
 		 */
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "FIFO", 10);
 
 		KVStore kvs = getKVS();
 
-		String[] entries = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-
-		for (String key : entries) {
+		for (String key : A_BUNCH_OF_KEYS) {
 			put(kvs, key, key);
 		}
 
 		// Remove the server
 		List<String> serversToRemove = new ArrayList<String>();
 		serversToRemove.add("server1");
-		ecsClient.removeNodes(serversToRemove); // Will fail if they're renamed, so I guess don't do that.
-
-		for (String key : entries) {
+		
+		// Will fail if they're renamed, so I guess don't do that.
+		ecsClient.removeNodes(serversToRemove); 
+		
+		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(get(kvs, key).equals(key));
 		}		
+
+		ecsClient.shutdown();
+	}
+
+	@Test
+	public void testAddingTransferBasic() {
+		/**
+		 * Creates 4 zk servers, adds 10 entries, and confirms that the entries
+		 * still exist after adding a 5th server.
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "FIFO", 10);
+
+		KVStore kvs = getKVS();
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+		}
+
+		// Will fail if they're renamed, so I guess don't do that.
+		ecsClient.addNodes(1, "FIFO", 10);
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
 
 		ecsClient.shutdown();
 	}

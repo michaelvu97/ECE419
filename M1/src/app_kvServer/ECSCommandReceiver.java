@@ -76,8 +76,13 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
                 KVAdminMessage result = handleCommand(message);
                 _commChannel.sendBytes(result.serialize());
             } catch (Exception e) {
-                logger.error(e);
+                logger.error("Lost comms to ECS", e);
                 _running = false;
+
+                // Stop the kv server (gracefully). We don't want the server to run off on its own
+                // without an ECS.
+                _kvServer.close();
+                _kvServer.kill(); // ? Maybe ?
             }
         }
 
