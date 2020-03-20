@@ -31,4 +31,5 @@ hs_err_pid*
 /M1/zookeeper.out
 /zookeeper-3.6.0/.revision/*
 /zookeeper-3.6.0/logs/*
+/zookeeper-3.6.0/bin/data
 /M1/.nfs*
