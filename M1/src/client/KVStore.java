@@ -35,10 +35,6 @@ public class KVStore implements KVCommInterface {
 		_serverCommManager = new ServerCommManager(entryPointServerInfo);
 	}
 
-	public KVStore(String name, String host, int port) {
-		this(new ServerInfo(name, host, port));
-	}
-
 	@Override
 	public void connect() throws UnknownHostException, IOException {
 		try {

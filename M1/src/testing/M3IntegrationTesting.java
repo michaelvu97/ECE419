@@ -39,8 +39,8 @@ public class M3IntegrationTesting extends TestCase {
 		return null;
 	}
 
-	private KVStore getKVS() {
-		KVStore kvs = new KVStore(new ServerInfo("unknown?!", "localhost", 50000));
+	private KVStoreTest getKVS() {
+		KVStoreTest kvs = new KVStoreTest(new ServerInfo("unknown?!", "localhost", 50000));
 		try {
 			kvs.connect();
 		} catch (Exception e) {
