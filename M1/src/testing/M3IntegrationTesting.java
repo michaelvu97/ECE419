@@ -262,13 +262,14 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(get(kvs, key).equals(key));
 		}
 
-		// remove a server.
+		// remove 2 servers.
 		List<String> serversToRemove = new ArrayList<String>();
 		serversToRemove.add("server_1");
+		serversToRemove.add("server_2");
 		
 		ecsClient.removeNodes(serversToRemove); 
 
-		// assert that removing a server works.
+		// assert that removing 2 servers works.
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(get(kvs, key).equals(key));
 		}
@@ -278,8 +279,9 @@ public class M3IntegrationTesting extends TestCase {
 
 	// TODO: run test on working machine.
 	@Test
-	public void testreplicationWithThreeServers() {
+	public void testReplicationWithThreeServers() {
 		/**
+		 * Replication Case: 3 servers.
 		 * Creates 3 servers. Tests that all 3 servers contain the same information,
 		 * as they are all replicas of the primary, and should hold the same info.
 		 */
@@ -292,26 +294,133 @@ public class M3IntegrationTesting extends TestCase {
 			put(kvs, key, key);
 		}
 
-		// assert that initial 3 zk servers work.
+		// assert that the 3 zk servers work.
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(get(kvs, key).equals(key));
 		}
 
-		// check that primary has correct values (redundant but ¯\_(ツ)_/¯).
+		// check that primarys have correct values (redundant but ¯\_(ツ)_/¯).
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(getFromReplica(kvs, key, 0).equals(key));
 		}
 
-		// check that replica 1 has correct values.
+		// check that replica 1s have correct values.
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(getFromReplica(kvs, key, 1).equals(key));
 		}
 
-		// check that replica 2 has correct values.
+		// check that replica 2s have correct values.
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(getFromReplica(kvs, key, 2).equals(key));
 		}
 
+		ecsClient.shutdown();
+	}
+
+	// TODO: run test on working machine.
+	// need confirmation that the A_BUNCH_OF_KEYS will distribute among all 5 servers.
+	@Test
+	public void testReplicationWithFiveServers() {
+		/**
+		 * Replication Case: 3+ servers.
+		 * Creates 5 servers. Tests that all servers have 2 replicas that
+		 * contain the correct information. 
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(5, "FIFO", 10);
+
+		KVStoreTest kvs = getKVS();
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+		}
+
+		// assert that the 5 zk servers work.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		// check that primaries have correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 0).equals(key));
+		}
+
+		// check that replica 1s have correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 1).equals(key));
+		}
+
+		// check that replica 2s have correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 2).equals(key));
+		}
+		ecsClient.shutdown();
+	}
+
+	// TODO: run test on working machine.
+	@Test
+	public void testReplicationWithTwoServers() {
+		/**
+		 * Replication Case: 2 servers.
+		 * Creates 2 servers. Tests that all each server has 1 replica.
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(2, "FIFO", 10);
+
+		KVStoreTest kvs = getKVS();
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+		}
+
+		// assert that the 2 zk servers work.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		// check that primaries have correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 0).equals(key));
+		}
+
+		// check that replica 1s have correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 1).equals(key));
+		}
+
+		// there are no replica 2s in this scenario. 
+		
+		ecsClient.shutdown();
+	}
+
+	// TODO: run test on working machine.
+	@Test
+	public void testReplicationWithOneServer() {
+		/**
+		 * Replication Case: 1 server.
+		 * Creates 1 server. Tests that server is all good in the hood.
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(1, "FIFO", 10);
+
+		KVStoreTest kvs = getKVS();
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+		}
+
+		// assert that the zk server works.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		// check that it works as a primary. 
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 0).equals(key));
+		}
+
+		// there are no replica 1s or 2s in this scenario.
+		
 		ecsClient.shutdown();
 	}
 }
