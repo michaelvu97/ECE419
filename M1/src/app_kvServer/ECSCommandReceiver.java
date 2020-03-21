@@ -184,12 +184,31 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         if(replica1.getHashRange().equals(_metaDataManager.getMyMetaData().getHashRange())){
             replica1 = null;
         }
-        _kvServer.setRep1(replica1);
+        
+
         MetaData replica2 = _metaDataManager.getMetaData().getReplicaForHash(_metaDataManager.getMyMetaData().getHashRange().getStart(),2);
         if(replica2.getHashRange().equals(_metaDataManager.getMyMetaData().getHashRange())){
             replica2 = null;
         }
+
+        MetaData oldRep1 = _kvServer.getRep1();
+        MetaData oldRep2 = _kvServer.getRep2();
+        _kvServer.setRep1(replica1);
         _kvServer.setRep2(replica2);
+
+        logger.info("checking if a transfer is needed for backups");
+        if(replica1!=null){
+            if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
+                logger.info("tranfering my data to replica 1");
+                _kvServer.transferDataToNewReplica(replica1);  
+            }
+        }
+        if(replica2!=null){
+            if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
+                logger.info("tranfering my data to replica 2");
+                _kvServer.transferDataToNewReplica(replica2);
+            }
+        }
 
         logger.debug("MetaData is: " + _metaDataManager.getMetaData().toString());
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
