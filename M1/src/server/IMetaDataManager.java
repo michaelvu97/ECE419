@@ -14,7 +14,8 @@ public interface IMetaDataManager {
 
     public MetaData getMyMetaData();
 
-    public MetaData getMyReplica(int num);
+    // Returns all replicas for the current server
+    public MetaData[] getReplicas();
 
     /**
      * Atomically updates the metadata set.

@@ -21,10 +21,8 @@ import shared.comms.*;
 import shared.metadata.*;
 
 public class KVStore implements KVCommInterface {
-	private ICommChannel _commChannel = null; // TODO remove
-
-	private IServerCommManager _serverCommManager;
- 	private Logger logger = Logger.getRootLogger();
+	protected IServerCommManager _serverCommManager;
+ 	protected Logger logger = Logger.getRootLogger();
 
 	/**
 	 * Initialize KVStore with an initial server to connect to.
@@ -33,10 +31,6 @@ public class KVStore implements KVCommInterface {
 		if (entryPointServerInfo == null)
 			throw new IllegalArgumentException("entryPointServerInfo is null");
 		_serverCommManager = new ServerCommManager(entryPointServerInfo);
-	}
-
-	public KVStore(String name, String host, int port) {
-		this(new ServerInfo(name, host, port));
 	}
 
 	@Override
@@ -113,7 +107,7 @@ public class KVStore implements KVCommInterface {
 		}
 	}
 
-	private void validateConnected() {
+	protected void validateConnected() {
 		if (_serverCommManager == null) {
 			logger.error(
 					"Attempted to connect to a disconnected KVServer Cloud");

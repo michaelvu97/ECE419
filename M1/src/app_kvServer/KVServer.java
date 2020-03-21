@@ -34,7 +34,6 @@ public class KVServer implements IKVServer {
 	private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;
-	private MetaData[] _replicas = new MetaData[2];
     private boolean _writeLocked = false;
 
     private ServerStateType _state = ServerStateType.STARTED;
@@ -85,8 +84,6 @@ public class KVServer implements IKVServer {
 		this._hostName = host;
 
 		metaDataManager = new MetaDataManager(null, this);
-		_replicas[0] = null;
-		_replicas[1] = null;
 
 		// logger.info("ENTERING");
 		// HashValue serverHash = HashUtil.ComputeHash(this._hostName,this._port);
@@ -138,24 +135,6 @@ public class KVServer implements IKVServer {
 	
     public KVServer(String znodeName, String host, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
         this(znodeName, host, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
-    }
-
-    @Override
-    public MetaData getRep1() {
-    	return this._replicas[0];
-    }
-
-    @Override
-    public MetaData getRep2() {
-    	return this._replicas[1];
-    }
-
-    public void setRep1(MetaData newData){
-    	this._replicas[0] = newData;
-    }
-
-    public void setRep2(MetaData newData){
-    	this._replicas[1] = newData;
     }
 
     @Override
@@ -291,9 +270,9 @@ public class KVServer implements IKVServer {
 
     // sends to replicas. Returns false if a failure occurs
 	@Override    
-    public boolean transferToReplicas(String key, String value) {
-
-		for (MetaData replica : _replicas) {
+    public boolean broadcastUpdateToReplicas(String key, String value) {
+    	
+		for (MetaData replica : metaDataManager.getReplicas()) {
 			if (replica == null)
 				continue;
 

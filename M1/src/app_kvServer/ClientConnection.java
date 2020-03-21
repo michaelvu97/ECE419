@@ -192,7 +192,7 @@ public class ClientConnection extends Connection {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
 		IServerStore.PutResult putResult = serverStore.put(key, value);
-		kvServer.transferToReplicas(key,value);
+		kvServer.broadcastUpdateToReplicas(key, value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
 			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
 		} else if (putResult == IServerStore.PutResult.UPDATED) {
@@ -206,7 +206,7 @@ public class ClientConnection extends Connection {
 	private KVMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
 		boolean success = serverStore.delete(key);
-		kvServer.transferToReplicas(key,"null");
+		kvServer.broadcastUpdateToReplicas(key,"null");
 		if (success) {
 			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key);
 		} else {

@@ -39,8 +39,8 @@ public class M3IntegrationTesting extends TestCase {
 		return null;
 	}
 
-	private KVStore getKVS() {
-		KVStore kvs = new KVStore(new ServerInfo("unknown?!", "localhost", 50000));
+	private KVStoreTest getKVS() {
+		KVStoreTest kvs = new KVStoreTest(new ServerInfo("unknown?!", "localhost", 50000));
 		try {
 			kvs.connect();
 		} catch (Exception e) {
@@ -186,6 +186,50 @@ public class M3IntegrationTesting extends TestCase {
 
 		ecsClient.addNodes(2, "FIFO", 10);
 
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		ecsClient.shutdown();
+	}
+
+	@Test
+	public void testAddingAndRemovingTransferBasic() {
+		/**
+		 * Combination of previous 2 tests (addition and removal of servers):
+		 * Creates 4 zk servers, adds 10 entries, confirms that the entries
+		 * still exist after adding a 5th server. Removes 2 servers, confirms
+		 * that entries still exist after removal.
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "FIFO", 10);
+
+		KVStore kvs = getKVS();
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+		}
+
+		// assert that initial 4 zk servers work.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		// add 5th server.
+		ecsClient.addNodes(1, "FIFO", 10);
+
+		// assert that adding 5th server works.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		// remove a server.
+		List<String> serversToRemove = new ArrayList<String>();
+		serversToRemove.add("server1");
+		
+		ecsClient.removeNodes(serversToRemove); 
+
+		// assert that removing a server works.
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(get(kvs, key).equals(key));
 		}

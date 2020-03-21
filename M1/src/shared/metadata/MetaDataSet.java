@@ -153,34 +153,39 @@ public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
         return new MetaDataSet(result);
     }
 
-    public MetaData getServerForHash(HashValue hv) {
-        if (hv == null)
-            throw new IllegalArgumentException("hv is null");
-
-        for (MetaData srv : _data) {
-            if (srv.getHashRange().isInRange(hv))
-                return srv;
-        }
-
-        // This should never happen.
-        throw new IllegalStateException("Could not find server for hash " + hv);
+    public MetaData getPrimaryForHash(HashValue hv) {
+        return getReplicaForHash(hv, 0);
     }
 
     public MetaData getReplicaForHash(HashValue hv, int replica_num) {
-        logger.info("finding replica for " + hv);
-        if (replica_num > 2 || replica_num <= 0)
+        if (hv == null)
+            throw new IllegalArgumentException("hv is null");
+
+        if (replica_num > 2 || replica_num < 0) {
             throw new IllegalArgumentException("replica_num is out of range: " 
                     + replica_num);
-        for (int i = 0; i < _data.length; i++) {
-            if (_data[i].getHashRange().isInRange(hv)) {
-                int data_index = (i - replica_num)%_data.length;
-                if(data_index<0)data_index+=_data.length; 
-                logger.info(" found server "+ data_index);
-                return _data[data_index];
-            }
         }
-        logger.info(" not found!");
-        return null;    
+
+        if (replica_num == 0)
+            logger.debug("Finding primary for " + hv);
+        else
+            logger.debug("Finding replica for " + hv);
+
+        for (int i = 0; i < _data.length; i++) {
+            if (!_data[i].getHashRange().isInRange(hv))
+                continue;
+
+            // Note: this is so that replicas come before the primary
+            int data_index = (i - replica_num) % _data.length;
+            if (data_index < 0)
+                data_index +=_data.length; 
+
+            logger.debug(" found server "+ data_index);
+            return _data[data_index];
+        }
+
+        throw new IllegalStateException("Cound not find server for hash: " + 
+                hv + ", replica=" + replica_num);
     }
 
     public boolean inReplicaRange(HashValue hv, MetaData cur_server){
