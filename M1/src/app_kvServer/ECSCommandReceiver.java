@@ -179,7 +179,9 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
 
         logger.debug("Received new metadata: " + mds.toString());
         
-        MetaData[] oldReplicas = _metaDataManager.getReplicas();        
+        MetaData[] oldReplicas = _metaDataManager.getReplicas();    
+        MetaData oldRep1 = oldReplicas[0];
+        MetaData oldRep2 = oldReplicas[1];
         _metaDataManager.updateMetaData(mds);
 
         if(_metaDataManager.getMyMetaData()!=null){
@@ -188,8 +190,8 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
 
             MetaData replica1 = newReplicas[0];
             MetaData replica2 = newReplicas[1];
-            MetaData oldRep1 = oldReplicas[0];
-            MetaData oldRep2 = oldReplicas[1];
+            
+            if(oldRep1!=null && oldRep2!=null && replica1!=null && replica2!=null) logger.debug("old replicas are (" + oldRep1.getName() + "," + oldRep2.getName() + ") new replicas are (" + replica1.getName() + "," + replica2.getName() + ")");
 
             logger.info("checking if a transfer is needed for backups");
             if(replica1!=null){
