@@ -107,6 +107,12 @@ public interface IKVServer {
     public boolean transferDataToServer(MetaData serverToSendTo);
 
     /**
+     * Assumes that the server has already been write locked.
+     * Sends all data that the new server is responsible for.
+     */
+    public boolean transferDataToNewReplica(MetaData serverToSendTo);
+
+    /**
     * Sends an individual key value pair to replicas
     */
     public boolean broadcastUpdateToReplicas(String key, String value);

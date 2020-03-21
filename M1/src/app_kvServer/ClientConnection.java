@@ -110,8 +110,8 @@ public class ClientConnection extends Connection {
 			}
 		}
 
-		if (requestType == KVMessage.StatusType.PUT_BACKUP){
-			if(!this.metaDataManager.getMetaData().inReplicaRange(HashUtil.ComputeHashFromKey(request.getKey()),this.metaDataManager.getMyMetaData())){
+		if (requestType == KVMessage.StatusType.PUT_BACKUP || requestType == KVMessage.StatusType.PUT_BACKUP_DUMP){
+			if(requestType == KVMessage.StatusType.PUT_BACKUP && !this.metaDataManager.getMetaData().inReplicaRange(HashUtil.ComputeHashFromKey(request.getKey()),this.metaDataManager.getMyMetaData())){
 				return new KVMessageImpl(
 					KVMessage.StatusType.INCORRECT_BACKUP_LOCATION,
 					null,

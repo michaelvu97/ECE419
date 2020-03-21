@@ -178,10 +178,31 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         }
 
         logger.debug("Received new metadata: " + mds.toString());
-        
+    
+        MetaData[] oldReplicas = _metaDataManager.getReplicas();        
         _metaDataManager.updateMetaData(mds);
+        MetaData[] newReplicas = _metaDataManager.getReplicas();
 
-        logger.debug("New metaData is: " + _metaDataManager.getMetaData().toString());
+        MetaData replica1 = newReplicas[0];
+        MetaData replica2 = newReplicas[1];
+        MetaData oldRep1 = oldReplicas[0];
+        MetaData oldRep2 = oldReplicas[1];
+
+        logger.info("checking if a transfer is needed for backups");
+        if(replica1!=null){
+            if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
+                logger.info("tranfering my data to replica 1");
+                _kvServer.transferDataToNewReplica(replica1);  
+            }
+        }
+        if(replica2!=null){
+            if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
+                logger.info("tranfering my data to replica 2");
+                _kvServer.transferDataToNewReplica(replica2);
+            }
+        }
+
+        logger.info("New metaData is: " + _metaDataManager.getMetaData());
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }
 
