@@ -44,37 +44,52 @@ public class NodeAcceptor extends Acceptor {
      * Broadcasts the list of nodes to be killed.
      * Synchronous, blocks until all servers are up to date.
      */
-    public void sendKillMessage(List<String> nodeNames) {
+    public List<String> sendKillMessage(List<String> nodeNames) {
+        List<String> killed = new ArrayList<String>();
         synchronized(connectionsLock) {
-            for (Connection connection : this.connections) {
-                INodeConnection nodeConnection = (INodeConnection) connection;
-                // check if the nodeConnection is one to a node that needs 
-                // to be killed. if yes, send kill message. otherwise ignore.
-                if (nodeNames.contains(nodeConnection.getNodeName())) {
-                    logger.debug("Sending kill message to " + 
-                            nodeConnection.getNodeName());
-                    try {
-                        nodeConnection.sendKillMessage();
-                    } catch (Exception e) {
-                        logger.error("Failed to send kill message", e);
-                    }  
+            for (String nodeName : nodeNames) {
+                boolean found = false;
+                for (Connection connection : this.connections) {
+                    if (found)
+                        continue;
+
+                    INodeConnection nodeConnection = (INodeConnection) connection;
+                    // check if the nodeConnection is one to a node that needs 
+                    // to be killed. if yes, send kill message. otherwise ignore.
+                    if (nodeName.equals(nodeConnection.getNodeName())) {
+                        logger.debug("Sending kill message to " + nodeName);
+                        try {
+                            nodeConnection.sendKillMessage();
+                            killed.add(nodeName);
+                        } catch (Exception e) {
+                            logger.error("Failed to send kill message to " + nodeName, e);
+                        }  
+                        found = true;
+                    }
                 }
+
+                if (!found)
+                    logger.error("Could not send kill message to server " + nodeName);
             }
         }
+        return killed;
     }
 
-    public void broadcastKillMessage() {
+    public List<String> broadcastKillMessage() {
+        List<String> killed = new ArrayList<String>();
         synchronized(connectionsLock) {
             for (Connection connection : this.connections) {
                 INodeConnection nc = (INodeConnection) connection;
                 logger.debug("Sending kill message to " + nc.getNodeName());
                 try {
                     nc.sendKillMessage();
+                    killed.add(nc.getNodeName());
                 } catch (Exception e) {
                     logger.error("Failed to send kill message", e);
                 }
             }
         }
+        return killed;
     }
 
     /** 

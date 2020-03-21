@@ -126,7 +126,7 @@ public final class ServerCommManager implements IServerCommManager {
         logger.info("Hash of key is " + hash);
 
         int attempts = 0;
-        int max_attempts = 3;
+        int max_attempts = 7; // :^/ zookeeper slow as fuck and bad
 
         while (attempts < max_attempts) {
             MetaData responsibleServer = _metaDataSet.getReplicaForHash(
@@ -134,23 +134,23 @@ public final class ServerCommManager implements IServerCommManager {
             String targetName = responsibleServer.getName();
             logger.debug("sending to " + targetName);
 
-            // Check our connection to the target server
-            if (!_serverCommChannels.containsKey(targetName)) {
-                // May throw an IOException.
-                connectToServer(responsibleServer);
-            } else if (!_serverCommChannels.get(targetName).isOpen()) {
-                // Clean up this connection
-                _serverCommChannels.get(targetName).close();
-                _serverCommChannels.remove(targetName);
-                connectToServer(responsibleServer);
-            }
-
-            ICommChannel responsibleCommChannel = 
-                    _serverCommChannels.get(targetName);
-
             byte[] response = null;
 
+            // Check our connection to the target server
             try {
+                if (!_serverCommChannels.containsKey(targetName)) {
+                    // May throw an IOException.
+                    connectToServer(responsibleServer);
+                } else if (!_serverCommChannels.get(targetName).isOpen()) {
+                    // Clean up this connection
+                    _serverCommChannels.get(targetName).close();
+                    _serverCommChannels.remove(targetName);
+                    connectToServer(responsibleServer);
+                }
+
+                ICommChannel responsibleCommChannel = 
+                        _serverCommChannels.get(targetName);
+
                 byte[] messageBytes = message.serialize();
 
                 responsibleCommChannel.sendBytes(messageBytes);
@@ -160,7 +160,7 @@ public final class ServerCommManager implements IServerCommManager {
                 logger.warn("Comm failed, retrying", e);
                 // Wait, and then try to refresh metadata
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(shared.ZooKeeperConstants.TIMEOUT);
                 } catch (Exception e_sleep){
                     // Swallow
                 }
@@ -278,6 +278,7 @@ public final class ServerCommManager implements IServerCommManager {
         
         // In the event that a server fails, we should try to contact another
         // server to get an updated metadata set.
+        logger.debug("Trying existing connections");
         for (MetaData m : _metaDataSet) {
             // First try to get metadata from a server that we have a valid
             // connection with.
@@ -311,6 +312,7 @@ public final class ServerCommManager implements IServerCommManager {
             }
         }
 
+        logger.debug("Trying initial connection");
         if (!_serverCommChannels.containsKey(_initialServerInfo.getName())) {
             ICommChannel commChannel = null;
             try {
@@ -346,6 +348,7 @@ public final class ServerCommManager implements IServerCommManager {
 
         // Iterate through all known servers that don't have a connection
         // and try to get metadata
+        logger.debug("Trying non-existing connections");
         for (MetaData m : _metaDataSet) {
             // First try to get metadata from a server that we have a valid
             // connection with.
@@ -384,5 +387,8 @@ public final class ServerCommManager implements IServerCommManager {
                     commChannel.close();
             }
         }
+
+        logger.error("Could not refresh metadata! Current metadata set: " 
+                + _metaDataSet);
     }
 }
