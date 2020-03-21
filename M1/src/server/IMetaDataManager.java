@@ -25,4 +25,7 @@ public interface IMetaDataManager {
     public void updateMetaData(MetaDataSet mds);
 
     public boolean isInRange(HashValue value);
+
+    // Returns true IFF it is in replica range, primary is not inlcuded.
+    public boolean isInReplicaRange(HashValue value);
 }

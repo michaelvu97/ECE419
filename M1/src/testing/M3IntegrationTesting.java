@@ -65,16 +65,8 @@ public class M3IntegrationTesting extends TestCase {
 		}
 	}
 
-	private String get(KVStore kvs, String key) {
-		try {
-			KVMessage result = kvs.get(key);
-			assertTrue(result.getStatus() == KVMessage.StatusType.GET_SUCCESS);
-			return result.getValue();
-		} catch (Exception e){
-			e.printStackTrace();
-			assertTrue(false);
-		}
-		return null;
+	private String get(KVStoreTest kvs, String key) {
+		return getFromReplica(kvs, key, 0);
 	}
 
 	private String getFromReplica(KVStoreTest kvs, String key, int replicaNum) {
@@ -122,7 +114,7 @@ public class M3IntegrationTesting extends TestCase {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(3, "FIFO", 10);
 
-		KVStore kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 		put(kvs, "1", "1");
 		put(kvs, "2", "2");
 		put(kvs, "3", "3");
@@ -145,7 +137,7 @@ public class M3IntegrationTesting extends TestCase {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "FIFO", 10);
 
-		KVStore kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
 		for (String key : A_BUNCH_OF_KEYS) {
 			put(kvs, key, key);
@@ -184,7 +176,7 @@ public class M3IntegrationTesting extends TestCase {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "FIFO", 10);
 
-		KVStore kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
 		for (String key : A_BUNCH_OF_KEYS) {
 			put(kvs, key, key);
@@ -210,7 +202,7 @@ public class M3IntegrationTesting extends TestCase {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "LRU", 10);
 
-		KVStore kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
 		ecsClient.killNode("server_3");
 
@@ -227,7 +219,7 @@ public class M3IntegrationTesting extends TestCase {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "LRU", 10);
 
-		KVStore kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
 		ecsClient.removeNode("server_2");
 		ecsClient.killNode("server_3");
@@ -251,7 +243,7 @@ public class M3IntegrationTesting extends TestCase {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "FIFO", 10);
 
-		KVStore kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
 		for (String key : A_BUNCH_OF_KEYS) {
 			put(kvs, key, key);

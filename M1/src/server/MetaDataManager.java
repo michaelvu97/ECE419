@@ -59,6 +59,17 @@ public class MetaDataManager implements IMetaDataManager {
     }
 
     @Override
+    public synchronized boolean isInReplicaRange(HashValue value) {
+        if (value == null)
+            throw new IllegalArgumentException("value is null");
+
+        if (_primaryMetaData == null)
+            return false;
+
+        return _metaDataSet.isInReplicaRange(value, _primaryMetaData);
+    }
+
+    @Override
     public synchronized MetaData getMyMetaData() {
         return _primaryMetaData;
     }

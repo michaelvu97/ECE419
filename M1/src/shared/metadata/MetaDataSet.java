@@ -188,7 +188,7 @@ public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
                 hv + ", replica=" + replica_num);
     }
 
-    public boolean inReplicaRange(HashValue hv, MetaData cur_server){
+    public boolean isInReplicaRange(HashValue hv, MetaData cur_server){
         if(cur_server.getName().equals(getReplicaForHash(hv,1).getName())
             || cur_server.getName().equals(getReplicaForHash(hv,2).getName())){
                 return true;

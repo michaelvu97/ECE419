@@ -85,6 +85,10 @@ public class ClientConnection extends Connection {
 
 		KVMessage.StatusType requestType = request.getStatus();
 
+		HashValue requestHash = null;
+		if (request.getKey() != null)
+			requestHash = HashUtil.ComputeHashFromKey(request.getKey());
+
 		if (requestType == KVMessage.StatusType.PUT 
 				|| requestType == KVMessage.StatusType.GET) {
 			// Verify that this server is responsible.
@@ -95,9 +99,12 @@ public class ClientConnection extends Connection {
 					this.metaDataManager.getMetaData().serialize()
 				);
 			}
+
+			boolean validForPut = metaDataManager.isInRange(requestHash);
+			boolean validForGet = validForPut || metaDataManager.isInReplicaRange(requestHash);
 			
-			if (!metaDataManager.isInRange(
-						HashUtil.ComputeHashFromKey(request.getKey()))) {
+			if ((requestType == KVMessage.StatusType.PUT && !validForPut) ||
+				(requestType == KVMessage.StatusType.GET && !validForGet)) {
 				logger.debug("Not responsible for key " + request.getKey());
 				logger.debug("Sending metadata: " 
 						+ this.metaDataManager.getMetaData().toString());
@@ -111,7 +118,7 @@ public class ClientConnection extends Connection {
 		}
 
 		if (requestType == KVMessage.StatusType.PUT_BACKUP || requestType == KVMessage.StatusType.PUT_BACKUP_DUMP){
-			if(requestType == KVMessage.StatusType.PUT_BACKUP && !this.metaDataManager.getMetaData().inReplicaRange(HashUtil.ComputeHashFromKey(request.getKey()),this.metaDataManager.getMyMetaData())){
+			if(requestType == KVMessage.StatusType.PUT_BACKUP && !this.metaDataManager.isInReplicaRange(requestHash)){
 				return new KVMessageImpl(
 					KVMessage.StatusType.INCORRECT_BACKUP_LOCATION,
 					null,

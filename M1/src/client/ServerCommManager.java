@@ -186,7 +186,7 @@ public final class ServerCommManager implements IServerCommManager {
                     responseObj.getValueRaw()
                 );
                 logger.info("New Meta Data: " + _metaDataSet.toString());
-                  try {
+                try {
                     Thread.sleep(1000);
                 } catch (Exception e_sleep){
                     // Swallow
