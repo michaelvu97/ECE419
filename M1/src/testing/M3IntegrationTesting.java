@@ -236,35 +236,4 @@ public class M3IntegrationTesting extends TestCase {
 
 		ecsClient.shutdown();
 	}
-
-	@Test
-	public void testAddingTransferBasic() {
-		/**
-		 * Creates 4 zk servers, adds 10 entries, and confirms that the entries
-		 * still exist after  adding a 5th server.
-		 */
-		IECSClient ecsClient = getECS();
-		ecsClient.addNodes(4, "FIFO", 10);
-
-		KVStore kvs = getKVS();
-
-		for (String key : A_BUNCH_OF_KEYS) {
-			put(kvs, key, key);
-		}
-
-		ecsClient.addNodes(1, "FIFO", 10);
-
-		for (String key : A_BUNCH_OF_KEYS) {
-			assertTrue(get(kvs, key).equals(key));
-		}
-
-		ecsClient.addNodes(2, "FIFO", 10);
-
-		for (String key : A_BUNCH_OF_KEYS) {
-			assertTrue(get(kvs, key).equals(key));
-		}
-
-		ecsClient.shutdown();
-	}
-
 }
