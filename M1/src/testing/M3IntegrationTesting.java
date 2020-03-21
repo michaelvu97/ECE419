@@ -77,6 +77,18 @@ public class M3IntegrationTesting extends TestCase {
 		return null;
 	}
 
+	private String getFromReplica(KVStoreTest kvs, String key, int replicaNum) {
+		try {
+			KVMessage result = kvs.get(key, replicaNum);
+			assertTrue(result.getStatus() == KVMessage.StatusType.GET_SUCCESS);
+			return result.getValue();
+		} catch (Exception e) { // is catch exception the correct one
+			e.printStackTrace();
+			assertTrue(false); // lol
+		} 
+		return null;
+	}
+
 	private void runScript(String name) {
 		String cmd[] = {
 			name
@@ -267,6 +279,45 @@ public class M3IntegrationTesting extends TestCase {
 		// assert that removing a server works.
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(get(kvs, key).equals(key));
+		}
+
+		ecsClient.shutdown();
+	}
+
+	// TODO: run test on working machine.
+	@Test
+	public void testreplicationWithThreeServers() {
+		/**
+		 * Creates 3 servers. Tests that all 3 servers contain the same information,
+		 * as they are all replicas of the primary, and should hold the same info.
+		 */
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(3, "FIFO", 10);
+
+		KVStoreTest kvs = getKVS();
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+		}
+
+		// assert that initial 3 zk servers work.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		// check that primary has correct values (redundant but ¯\_(ツ)_/¯).
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 0).equals(key));
+		}
+
+		// check that replica 1 has correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 1).equals(key));
+		}
+
+		// check that replica 2 has correct values.
+		for (String key : A_BUNCH_OF_KEYS) {
+			assertTrue(getFromReplica(kvs, key, 2).equals(key));
 		}
 
 		ecsClient.shutdown();
