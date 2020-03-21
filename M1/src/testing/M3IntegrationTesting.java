@@ -141,7 +141,7 @@ public class M3IntegrationTesting extends TestCase {
 
 		// Remove the server
 		List<String> serversToRemove = new ArrayList<String>();
-		serversToRemove.add("server1");
+		serversToRemove.add("server_1");
 		
 		// Will fail if they're renamed, so I guess don't do that.
 		ecsClient.removeNodes(serversToRemove); 
@@ -151,8 +151,8 @@ public class M3IntegrationTesting extends TestCase {
 		}		
 
 		serversToRemove.clear();
-		serversToRemove.add("server2");
-		serversToRemove.add("server3");
+		serversToRemove.add("server_2");
+		serversToRemove.add("server_3");
 
 		ecsClient.removeNodes(serversToRemove);
 
@@ -194,6 +194,22 @@ public class M3IntegrationTesting extends TestCase {
 	}
 
 	@Test
+	public void testSendToKilledServer() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LRU", 10);
+
+		KVStore kvs = getKVS();
+
+		ecsClient.removeNode("server_2");
+		ecsClient.killNode("server_3");
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+			assertTrue(get(kvs, key).equals(key));
+		}
+	}
+
+	@Test
 	public void testAddingAndRemovingTransferBasic() {
 		/**
 		 * Combination of previous 2 tests (addition and removal of servers):
@@ -225,7 +241,7 @@ public class M3IntegrationTesting extends TestCase {
 
 		// remove a server.
 		List<String> serversToRemove = new ArrayList<String>();
-		serversToRemove.add("server1");
+		serversToRemove.add("server_1");
 		
 		ecsClient.removeNodes(serversToRemove); 
 
