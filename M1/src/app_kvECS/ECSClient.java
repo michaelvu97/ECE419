@@ -218,7 +218,7 @@ public class ECSClient implements IECSClient {
         KVAdminMessage transferStatus = null;
 
         if (getActiveNodes().size() != 0) {
-            // This is the first ever node.
+            // Old metadata existed.
             oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());    
         }
 
@@ -288,6 +288,7 @@ public class ECSClient implements IECSClient {
         MetaDataSet newMetadata = MetaDataSet.CreateFromServerInfo(activeNodes);
 
         logger.debug(oldMetaData + ", " + activeNodes.size());
+
         if (oldMetaData != null && activeNodes.size() != 1) {
             // Other nodes exist, transfer will be required.
 
@@ -316,7 +317,7 @@ public class ECSClient implements IECSClient {
                 logger.warn("ECS: could not complete server transfer request.");
 
                 // return false;
-            } else if (transferStatus.getStatus().equals("TRANSFER_REQUEST_SUCCESS")) {
+            } else if (transferStatus.getStatus() == KVAdminMessage.StatusType.TRANSFER_REQUEST_SUCCESS) {
 
                 // Broadcast new metadata.
                 nodeAcceptor.broadcastMetadata(newMetadata);
