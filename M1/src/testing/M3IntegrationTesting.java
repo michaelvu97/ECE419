@@ -194,7 +194,24 @@ public class M3IntegrationTesting extends TestCase {
 	}
 
 	@Test
-	public void testSendToKilledServer() {
+	public void testSendToKilledServerA() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LRU", 10);
+
+		KVStore kvs = getKVS();
+
+		ecsClient.killNode("server_3");
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		ecsClient.shutdown();
+	}
+
+	@Test
+	public void testSendToKilledServerB() {
 		IECSClient ecsClient = getECS();
 		ecsClient.addNodes(4, "LRU", 10);
 
@@ -207,6 +224,8 @@ public class M3IntegrationTesting extends TestCase {
 			put(kvs, key, key);
 			assertTrue(get(kvs, key).equals(key));
 		}
+
+		ecsClient.shutdown();
 	}
 
 	@Test

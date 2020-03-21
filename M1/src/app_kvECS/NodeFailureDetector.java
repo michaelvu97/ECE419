@@ -15,6 +15,8 @@ import logger.LogSetup;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.AsyncCallback;
 
+import shared.ZooKeeperConstants;
+
 public final class NodeFailureDetector implements INodeFailureDetector {
 
     private static Logger logger = Logger.getRootLogger();
@@ -51,14 +53,15 @@ public final class NodeFailureDetector implements INodeFailureDetector {
         try {
             final CountDownLatch _zkConnectionLatch = new CountDownLatch(1);
 
-            _zooKeeper = new ZooKeeper(_zkConnectString, 5000, new Watcher() {
-                public void process(WatchedEvent we) {
-                    if (we.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                        _zkConnectionLatch.countDown();
-                        return;
-                    }
-                }
-            });
+            _zooKeeper = new ZooKeeper(_zkConnectString, 
+                    ZooKeeperConstants.TIMEOUT, new Watcher() {
+                        public void process(WatchedEvent we) {
+                            if (we.getState() == Watcher.Event.KeeperState.SyncConnected) {
+                                _zkConnectionLatch.countDown();
+                                return;
+                            }
+                        }
+                    });
 
             // Block until we are connected to zk
             _zkConnectionLatch.await();

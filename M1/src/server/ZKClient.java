@@ -41,7 +41,7 @@ public class ZKClient implements IZKClient {
 
         _zooKeeper = new ZooKeeper(
                 ecsHostName + ":" + ZooKeeperConstants.ZK_PORT,
-                10000,
+                ZooKeeperConstants.TIMEOUT,
                 new Watcher() {
                     public void process(WatchedEvent we) {
                         if (we.getState() == 

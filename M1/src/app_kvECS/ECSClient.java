@@ -115,7 +115,7 @@ public class ECSClient implements IECSClient {
              logger.info("Connecting to ZK");
 
             _zooKeeper = new ZooKeeper(_host + ":" + ZooKeeperConstants.ZK_PORT,
-                10000,
+                ZooKeeperConstants.TIMEOUT,
                 new Watcher() {
                     @Override
                     public void process(WatchedEvent we) {
@@ -460,18 +460,14 @@ public class ECSClient implements IECSClient {
 
     @Override
     public List<String> killNodes(List<String> nodeNames) {
-
-        nodeAcceptor.sendKillMessage(nodeNames); 
-
-        return nodeNames;
+        return nodeAcceptor.sendKillMessage(nodeNames); 
     }
 
     @Override
     public boolean killNode(String nodeName) {
         List<String> killList = new ArrayList<String>();
         killList.add(nodeName);
-        killNodes(killList);
-        return true;
+        return killNodes(killList).size() != 0;
     }
 
     @Override
