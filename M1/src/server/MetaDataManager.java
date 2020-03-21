@@ -48,6 +48,16 @@ public class MetaDataManager implements IMetaDataManager {
     }
 
     @Override
+    public synchronized MetaData getMyReplica(int num) {
+        return getMetaData()
+                .getReplicaForHash(
+                        getMyMetaData()
+                                .getHashRange()
+                                .getStart(),
+                        num);
+    }
+
+    @Override
     public synchronized void updateMetaData(MetaDataSet mds) {
         if (mds == null)
             throw new IllegalArgumentException("mds is null");

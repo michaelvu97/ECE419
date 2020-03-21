@@ -180,14 +180,14 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         logger.debug("Received new metadata: " + mds.toString());
         
         _metaDataManager.updateMetaData(mds);
-        MetaData replica1 = _metaDataManager.getMetaData().getReplicaForHash(_metaDataManager.getMyMetaData().getHashRange().getStart(),1);
-        if(replica1.getHashRange().equals(_metaDataManager.getMyMetaData().getHashRange())){
+        MetaData replica1 = _metaDataManager.getMyReplica(1);
+        // If we have 1-2 servers, the replicas may need to be null.
+        if (replica1.equals(_metaDataManager.getMyMetaData())){
             replica1 = null;
         }
-        
 
-        MetaData replica2 = _metaDataManager.getMetaData().getReplicaForHash(_metaDataManager.getMyMetaData().getHashRange().getStart(),2);
-        if(replica2.getHashRange().equals(_metaDataManager.getMyMetaData().getHashRange())){
+        MetaData replica2 = _metaDataManager.getMyReplica(2);
+        if(replica2.equals(_metaDataManager.getMyMetaData())){
             replica2 = null;
         }
 

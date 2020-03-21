@@ -34,7 +34,7 @@ public class KVServer implements IKVServer {
 	private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;
-	private MetaData replica1, replica2;
+	private MetaData[] _replicas = new MetaData[2];
     private boolean _writeLocked = false;
 
     private ServerStateType _state = ServerStateType.STARTED;
@@ -85,8 +85,9 @@ public class KVServer implements IKVServer {
 		this._hostName = host;
 
 		metaDataManager = new MetaDataManager(null, this);
-		replica1 =null;
-		replica2 =null;
+		_replicas[0] = null;
+		_replicas[1] = null;
+
 		// logger.info("ENTERING");
 		// HashValue serverHash = HashUtil.ComputeHash(this._hostName,this._port);
 		// logger.info("1");
@@ -141,20 +142,20 @@ public class KVServer implements IKVServer {
 
     @Override
     public MetaData getRep1() {
-    	return this.replica1;
+    	return this._replicas[0];
     }
 
     @Override
     public MetaData getRep2() {
-    	return this.replica2;
+    	return this._replicas[1];
     }
 
     public void setRep1(MetaData newData){
-    	this.replica1 = newData;
+    	this._replicas[0] = newData;
     }
 
     public void setRep2(MetaData newData){
-    	this.replica2 = newData;
+    	this._replicas[1] = newData;
     }
 
     @Override
@@ -291,37 +292,36 @@ public class KVServer implements IKVServer {
     // sends to replicas. Returns false if a failure occurs
 	@Override    
     public boolean transferToReplicas(String key, String value) {
-		for(int i = 0; i<2; i++){
-			ServerInfo transferserver;
-			if(i==0){
-				if(replica1 == null) continue;
-				logger.info("replica 1 is " + replica1.getName());
-				transferserver = new ServerInfo(replica1.getName(), replica1.getHost(), replica1.getPort());
-			} else {
-				if(replica2 == null) continue;
-				logger.info("replica 2 is " + replica2.getName());
-				transferserver = new ServerInfo(replica2.getName(), replica2.getHost(), replica2.getPort());
-			}
+
+		for (MetaData replica : _replicas) {
+			if (replica == null)
+				continue;
+
+			ServerInfo transferserver = new ServerInfo(
+					replica.getName(),
+					replica.getHost(),
+					replica.getPort()
+			);
 	    	KVTransfer transferClient = new KVTransfer(transferserver);
 	    	
 	    	try {
 	    		transferClient.connect();
-	    	}
-	    	catch (UnknownHostException unknown) {
-	    		logger.error("Could not connect to given server! (unknown host)");
+	    	} catch (UnknownHostException unknown) {
+	    		logger.error("Could not connect to given server!", unknown);
 	    		return false;
-	    	}
-	    	catch (IOException io) {
-	    		logger.error("Could not connect to given server! (i/o)");
+	    	} catch (IOException io) {
+	    		logger.error("Could not connect to given server!", io);
 	    		return false;
 	    	}
 
-	        logger.info("Sending to replica " + i);
+	        logger.info("Sending to replica: " + replica.getName());
+
 			try{
-				transferClient.put_backup(key,value);
+				transferClient.put_backup(key, value);
 			}
 			catch (Exception ex) {
-				logger.error("Could not tranfser KV pair <" + key + "," + value + ">");
+				logger.error("Could not tranfser KV pair <" + key + "," + 
+						value + ">", ex);
 				return false;
 			}
 			transferClient.disconnect();
