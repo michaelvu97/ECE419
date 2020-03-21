@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import client.KVStore;
 import junit.framework.TestCase;
+import shared.metadata.ServerInfo;
 import shared.messages.KVMessage;
 import shared.messages.KVMessage.StatusType;
 import org.apache.log4j.Logger;
@@ -15,7 +16,7 @@ public class InteractionTest extends TestCase {
 	private Logger logger = Logger.getRootLogger();
 	
 	public void setUp() {
-		kvClient = new KVStore("TODO", "localhost", 50000);
+		kvClient = new KVStore(new ServerInfo("TODO", "localhost", 50000));
 		try {
 			kvClient.connect();
 		} catch (Exception e) {
