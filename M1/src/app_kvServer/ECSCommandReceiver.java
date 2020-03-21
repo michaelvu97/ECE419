@@ -180,35 +180,38 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         logger.debug("Received new metadata: " + mds.toString());
         
         _metaDataManager.updateMetaData(mds);
-        MetaData replica1 = _metaDataManager.getMyReplica(1);
-        // If we have 1-2 servers, the replicas may need to be null.
-        if (replica1.equals(_metaDataManager.getMyMetaData())){
-            replica1 = null;
-        }
+        if(_metaDataManager.getMyMetaData()!=null){
+                MetaData replica1 = _metaDataManager.getMyReplica(1);
+            // If we have 1-2 servers, the replicas may need to be null.
+            if (replica1.equals(_metaDataManager.getMyMetaData())){
+                replica1 = null;
+            }
 
-        MetaData replica2 = _metaDataManager.getMyReplica(2);
-        if(replica2.equals(_metaDataManager.getMyMetaData())){
-            replica2 = null;
-        }
+            MetaData replica2 = _metaDataManager.getMyReplica(2);
+            if(replica2.equals(_metaDataManager.getMyMetaData())){
+                replica2 = null;
+            }
 
-        MetaData oldRep1 = _kvServer.getRep1();
-        MetaData oldRep2 = _kvServer.getRep2();
-        _kvServer.setRep1(replica1);
-        _kvServer.setRep2(replica2);
+            MetaData oldRep1 = _kvServer.getRep1();
+            MetaData oldRep2 = _kvServer.getRep2();
+            _kvServer.setRep1(replica1);
+            _kvServer.setRep2(replica2);
 
-        logger.info("checking if a transfer is needed for backups");
-        if(replica1!=null){
-            if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
-                logger.info("tranfering my data to replica 1");
-                _kvServer.transferDataToNewReplica(replica1);  
+            logger.info("checking if a transfer is needed for backups");
+            if(replica1!=null){
+                if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
+                    logger.info("tranfering my data to replica 1");
+                    _kvServer.transferDataToNewReplica(replica1);  
+                }
+            }
+            if(replica2!=null){
+                if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
+                    logger.info("tranfering my data to replica 2");
+                    _kvServer.transferDataToNewReplica(replica2);
+                }
             }
         }
-        if(replica2!=null){
-            if(!((oldRep1!=null && replica1.getName() == oldRep1.getName()) || (oldRep2!=null && replica1.getName() == oldRep2.getName()))){
-                logger.info("tranfering my data to replica 2");
-                _kvServer.transferDataToNewReplica(replica2);
-            }
-        }
+        
 
         logger.debug("MetaData is: " + _metaDataManager.getMetaData().toString());
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);

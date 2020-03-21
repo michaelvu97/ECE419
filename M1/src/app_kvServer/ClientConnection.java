@@ -165,14 +165,27 @@ public class ClientConnection extends Connection {
 	private KVMessage handlePutUpdate(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
-		IServerStore.PutResult putResult = serverStore.put(key, value);
-		if (putResult == IServerStore.PutResult.INSERTED) {
-			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
-		} else if (putResult == IServerStore.PutResult.UPDATED) {
-			return new KVMessageImpl(KVMessage.StatusType.PUT_UPDATE, key, value);
+		if (putMessage.getValue() == null || 
+				putMessage.getValue().equals("null") || 
+				putMessage.getValue().isEmpty()) {
+			boolean success = serverStore.delete(key);
+			if (success) {
+				return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key);
+			} else {
+				return new KVMessageImpl(KVMessage.StatusType.DELETE_ERROR, key);
+			}
 		} else {
-			return new KVMessageImpl(KVMessage.StatusType.PUT_ERROR, key, value);
+			IServerStore.PutResult putResult = serverStore.put(key, value);
+			if (putResult == IServerStore.PutResult.INSERTED) {
+				return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
+			} else if (putResult == IServerStore.PutResult.UPDATED) {
+				return new KVMessageImpl(KVMessage.StatusType.PUT_UPDATE, key, value);
+			} else {
+				return new KVMessageImpl(KVMessage.StatusType.PUT_ERROR, key, value);
+			}
 		}
+		
+		
 	}
 
 	private KVMessage handlePut(KVMessage putMessage) {
@@ -193,6 +206,7 @@ public class ClientConnection extends Connection {
 	private KVMessage handleDelete(KVMessage deleteMessage) {
 		String key = deleteMessage.getKey();
 		boolean success = serverStore.delete(key);
+		kvServer.transferToReplicas(key,"null");
 		if (success) {
 			return new KVMessageImpl(KVMessage.StatusType.DELETE_SUCCESS, key);
 		} else {
