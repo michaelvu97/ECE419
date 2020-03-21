@@ -117,10 +117,12 @@ public class ClientConnection extends Connection {
 					null,
 					(byte[]) null
 				);
+			} else {
+				return handlePutUpdate(request);
 			}
 		}
 
-		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_DUMP || requestType == KVMessage.StatusType.PUT_BACKUP) {
+		if (requestType == KVMessage.StatusType.PUT || requestType == KVMessage.StatusType.PUT_DUMP) {
 			if (kvServer.isWriterLocked()) {
 				return new KVMessageImpl(
 					KVMessage.StatusType.SERVER_WRITE_LOCK,
@@ -160,11 +162,24 @@ public class ClientConnection extends Connection {
 		}
 	}
 
+	private KVMessage handlePutUpdate(KVMessage putMessage) {
+		String key = putMessage.getKey();
+		String value = putMessage.getValue();
+		IServerStore.PutResult putResult = serverStore.put(key, value);
+		if (putResult == IServerStore.PutResult.INSERTED) {
+			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
+		} else if (putResult == IServerStore.PutResult.UPDATED) {
+			return new KVMessageImpl(KVMessage.StatusType.PUT_UPDATE, key, value);
+		} else {
+			return new KVMessageImpl(KVMessage.StatusType.PUT_ERROR, key, value);
+		}
+	}
 
 	private KVMessage handlePut(KVMessage putMessage) {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
 		IServerStore.PutResult putResult = serverStore.put(key, value);
+		kvServer.transferToReplicas(key,value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
 			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
 		} else if (putResult == IServerStore.PutResult.UPDATED) {

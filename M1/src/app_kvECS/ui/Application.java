@@ -276,7 +276,7 @@ public class Application {
 	
     public static void main(String[] args) {
     	try {
-			new LogSetup("logs/ecs-client.log", Level.ALL);
+			new LogSetup("logs/ecs-client.log", Level.INFO);
 			
 			Application app = new Application();
 

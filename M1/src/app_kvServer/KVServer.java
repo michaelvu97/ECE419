@@ -34,7 +34,7 @@ public class KVServer implements IKVServer {
 	private ServerSocket serverSocket;
 	private IKVServer.CacheStrategy _strategy;
 	private String _hostName = null;
-
+	private MetaData replica1, replica2;
     private boolean _writeLocked = false;
 
     private ServerStateType _state = ServerStateType.STARTED;
@@ -85,7 +85,18 @@ public class KVServer implements IKVServer {
 		this._hostName = host;
 
 		metaDataManager = new MetaDataManager(null, this);
-		strategy = strategy.toUpperCase();
+		replica1 =null;
+		replica2 =null;
+		// logger.info("ENTERING");
+		// HashValue serverHash = HashUtil.ComputeHash(this._hostName,this._port);
+		// logger.info("1");
+		// MetaDataSet temp = metaDataManager.getMetaData();
+		// logger.info("2");
+		// this.replica1 = temp.getReplicaForHash(serverHash,0);
+		// logger.info("3");
+		// this.replica1 = temp.getReplicaForHash(serverHash,1);
+		// logger.info("WE GOT PAST IT");
+		// strategy = strategy.toUpperCase();
 
 		try {
 			_ecsConnection = new ECSCommandReceiver(this, metaDataManager, 
@@ -126,6 +137,24 @@ public class KVServer implements IKVServer {
 	
     public KVServer(String znodeName, String host, int port, int cacheSize, String cacheStrategy, String ecsLoc, int ecsPort) {
         this(znodeName, host, port, cacheSize, cacheStrategy, "DEFAULT_STORAGE", ecsLoc, ecsPort);
+    }
+
+    @Override
+    public MetaData getRep1() {
+    	return this.replica1;
+    }
+
+    @Override
+    public MetaData getRep2() {
+    	return this.replica2;
+    }
+
+    public void setRep1(MetaData newData){
+    	this.replica1 = newData;
+    }
+
+    public void setRep2(MetaData newData){
+    	this.replica2 = newData;
     }
 
     @Override
@@ -197,6 +226,7 @@ public class KVServer implements IKVServer {
     public boolean transferDataToServer(MetaData serverToSendTo) {
 		ServerInfo transferserver = new ServerInfo(serverToSendTo.getName(), serverToSendTo.getHost(), serverToSendTo.getPort());
     	KVTransfer transferClient = new KVTransfer(transferserver);
+    	
     	try {
     		transferClient.connect();
     	}
@@ -224,6 +254,46 @@ public class KVServer implements IKVServer {
 		return true;
     }
 
+    // sends to replicas. Returns false if a failure occurs
+	@Override    
+    public boolean transferToReplicas(String key, String value) {
+		for(int i = 0; i<2; i++){
+			ServerInfo transferserver;
+			if(i==0){
+				if(replica1 == null) continue;
+				logger.info("replica 1 is " + replica1.getName());
+				transferserver = new ServerInfo(replica1.getName(), replica1.getHost(), replica1.getPort());
+			} else {
+				if(replica2 == null) continue;
+				logger.info("replica 2 is " + replica2.getName());
+				transferserver = new ServerInfo(replica2.getName(), replica2.getHost(), replica2.getPort());
+			}
+	    	KVTransfer transferClient = new KVTransfer(transferserver);
+	    	
+	    	try {
+	    		transferClient.connect();
+	    	}
+	    	catch (UnknownHostException unknown) {
+	    		logger.error("Could not connect to given server! (unknown host)");
+	    		return false;
+	    	}
+	    	catch (IOException io) {
+	    		logger.error("Could not connect to given server! (i/o)");
+	    		return false;
+	    	}
+
+	        logger.info("Sending to replica " + i);
+			try{
+				transferClient.put_backup(key,value);
+			}
+			catch (Exception ex) {
+				logger.error("Could not tranfser KV pair <" + key + "," + value + ">");
+				return false;
+			}
+			transferClient.disconnect();
+		}
+		return true;
+    }
 
 	@Override
     public void clearStorage(){

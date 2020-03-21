@@ -7,6 +7,10 @@ import java.util.Iterator;
 
 import shared.serialization.*;
 
+import logger.LogSetup;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 /**
  * Immutable meta data set object.
  * Modificiations are made through functional methods.
@@ -40,6 +44,8 @@ public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
             throw new IllegalStateException("Remove not allowed");
         }
     }
+
+    private static Logger logger = Logger.getRootLogger();
 
     public MetaDataSet(Collection<MetaData> items) {
         if (items == null)
@@ -161,18 +167,20 @@ public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
     }
 
     public MetaData getReplicaForHash(HashValue hv, int replica_num) {
+        logger.info("finding replica for " + hv);
         if (replica_num > 2 || replica_num <= 0)
             throw new IllegalArgumentException("replica_num is out of range: " 
                     + replica_num);
-
         for (int i = 0; i < _data.length; i++) {
             if (_data[i].getHashRange().isInRange(hv)) {
-                return _data[(i + replica_num) % _data.length];
+                int data_index = (i - replica_num)%_data.length;
+                if(data_index<0)data_index+=_data.length; 
+                logger.info(" found server "+ data_index);
+                return _data[data_index];
             }
         }
-
-        throw new IllegalStateException("Could not find a hash match for " + 
-                hv.toString());
+        logger.info(" not found!");
+        return null;    
     }
 
     public boolean inReplicaRange(HashValue hv, MetaData cur_server){
