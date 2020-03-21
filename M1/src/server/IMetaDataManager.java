@@ -14,6 +14,8 @@ public interface IMetaDataManager {
 
     public MetaData getMyMetaData();
 
+    public MetaData getMyReplica(int num);
+
     /**
      * Atomically updates the metadata set.
      * Also removes any KV entries from KVServer that are no longer stored on
