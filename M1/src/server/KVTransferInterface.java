@@ -33,4 +33,7 @@ public interface KVTransferInterface {
 
 	public KVMessage put_backup(String key, String value) throws Exception,
 			IllegalStateException;
+
+	public KVMessage put_backup_dump(String key, String value) throws Exception,
+			IllegalStateException;
 }

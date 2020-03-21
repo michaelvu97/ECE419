@@ -255,6 +255,40 @@ public class KVServer implements IKVServer {
 		return true;
     }
 
+
+    // this function now returns true or false based on transfer success or failure.
+	@Override    
+    public boolean transferDataToNewReplica(MetaData serverToSendTo) {
+		ServerInfo transferserver = new ServerInfo(serverToSendTo.getName(), serverToSendTo.getHost(), serverToSendTo.getPort());
+    	KVTransfer transferClient = new KVTransfer(transferserver);
+    	
+    	try {
+    		transferClient.connect();
+    	}
+    	catch (UnknownHostException unknown) {
+    		logger.error("Could not connect to given server! (unknown host)");
+    		return false;
+    	}
+    	catch (IOException io) {
+    		logger.error("Could not connect to given server! (i/o)");
+    		return false;
+    	}
+
+    	List<Pair> toTransfer = getAllInRange(metaDataManager.getMyMetaData().getHashRange());
+        logger.info("Transferring " + toTransfer.size() + " items to " + serverToSendTo.getName());
+    	for (Pair KV : toTransfer) {
+    		try{
+    			transferClient.put_backup_dump(KV.k,KV.v);
+    		}
+    		catch (Exception ex) {
+				logger.error("Could not tranfser KV pair <" + KV.k + "," + KV.v + ">");
+				return false;
+    		}
+    	}
+		transferClient.disconnect();
+		return true;
+    }
+
     // sends to replicas. Returns false if a failure occurs
 	@Override    
     public boolean transferToReplicas(String key, String value) {
