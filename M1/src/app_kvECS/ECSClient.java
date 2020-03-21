@@ -391,6 +391,7 @@ public class ECSClient implements IECSClient {
         }
     }
 
+    @Override
     public synchronized boolean removeNode(String nodeName) {
         KVAdminMessage transferStatus = null;
 
@@ -463,6 +464,14 @@ public class ECSClient implements IECSClient {
         nodeAcceptor.sendKillMessage(nodeNames); 
 
         return nodeNames;
+    }
+
+    @Override
+    public boolean killNode(String nodeName) {
+        List<String> killList = new ArrayList<String>();
+        killList.add(nodeName);
+        killNodes(killList);
+        return true;
     }
 
     @Override

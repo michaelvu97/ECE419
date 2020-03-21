@@ -180,7 +180,7 @@ public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
             if (data_index < 0)
                 data_index +=_data.length; 
 
-            logger.debug(" found server "+ data_index);
+            logger.debug("Found server " + _data[data_index].getName());
             return _data[data_index];
         }
 

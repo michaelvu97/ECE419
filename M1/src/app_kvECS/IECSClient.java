@@ -69,6 +69,7 @@ public interface IECSClient extends INodeFailureDetector.IOnNodeFailedCallback {
      * @return  true on success, false otherwise
      */
     public List<String> removeNodes(List<String> nodeNames);
+    public boolean removeNode(String nodeName);
 
     /**
      * Get a map of all nodes
@@ -80,6 +81,7 @@ public interface IECSClient extends INodeFailureDetector.IOnNodeFailedCallback {
      * to be killed. Servers then invoke kill on themselves if they are in the list.
      */
     public List<String> killNodes(List<String> nodeNames);
+    public boolean killNode(String nodeName);
     
     /**
      * Get the specific node responsible for the given key
