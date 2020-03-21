@@ -4,6 +4,8 @@ import java.net.UnknownHostException;
 
 import client.KVStore;
 
+import shared.metadata.ServerInfo;
+
 import junit.framework.TestCase;
 
 
@@ -14,7 +16,7 @@ public class ConnectionTest extends TestCase {
 		
 		Exception ex = null;
 		
-		KVStore kvClient = new KVStore("TODO", "localhost", 50000);
+		KVStore kvClient = new KVStore(new ServerInfo("TODO", "localhost", 50000));
 		try {
 			kvClient.connect();
 		} catch (Exception e) {
@@ -27,7 +29,7 @@ public class ConnectionTest extends TestCase {
 	
 	public void testUnknownHost() {
 		Exception ex = null;
-		KVStore kvClient = new KVStore("TODO", "unknown", 50000);
+		KVStore kvClient = new KVStore(new ServerInfo("TODO", "unknown", 50000));
 		
 		try {
 			kvClient.connect();
@@ -41,7 +43,7 @@ public class ConnectionTest extends TestCase {
 	
 	public void testIllegalPort() {
 		Exception ex = null;
-		KVStore kvClient = new KVStore("TODO", "localhost", 123456789);
+		KVStore kvClient = new KVStore(new ServerInfo("TODO", "localhost", 123456789));
 		
 		try {
 			kvClient.connect();
