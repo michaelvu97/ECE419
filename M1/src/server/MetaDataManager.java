@@ -7,23 +7,39 @@ import org.apache.log4j.*;
 public class MetaDataManager implements IMetaDataManager {
     private static Logger logger = Logger.getRootLogger();
     private IKVServer _kvServer;
-    private MetaDataSet _metaDataSet;
+    private MetaDataSet _metaDataSet = null;
     private HashValue _currentServerHash;
-    private MetaData _currentServerMetaData;
+    private MetaData _primaryMetaData = null;
+    private MetaData[] _replicaMetadata = new MetaData[2];
 
     public MetaDataManager(MetaDataSet mds, IKVServer kvServer) {
         _kvServer = kvServer;
-        _metaDataSet = mds;
 
         _currentServerHash = HashUtil.ComputeHash(
             kvServer.getHostname(),
             kvServer.getPort()
         );
 
-        if (mds == null)
-            _currentServerMetaData = null;
-        else
-            _currentServerMetaData = mds.getPrimaryForHash(_currentServerHash);
+        if (mds != null)
+            updateMetaDataSet(mds);
+    }
+
+    private void updateMetaDataSet(MetaDataSet newMds) {
+        if (newMds == null)
+            throw new IllegalArgumentException("newMds is null");
+        _metaDataSet = newMds;
+
+        _primaryMetaData = newMds.getPrimaryForHash(_currentServerHash);
+        _replicaMetadata[0] = newMds.getReplicaForHash(_currentServerHash, 1);
+        _replicaMetadata[1] = newMds.getReplicaForHash(_currentServerHash, 2);
+
+        if (_replicaMetadata[0].getHashRange().equals(
+                    _primaryMetaData.getHashRange()))
+            _replicaMetadata[0] = null;
+
+        if (_replicaMetadata[1].getHashRange().equals(
+                    _primaryMetaData.getHashRange()))
+            _replicaMetadata[1] = null;
     }
 
     @Override
@@ -36,25 +52,20 @@ public class MetaDataManager implements IMetaDataManager {
         if (value == null)
             throw new IllegalArgumentException("value");
 
-        if (_currentServerMetaData == null)
+        if (_primaryMetaData == null)
             return false;
-        logger.debug("_currentServerMetaData is " + _currentServerMetaData.toString());
-        return _currentServerMetaData.getHashRange().isInRange(value);
+        logger.debug("_primaryMetaData is " + _primaryMetaData.toString());
+        return _primaryMetaData.getHashRange().isInRange(value);
     }
 
     @Override
     public synchronized MetaData getMyMetaData() {
-        return _currentServerMetaData;
+        return _primaryMetaData;
     }
 
     @Override
-    public synchronized MetaData getMyReplica(int num) {
-        return getMetaData()
-                .getReplicaForHash(
-                        getMyMetaData()
-                                .getHashRange()
-                                .getStart(),
-                        num);
+    public synchronized MetaData[] getReplicas() {
+        return _replicaMetadata;
     }
 
     @Override
@@ -77,27 +88,27 @@ public class MetaDataManager implements IMetaDataManager {
             newCurrentServerMetaData = null;
         }
 
-        if (_currentServerMetaData != null 
+        if (_primaryMetaData != null 
                 && newCurrentServerMetaData != null
-                && newCurrentServerMetaData.equals(_currentServerMetaData)) {
+                && newCurrentServerMetaData.equals(_primaryMetaData)) {
             // No changes to the current server's data, don't have to fix up
             // server's storage.
-            _metaDataSet = mds;
+            updateMetaDataSet(mds);
             return;
         }
+        
         // Disabled because it messes up data transfer
         // if(newCurrentServerMetaData != null){
         //     _kvServer.refocus(newCurrentServerMetaData.getHashRange());
         // } else {
         //     _kvServer.clearStorage();
         // }
-        _currentServerMetaData = newCurrentServerMetaData;
+
+        updateMetaDataSet(mds);
         
-        if (_currentServerMetaData == null)
+        if (_primaryMetaData == null)
             _kvServer.setServerState(IKVServer.ServerStateType.STOPPED);
         else
             _kvServer.setServerState(IKVServer.ServerStateType.STARTED);
-
-        _metaDataSet = mds;
     }
 }

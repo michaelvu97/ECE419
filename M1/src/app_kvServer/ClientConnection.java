@@ -179,7 +179,7 @@ public class ClientConnection extends Connection {
 		String key = putMessage.getKey();
 		String value = putMessage.getValue();
 		IServerStore.PutResult putResult = serverStore.put(key, value);
-		kvServer.transferToReplicas(key,value);
+		kvServer.broadcastUpdateToReplicas(key, value);
 		if (putResult == IServerStore.PutResult.INSERTED) {
 			return new KVMessageImpl(KVMessage.StatusType.PUT_SUCCESS, key, value);
 		} else if (putResult == IServerStore.PutResult.UPDATED) {

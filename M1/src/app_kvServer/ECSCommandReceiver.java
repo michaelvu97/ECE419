@@ -180,21 +180,8 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         logger.debug("Received new metadata: " + mds.toString());
         
         _metaDataManager.updateMetaData(mds);
-        MetaData replica1 = _metaDataManager.getMyReplica(1);
 
-        // If we have 1-2 servers, the replicas may need to be null.
-        if (replica1.equals(_metaDataManager.getMyMetaData())){
-            replica1 = null;
-        }
-        _kvServer.setRep1(replica1);
-
-        MetaData replica2 = _metaDataManager.getMyReplica(2);
-        if(replica2.equals(_metaDataManager.getMyMetaData())){
-            replica2 = null;
-        }
-        _kvServer.setRep2(replica2);
-
-        logger.debug("MetaData is: " + _metaDataManager.getMetaData().toString());
+        logger.debug("New metaData is: " + _metaDataManager.getMetaData().toString());
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }
 

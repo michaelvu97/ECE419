@@ -17,26 +17,6 @@ public interface IKVServer {
         SHUT_DOWN,
         STOPPED // Default server status; server is stopped.
     };
-    
-    /**
-    * get first replica and return it
-    */
-    public MetaData getRep1();
-
-    /**
-    * get second replica and return it
-    */
-    public MetaData getRep2();
-
-    /**
-    * get first replica and return it
-    */
-    public void setRep1(MetaData newData);
-
-    /**
-    * get second replica and return it
-    */
-    public void setRep2(MetaData newData);
 
     /**
     * Get server name, and return it
@@ -129,7 +109,7 @@ public interface IKVServer {
     /**
     * Sends an individual key value pair to replicas
     */
-    public boolean transferToReplicas(String key, String value);
+    public boolean broadcastUpdateToReplicas(String key, String value);
     
     /**
      * Starts running the server
