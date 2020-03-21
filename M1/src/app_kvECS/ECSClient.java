@@ -296,7 +296,7 @@ public class ECSClient implements IECSClient {
             nodeAcceptor.sendMetadata(newMetadata, newServer.getName());
 
             // See who shrunk
-            MetaData shrunkboy = oldMetaData.getServerForHash(
+            MetaData shrunkboy = oldMetaData.getPrimaryForHash(
                     HashUtil.ComputeHash(
                         newServer.getHost(),
                         newServer.getPort()
@@ -409,7 +409,7 @@ public class ECSClient implements IECSClient {
         ECSNode nodeToDelete = getNodeByName(nodeName);
         allNodes.remove(nodeName);
 
-        MetaData growboy = newMetaData.getServerForHash(
+        MetaData growboy = newMetaData.getPrimaryForHash(
             HashUtil.ComputeHash(
                 nodeToDelete.getNodeHost(),
                 nodeToDelete.getNodePort()

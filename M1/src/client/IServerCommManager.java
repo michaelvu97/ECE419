@@ -30,4 +30,10 @@ public interface IServerCommManager {
      */
     public KVMessage sendRequest(KVMessage message)
             throws Deserializer.DeserializationException, IOException;
+
+    /**
+     * Mainly used for testing. Forces the request to be sent to a replica.
+     */
+    public KVMessage sendRequest(KVMessage message, int replicaNum)
+            throws Deserializer.DeserializationException, IOException;
 }

@@ -95,11 +95,24 @@ public final class ServerCommManager implements IServerCommManager {
             throw ioe;
     }
 
+
     @Override
     public KVMessage sendRequest(KVMessage message) 
             throws Deserializer.DeserializationException, IOException {
+        return sendRequest(message, 0);
+    }
+
+    @Override
+    public KVMessage sendRequest(KVMessage message, int replicaNum)
+            throws Deserializer.DeserializationException, IOException {
         if (message.getKey() == null)
             throw new IllegalArgumentException("Message contains a null key");
+        if (replicaNum < 0 || 2 < replicaNum)
+            throw new IllegalArgumentException("replicaNum out of range: " 
+                    + replicaNum);
+
+        // TODO TODO TODO: validate that if the request is for a replica, its
+        // status type is allowed to be send (e.g. GET)
 
         HashValue hash = HashUtil.ComputeHashFromKey(message.getKey());
         logger.info("Hash of key is " + hash);
@@ -108,8 +121,8 @@ public final class ServerCommManager implements IServerCommManager {
         int max_attempts = 3;
 
         while (attempts < max_attempts) {
-
-            MetaData responsibleServer = _metaDataSet.getServerForHash(hash);
+            MetaData responsibleServer = _metaDataSet.getReplicaForHash(
+                    hash, replicaNum);
             String targetName = responsibleServer.getName();
             logger.debug("sending to " + targetName);
 

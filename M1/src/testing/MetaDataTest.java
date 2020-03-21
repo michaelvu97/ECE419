@@ -153,7 +153,7 @@ public class MetaDataTest extends TestCase {
         );
 
         for (HashValue input : inputs) {
-            MetaData m = mds.getServerForHash(input);
+            MetaData m = mds.getPrimaryForHash(input);
             
             boolean matches = false;
             for (ServerInfo s : serverInfos) {

@@ -23,7 +23,7 @@ public class MetaDataManager implements IMetaDataManager {
         if (mds == null)
             _currentServerMetaData = null;
         else
-            _currentServerMetaData = mds.getServerForHash(_currentServerHash);
+            _currentServerMetaData = mds.getPrimaryForHash(_currentServerHash);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class MetaDataManager implements IMetaDataManager {
          */
         
         MetaData newCurrentServerMetaData = 
-                mds.getServerForHash(_currentServerHash);
+                mds.getPrimaryForHash(_currentServerHash);
 
         
         if (!newCurrentServerMetaData.getName().equals(_kvServer.getName())) {
