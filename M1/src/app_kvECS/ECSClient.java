@@ -211,11 +211,12 @@ public class ECSClient implements IECSClient {
                 if (allServerInfo.get(0).getAvailability()) {
                     logger.error("Final node is not the last one! The last still-alive node is " + stillActive.get(0));
                 } else {
+                    logger.info("Removing final node");
                     removeFinalNode();
                 }
             }
 
-
+            logger.info("broadcasting final kill");
             nodeAcceptor.broadcastKillMessage();
 
             return true;

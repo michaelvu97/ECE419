@@ -14,7 +14,7 @@ public class AllTests {
 
 	static {
 		try {
-			new LogSetup("logs/testing/test.log", Level.INFO);
+			new LogSetup("logs/testing/test.log", Level.ERROR);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

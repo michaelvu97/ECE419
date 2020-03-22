@@ -101,7 +101,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             case CYS:
                 onCloseNodeRequest();
             case DELETE_DATA:
-                onDeleteDataRequest();
+                return onDeleteDataRequest();
             default:
                 throw new Exception("Invalid command from ECS: " + request.getStatus());
         }
@@ -110,8 +110,9 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
     /**
     * Delete data to preserve consistency
     */
-    public void onDeleteDataRequest() {
+    public KVAdminMessage onDeleteDataRequest() {
         _kvServer.clearStorage();
+        return new KVAdminMessage(KVAdminMessage.StatusType.DELETE_DATA_SUCC, null);
     }
 
     /**
@@ -123,6 +124,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
 
     public void onCloseNodeRequest() {
         _kvServer.close(); // bye bye (but graceful)
+        _kvServer.kill();
     }
 
     /**

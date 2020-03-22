@@ -91,6 +91,12 @@ public final class NodeConnection extends Connection implements INodeConnection 
             _logger.error("Send close message failed I/O", ioe);
             return false;
         }
+
+        try {
+            this.commChannel.recvBytes();
+        } catch (IOException ioe) {
+            _logger.info("Target closed");
+        }
         return true;
     }
 
