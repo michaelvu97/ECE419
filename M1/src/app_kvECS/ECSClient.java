@@ -547,16 +547,11 @@ public class ECSClient implements IECSClient {
         // Detect who will grow
         MetaDataSet oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
         setServerAvailable(nodeName);
+        runningNodes.remove(nodeName);
         MetaDataSet newMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
 
         ECSNode nodeToDelete = getNodeByName(nodeName);
         allNodes.remove(nodeName);
-
-        for (ServerInfo s : allServerInfo) {
-            if (s.getName().equals(nodeName)) {
-                s.setAvailability(true);
-            }
-        }
 
         // MetaData growboy = newMetaData.getServerForHash(
         //     HashUtil.ComputeHash(
