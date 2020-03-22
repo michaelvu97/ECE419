@@ -461,7 +461,14 @@ public class M3IntegrationTesting extends TestCase {
 
 		assertTrue(ecsClient.shutdown());
 
+		try {
+			Thread.sleep(5000);
+		} catch (Exception e) {
+			// Nothing.
+		}
+
 		ecsClient = getECS();
+		ecsClient.addNodes(3, "FIFO", 10);
 
 		kvs = getKVS();
 
