@@ -316,7 +316,7 @@ public class DiskStorage implements IDiskStorage {
 
             while((currLine = br.readLine()) != null) {
                 if ((hr.isInRange(HashUtil.ComputeHashFromKey(currLine)))) {
-                    logger.info("appending key " +currLine);
+                    logger.info("appending key " +currLine + " hash is " + HashUtil.ComputeHashFromKey(currLine) + " range is " + hr.toString());
                     sb.append(currLine).append("\n");
                     currLine = br.readLine();
                     sb.append(currLine).append("\n");

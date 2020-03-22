@@ -157,6 +157,34 @@ public final class MetaDataSet implements ISerializable, Iterable<MetaData> {
         return getReplicaForHash(hv, 0);
     }
 
+    public MetaData getWhoIReplicate(HashValue hv, int replica_num) {
+        if (hv == null)
+            throw new IllegalArgumentException("hv is null");
+
+        if (replica_num > 2 || replica_num < 0) {
+            throw new IllegalArgumentException("replica_num is out of range: " 
+                    + replica_num);
+        }
+
+        if (replica_num == 0)
+            logger.debug("Finding primary for " + hv);
+        else
+            logger.debug("Finding replica for " + hv);
+
+        for (int i = 0; i < _data.length; i++) {
+            if (!_data[i].getHashRange().isInRange(hv))
+                continue;
+
+            // Note: this is so that replicas come before the primary
+            int data_index = (i + replica_num) % _data.length;
+            logger.debug("Found server " + _data[data_index].getName());
+            return _data[data_index];
+        }
+
+        throw new IllegalStateException("Cound not find server for hash: " + 
+                hv + ", replica=" + replica_num);
+    }
+
     public MetaData getReplicaForHash(HashValue hv, int replica_num) {
         if (hv == null)
             throw new IllegalArgumentException("hv is null");

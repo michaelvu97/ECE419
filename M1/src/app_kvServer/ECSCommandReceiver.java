@@ -190,7 +190,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
         MetaData oldRep2 = oldReplicas[1];
         _metaDataManager.updateMetaData(mds);
 
-        if(_metaDataManager.getMyMetaData()!=null){
+        if(_metaDataManager.getMyMetaData().getName().equals(_kvServer.getName())){
 
             MetaData[] newReplicas = _metaDataManager.getReplicas();
 
@@ -214,12 +214,17 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             }
 
             HashValue start =_metaDataManager.getMyMetaData().getHashRange().getStart();
-            HashValue end = _metaDataManager.getMetaData().getReplicaForHash(start,2).getHashRange().getEnd();
-            if(!end.equals(_metaDataManager.getMyMetaData().getHashRange().getStart())){
+            HashValue end = _metaDataManager.getMetaData().getWhoIReplicate(start,2).getHashRange().getEnd();
+            
+            if(!end.equals(_metaDataManager.getMyMetaData().getHashRange().getEnd())){
                 HashRange fullRange = new HashRange(start,end);
                 logger.info("STARTING BAD PART!");
                 _kvServer.refocus(fullRange);
             }
+        } else {
+            logger.info("Removing Storage");
+            //logger.info("server hash is " + HashUtil.ComputeHash(_kvServer.getHostname(),_kvServer.getPort()) + " but primary hash range is " + _metaDataManager.getMyMetaData().getHashRange().toString());
+            _kvServer.clearStorage();
         }
         
         logger.info("New metaData is: " + _metaDataManager.getMetaData());
