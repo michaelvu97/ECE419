@@ -89,9 +89,10 @@ public class ClientConnection extends Connection {
 		if (request.getKey() != null)
 			requestHash = HashUtil.ComputeHashFromKey(request.getKey());
 
+
 		if (requestType == KVMessage.StatusType.PUT 
 				|| requestType == KVMessage.StatusType.GET) {
-			// Verify that this server is responsible.
+
 			if (kvServer.getServerState() == IKVServer.ServerStateType.STOPPED) {
 				return new KVMessageImpl(
 					KVMessage.StatusType.SERVER_STOPPED,
@@ -100,6 +101,7 @@ public class ClientConnection extends Connection {
 				);
 			}
 
+			// Verify that this server is responsible.
 			boolean validForPut = metaDataManager.isInRange(requestHash);
 			boolean validForGet = validForPut || metaDataManager.isInReplicaRange(requestHash);
 			

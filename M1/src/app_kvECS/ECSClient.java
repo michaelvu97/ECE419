@@ -194,13 +194,19 @@ public class ECSClient implements IECSClient {
             _nodeFailureDetector.stop();
 
             List<ServerInfo> activeNodes = getActiveNodes();
-            for (int i = 1; i < activeNodes.size(); i++) {
-                if (activeNodes.get(i).getAvailability())
-                    continue;
-                removeNode(activeNodes.get(i).getName());
+
+
+            for (int i = 0; i < allServerInfo.size(); i++) {
+                List<String> stillActive = getActiveNodeNames();
+                if (activeNodes.size() == 1)
+                    break;
+
+                removeNodes(stillActive);
             }
 
             removeFinalNode();
+
+            nodeAcceptor.broadcastKillMessage();
 
             return true;
         } catch (IOException e) {
@@ -324,6 +330,11 @@ public class ECSClient implements IECSClient {
                         newServer.getPort()
                     )
             );
+
+            if (shrunkboy == null) {
+                logger.error("The shrunk server is null! New server= " + newServer.getName());
+
+            } else 
 
             logger.info("sending transfer request from " + shrunkboy.getName() + " to " + newServer.getName());
 
@@ -541,6 +552,12 @@ public class ECSClient implements IECSClient {
         ECSNode nodeToDelete = getNodeByName(nodeName);
         allNodes.remove(nodeName);
 
+        for (ServerInfo s : allServerInfo) {
+            if (s.getName().equals(nodeName)) {
+                s.setAvailability(true);
+            }
+        }
+
         // MetaData growboy = newMetaData.getServerForHash(
         //     HashUtil.ComputeHash(
         //         nodeToDelete.getNodeHost(),
@@ -548,7 +565,7 @@ public class ECSClient implements IECSClient {
         //     )
         // );
 
-        // Inform nodeAcceptor that a connection has died.
+    // Inform nodeAcceptor that a connection has died.
         nodeAcceptor.onNodeFailed(nodeName);
 
         // Broadcast metadata update

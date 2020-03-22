@@ -117,9 +117,11 @@ public class MetaDataManager implements IMetaDataManager {
 
         updateMetaDataSet(mds);
         
-        if (_primaryMetaData == null)
-            _kvServer.setServerState(IKVServer.ServerStateType.STOPPED);
-        else
+        boolean isServerStillRunning = _primaryMetaData != null && _primaryMetaData.getName().equals(_kvServer.getName());
+
+        if (isServerStillRunning)
             _kvServer.setServerState(IKVServer.ServerStateType.STARTED);
+        else
+            _kvServer.setServerState(IKVServer.ServerStateType.STOPPED);
     }
 }

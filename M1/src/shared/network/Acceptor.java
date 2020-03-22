@@ -40,7 +40,7 @@ public abstract class Acceptor implements Runnable {
     public void alertClose(Connection connectionToClose) {
         synchronized(connectionsLock) {
             for (int i = 0; i < connections.size(); i++){
-                if(connectionToClose == connections.get(i)){
+                if (connectionToClose.equals(connections.get(i))){
                     connections.remove(i);
                 }
             }

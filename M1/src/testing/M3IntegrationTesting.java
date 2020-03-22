@@ -72,6 +72,7 @@ public class M3IntegrationTesting extends TestCase {
 	private String getFromReplica(KVStoreTest kvs, String key, int replicaNum) {
 		try {
 			KVMessage result = kvs.get(key, replicaNum);
+			assertTrue(result != null);
 			assertTrue(result.getStatus() == KVMessage.StatusType.GET_SUCCESS);
 			return result.getValue();
 		} catch (Exception e) { // is catch exception the correct one
@@ -125,7 +126,8 @@ public class M3IntegrationTesting extends TestCase {
 		assertTrue(get(kvs, "3").equals("3"));
 		assertTrue(get(kvs, "4").equals("4"));
 
-		ecsClient.shutdown();	
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());	
 	}
 
 	@Test
@@ -164,7 +166,8 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(get(kvs, key).equals(key));
 		}		
 
-		ecsClient.shutdown();
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
 	@Test
@@ -194,60 +197,64 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(get(kvs, key).equals(key));
 		}
 
-		ecsClient.shutdown();
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
-	@Test
-	public void testSendToKilledServerA() {
-		IECSClient ecsClient = getECS();
-		ecsClient.addNodes(4, "LRU", 10);
+	// @Test
+	// public void testSendToKilledServerA() {
+	// 	IECSClient ecsClient = getECS();
+	// 	ecsClient.addNodes(4, "LRU", 10);
 
-		KVStoreTest kvs = getKVS();
+	// 	KVStoreTest kvs = getKVS();
 
-		ecsClient.killNode("server_3");
+	// 	ecsClient.killNode("server_3");
 
-		for (String key : A_BUNCH_OF_KEYS) {
-			put(kvs, key, key);
-			assertTrue(get(kvs, key).equals(key));
-		}
+	// 	for (String key : A_BUNCH_OF_KEYS) {
+	// 		put(kvs, key, key);
+	// 		assertTrue(get(kvs, key).equals(key));
+	// 	}
 
-		ecsClient.shutdown();
-	}
+	// 	kvs.disconnect();
+	// 	assertTrue(ecsClient.shutdown());
+	// }
 
-	@Test
-	public void testSendToKilledServerB() {
-		IECSClient ecsClient = getECS();
-		ecsClient.addNodes(4, "LRU", 10);
+	// @Test
+	// public void testSendToKilledServerB() {
+	// 	IECSClient ecsClient = getECS();
+	// 	ecsClient.addNodes(4, "LRU", 10);
 
-		KVStoreTest kvs = getKVS();
+	// 	KVStoreTest kvs = getKVS();
 
-		ecsClient.removeNode("server_2");
-		ecsClient.killNode("server_3");
+	// 	ecsClient.removeNode("server_2");
+	// 	ecsClient.killNode("server_3");
 
-		for (String key : A_BUNCH_OF_KEYS) {
-			put(kvs, key, key);
-			assertTrue(get(kvs, key).equals(key));
-		}
+	// 	for (String key : A_BUNCH_OF_KEYS) {
+	// 		put(kvs, key, key);
+	// 		assertTrue(get(kvs, key).equals(key));
+	// 	}
 
-		ecsClient.shutdown();
-	}
+	// 	kvs.disconnect();
+	// 	assertTrue(ecsClient.shutdown());
+	// }
 
-	@Test
-	public void testSendToKilledServerC() {
-		IECSClient ecsClient = getECS();
-		ecsClient.addNodes(4, "LRU", 10);
+	// @Test
+	// public void testSendToKilledServerC() {
+	// 	IECSClient ecsClient = getECS();
+	// 	ecsClient.addNodes(4, "LRU", 10);
 
-		KVStoreTest kvs = getKVS();
+	// 	KVStoreTest kvs = getKVS();
 
-		ecsClient.killNode("server_4");
+	// 	ecsClient.killNode("server_4");
 
-		for (String key : A_BUNCH_OF_KEYS) {
-			put(kvs, key, key);
-			assertTrue(get(kvs, key).equals(key));
-		}
+	// 	for (String key : A_BUNCH_OF_KEYS) {
+	// 		put(kvs, key, key);
+	// 		assertTrue(get(kvs, key).equals(key));
+	// 	}
 
-		ecsClient.shutdown();
-	}
+	// 	kvs.disconnect();
+	// 	assertTrue(ecsClient.shutdown());
+	// }
 
 	@Test
 	public void testSendToKilledInitialServer() {
@@ -263,6 +270,15 @@ public class M3IntegrationTesting extends TestCase {
 		ecsClient.killNode("server_1");
 
 		assertTrue(get(kvs, "4").equals("testSendToKilledInitialServer"));
+
+		try {
+			Thread.sleep(8000);
+		} catch (Exception e) {
+
+		}
+
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
 	@Test
@@ -307,7 +323,8 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(get(kvs, key).equals(key));
 		}
 
-		ecsClient.shutdown();
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
 	// TODO: run test on working machine.
@@ -347,7 +364,8 @@ public class M3IntegrationTesting extends TestCase {
 			assertTrue(getFromReplica(kvs, key, 2).equals(key));
 		}
 
-		ecsClient.shutdown();
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
 	// TODO: run test on working machine.
@@ -387,7 +405,8 @@ public class M3IntegrationTesting extends TestCase {
 		for (String key : A_BUNCH_OF_KEYS) {
 			assertTrue(getFromReplica(kvs, key, 2).equals(key));
 		}
-		ecsClient.shutdown();
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
 	// TODO: run test on working machine.
@@ -422,38 +441,36 @@ public class M3IntegrationTesting extends TestCase {
 		}
 
 		// there are no replica 2s in this scenario. 
-		
-		ecsClient.shutdown();
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
 	}
 
-	// TODO: run test on working machine.
+
 	@Test
-	public void testReplicationWithOneServer() {
-		/**
-		 * Replication Case: 1 server.
-		 * Creates 1 server. Tests that server is all good in the hood.
-		 */
+	public void testPersistency() {
 		IECSClient ecsClient = getECS();
-		ecsClient.addNodes(1, "FIFO", 10);
+		ecsClient.addNodes(3, "FIFO", 10);
 
 		KVStoreTest kvs = getKVS();
 
 		for (String key : A_BUNCH_OF_KEYS) {
-			put(kvs, key, key);
+			put(kvs, key, key + "_test_persistency");
 		}
 
-		// assert that the zk server works.
+		kvs.disconnect();
+
+		assertTrue(ecsClient.shutdown());
+
+		ecsClient = getECS();
+
+		kvs = getKVS();
+
 		for (String key : A_BUNCH_OF_KEYS) {
-			assertTrue(get(kvs, key).equals(key));
+			assertTrue(get(kvs, key).equals(key + "_test_persistency"));
 		}
 
-		// check that it works as a primary. 
-		for (String key : A_BUNCH_OF_KEYS) {
-			assertTrue(getFromReplica(kvs, key, 0).equals(key));
-		}
+		kvs.disconnect();
 
-		// there are no replica 1s or 2s in this scenario.
-		
-		ecsClient.shutdown();
+		assertTrue(ecsClient.shutdown());
 	}
 }

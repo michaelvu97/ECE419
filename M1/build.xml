@@ -133,7 +133,7 @@
 
   <!-- run test cases -->
   <target name="test" depends="build">
-    <junit threads="1">
+    <junit threads="1" printsummary="on" fork="on" forkmode="once" timeout="300000" haltonfailure="on">
       <classpath refid="project.classpath" />
       <formatter type="brief" usefile="false" />
       <test name="testing.AllTests" />
