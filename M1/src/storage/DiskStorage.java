@@ -303,7 +303,7 @@ public class DiskStorage implements IDiskStorage {
 
         createNewFile();
         correctnessCheck();
-
+        logger.info("IN FLUSH");
         /**
          * Create a new temp storage file
          * Copy all existing file except the K/V to be deleted.
@@ -315,12 +315,15 @@ public class DiskStorage implements IDiskStorage {
             StringBuilder sb = new StringBuilder();
 
             while((currLine = br.readLine()) != null) {
-                if (!(hr.isInRange(HashUtil.ComputeHashFromKey(currLine)))) {
+                if ((hr.isInRange(HashUtil.ComputeHashFromKey(currLine)))) {
+                    logger.info("appending key " +currLine);
                     sb.append(currLine).append("\n");
                     currLine = br.readLine();
                     sb.append(currLine).append("\n");
                 } else {
-                    br.readLine(); // Skip line
+                    String key = currLine;
+                    String val = br.readLine(); // Skip line
+                    logger.info("key value pair " + key + " " + val + " with hash "  + HashUtil.ComputeHashFromKey(currLine) + " range is " + hr.toString());
                 }
             }
             br.close();
