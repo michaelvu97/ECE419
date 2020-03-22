@@ -120,7 +120,10 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
      * Called when a transfer request is receieved.
      */
     public KVAdminMessage onTransferRequest(KVAdminMessage transferRequest) {
-        // TODO
+        
+
+        logger.info("Received transfer request");
+
         //parse message
         TransferRequest tr = null;
         try {
@@ -142,11 +145,14 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
                     "This is not the right server for transfer request".getBytes()
             );
         }
+
         boolean success = false;
         String toServ = tr.getToName();
         MetaDataSet newMetaDataSet = tr.getNewMetaDataset();
 
         MetaData targetServ = newMetaDataSet.getMetaDataByName(toServ);
+
+        logger.info("INITIATING OWNERSHIP TRANSFER TO " + toServ);
 
         _kvServer.writeLock();
         

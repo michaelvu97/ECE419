@@ -185,7 +185,7 @@ public class ECSClient implements IECSClient {
 
             if (allServerInfo.get(0).getAvailability()) {
                 // Need to add the first server to collapse all of the data.
-                addNode(allServerInfo.get(0).getName(), "FIFO", 1);
+                addNode("FIFO", 1);
             }
 
             ecsSocket.close();
@@ -228,26 +228,21 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public synchronized ECSNode addNode(String nodeName, String cacheStrategy, int cacheSize) {
+    public synchronized ECSNode addNode(String cacheStrategy, int cacheSize) {
         MetaDataSet oldMetaData = null;
         KVAdminMessage transferStatus = null;
 
         ServerInfo newServer = null;
-        for (ServerInfo s : allServerInfo) {
-            if (s.getName().equals(nodeName)) {
-                newServer = s;
-            }
-        }
 
-        if (newServer == null) {
-            logger.error("Could not find the specified node! " + nodeName);
-            return null;
-        }
-
-        if (getActiveNodes().size() != 0) {
+        if (getActiveNodes().size() > 0) {
             // Old metadata existed.
             oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());    
+        } else {
+            // This is the first server
         }
+
+        newServer = getNextAvailableServer();
+
 
         ECSNode newNode = null;
         
@@ -317,6 +312,8 @@ public class ECSClient implements IECSClient {
         if (oldMetaData != null && activeNodes.size() != 1) {
             // Other nodes exist, transfer will be required.
 
+            logger.info("Starting transfer");
+
             // Tell the new node the new metadata
             nodeAcceptor.sendMetadata(newMetadata, newServer.getName());
 
@@ -328,9 +325,11 @@ public class ECSClient implements IECSClient {
                     )
             );
 
+            logger.info("sending transfer request from " + shrunkboy.getName() + " to " + newServer.getName());
+
             // Send shrunk server a transfer request to the new server
             transferStatus = nodeAcceptor.sendTransferRequest(
-                    new TransferRequest(
+                new TransferRequest(
                         shrunkboy.getName(),
                         newServer.getName(),
                         newMetadata
@@ -350,9 +349,12 @@ public class ECSClient implements IECSClient {
                 // Everyone now has the new metadata, and all data is transferred onto
                 // the new server.
                 return newNode;
+            } else {
+                logger.error("Invalid transferstatus: " + transferStatus.getStatus());
             }
         } else if (oldMetaData == null) {
             // This is the first node to connect
+            logger.info("Sending initial metadata");
             nodeAcceptor.sendMetadata(newMetadata, newServer.getName());
         }
         // TODO: default return?
@@ -369,7 +371,7 @@ public class ECSClient implements IECSClient {
 
         // call addNode count # of times.
         for (int i = 0; i < count; i++) {
-            newNode = addNode(getNextAvailableServer().getName(), cacheStrategy, cacheSize);
+            newNode = addNode(cacheStrategy, cacheSize);
             
             if (newNode != null) {
                 newNodes.add(newNode);

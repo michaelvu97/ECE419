@@ -134,11 +134,13 @@ public final class NodeConnection extends Connection implements INodeConnection 
              byte[] responseBytes = this.commChannel.recvBytes();
             KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
 
-            // if (response.getStatus() != KVAdminMessage.StatusType
-            //             .TRANSFER_REQUEST_SUCCESS) {
-            //     _logger.warn("Send transfer request failed on node");
-            //     throw new Exception("Send transfer request failed on node");
-            // }
+            if (response.getStatus() != KVAdminMessage.StatusType
+                        .TRANSFER_REQUEST_SUCCESS) {
+                _logger.warn("Send transfer request failed on node");
+                throw new Exception("Send transfer request failed on node");
+            }
+
+            _logger.info("Transfer request response: " + response.getStatus());
 
             // return KVAdminMessage containing transfer success or failure.
             return response;

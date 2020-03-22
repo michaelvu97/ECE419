@@ -36,7 +36,7 @@ public interface IECSClient extends INodeFailureDetector.IOnNodeFailedCallback {
      * Create a new KVServer with the specified cache size and replacement strategy and add it to the storage service at an arbitrary position.
      * @return  name of new server
      */
-    public ECSNode addNode(String name, String cacheStrategy, int cacheSize);
+    public ECSNode addNode(String cacheStrategy, int cacheSize);
 
     /**
      * Randomly choose <numberOfNodes> servers from the available machines and start the KVServer by issuing an SSH call to the respective machine.

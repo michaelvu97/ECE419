@@ -153,7 +153,7 @@ public class NodeAcceptor extends Acceptor implements INodeFailureDetector.IOnNo
      * Synchronous, blocks until the transfer is complete.
      */
     public KVAdminMessage sendTransferRequest(TransferRequest tr) {
-        logger.debug("sending transfer request");
+        logger.info("sending transfer request to " + tr.getFromName());
         String sourceName = tr.getFromName();
         KVAdminMessage transferStatus = null;
 
