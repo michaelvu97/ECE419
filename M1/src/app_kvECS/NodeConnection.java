@@ -128,6 +128,31 @@ public final class NodeConnection extends Connection implements INodeConnection 
         }
     }
 
+     @Override
+    public void sendDeleteData() throws Exception {
+        try {
+            KVAdminMessage messageToSend = new KVAdminMessage(
+                    KVAdminMessage.StatusType.DELETE_DATA,
+                    null
+            );
+
+            this.commChannel.sendBytes(messageToSend.serialize());
+            byte[] responseBytes = this.commChannel.recvBytes();
+            KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
+            if (response.getStatus() != KVAdminMessage.StatusType
+                        .DELETE_SUCCESS) {
+                _logger.warn("Send delete data failed on node");
+                throw new Exception("Send delete data failed on node");
+            }
+        } catch (IOException ioe) {
+            _logger.error("Send delete data failed I/O", ioe);
+            throw ioe;
+        } catch (Deserializer.DeserializationException dse) {
+            _logger.error("Send delete data failed, invalid node response", dse);
+            throw dse;
+        }
+    }
+
     @Override
     public KVAdminMessage sendTransferRequest(TransferRequest tr) throws Exception {
         try {

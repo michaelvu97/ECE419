@@ -14,6 +14,11 @@ public interface INodeConnection {
     public boolean sendCloseMessage();
 
     /**
+     * Tell a server tp delete its data
+     */
+    public void sendDeleteData() throws Exception;
+
+    /**
      * Sends a metadata set to a node.
      */
     public void sendMetadata(MetaDataSet mds) throws Exception;

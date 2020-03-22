@@ -253,7 +253,7 @@ public class ECSClient implements IECSClient {
 
         if (getActiveNodes().size() > 0) {
             // Old metadata existed.
-            oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());    
+            oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
         } else {
             // This is the first server
         }
@@ -328,6 +328,9 @@ public class ECSClient implements IECSClient {
 
         if (oldMetaData != null && activeNodes.size() != 1) {
             // Other nodes exist, transfer will be required.
+            logger.info("Deleting any old data");
+
+            nodeAcceptor.sendDeleteData(newServer.getName());
 
             logger.info("Starting transfer");
 

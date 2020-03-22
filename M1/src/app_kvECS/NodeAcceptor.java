@@ -148,6 +148,28 @@ public class NodeAcceptor extends Acceptor implements INodeFailureDetector.IOnNo
         }
     }
 
+    public void sendDeleteData(String targetServerName) {
+        logger.debug("sending delete data to " + targetServerName);
+        synchronized(connectionsLock) {
+            INodeConnection matchingConnection = 
+                    getConnectionWithName(targetServerName);
+            if (matchingConnection == null) {
+                logger.error(
+                    new Exception("Could not find matching server for " + 
+                        "transfer request")
+                );
+                return;
+            }
+
+            try {
+                matchingConnection.sendDeleteData();
+                logger.debug("Delete data sent and recv'd");
+            } catch (Exception e) {
+                logger.error("Failed to send delete data", e);
+            }
+        }
+    }
+
     /** 
      * Sends a transfer request to the appropriate node.
      * Synchronous, blocks until the transfer is complete.
