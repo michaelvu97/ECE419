@@ -55,7 +55,7 @@ public abstract class Connection implements Runnable {
                 break;
             }
             millisSlept += 100;
-            if (millisSlept < sleepTimeoutMillis) {
+            if (millisSlept >= sleepTimeoutMillis) {
                 _logger.error("Thread stop timed out");
                 break;
             }

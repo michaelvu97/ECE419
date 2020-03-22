@@ -233,6 +233,39 @@ public class M3IntegrationTesting extends TestCase {
 	}
 
 	@Test
+	public void testSendToKilledServerC() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LRU", 10);
+
+		KVStoreTest kvs = getKVS();
+
+		ecsClient.killNode("server_4");
+
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+			assertTrue(get(kvs, key).equals(key));
+		}
+
+		ecsClient.shutdown();
+	}
+
+	@Test
+	public void testSendToKilledInitialServer() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LFU", 10);
+
+		KVStoreTest kvs = getKVS();
+
+		// Experimentally verified to go to server_1
+		put(kvs, "4", "testSendToKilledInitialServer");
+
+		// kvs is now connected to 1, and has metadataset.
+		ecsClient.killNode("server_1");
+
+		assertTrue(get(kvs, "4").equals("testSendToKilledInitialServer"));
+	}
+
+	@Test
 	public void testAddingAndRemovingTransferBasic() {
 		/**
 		 * Combination of previous 2 tests (addition and removal of servers):

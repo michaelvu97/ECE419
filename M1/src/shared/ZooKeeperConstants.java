@@ -12,5 +12,5 @@ public final class ZooKeeperConstants {
     public final static String ZK_PORT = "2181";
 
     // Measured in ms.
-    public final static int TIMEOUT = 1500;
+    public final static int TIMEOUT = 1000;
 }

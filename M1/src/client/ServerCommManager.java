@@ -126,7 +126,7 @@ public final class ServerCommManager implements IServerCommManager {
         logger.info("Hash of key is " + hash);
 
         int attempts = 0;
-        int max_attempts = 7; // :^/ zookeeper slow as fuck and bad
+        int max_attempts = 10; // :^/ zookeeper slow as fuck and bad
 
         while (attempts < max_attempts) {
             MetaData responsibleServer = _metaDataSet.getReplicaForHash(

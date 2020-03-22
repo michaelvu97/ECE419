@@ -38,6 +38,21 @@ public final class NodeConnection extends Connection implements INodeConnection 
                 "Cannot run a NodeConnection, disallowed");
     }
 
+    @Override
+    public void stop() {
+        _logger.info("Stopping node connection thread.");
+
+        this.isOpen = false;
+        parentAcceptor.alertClose(this);
+
+        try {
+            this.socket.close();
+        } catch (IOException ioe) {
+            _logger.warn("Closing node connection", ioe);
+        }
+    }
+
+
 
     @Override
     public void work() throws Exception {

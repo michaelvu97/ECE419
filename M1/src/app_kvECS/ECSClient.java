@@ -489,7 +489,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public synchronized void onNodeFailed(String nodeName) {
-        logger.info("NODE FAILED: " + nodeName);
+        logger.error("NODE FAILED: " + nodeName);
         
         // TODO: HANDLE ERRORS
 
@@ -508,10 +508,14 @@ public class ECSClient implements IECSClient {
         //     )
         // );
 
+        // Inform nodeAcceptor that a connection has died.
+        nodeAcceptor.onNodeFailed(nodeName);
+
         // Broadcast metadata update
         nodeAcceptor.broadcastMetadata(newMetaData);
 
         // TODO: add a new node?
+        logger.error("ECSClient.onNodeFailed still does not spawn a new node to replace the failed one");
     }
 
     public static void main(String configFile, String username) {

@@ -21,7 +21,7 @@ import shared.metadata.*;
 import shared.comms.*;
 import shared.messages.KVAdminMessage;
 
-public class NodeAcceptor extends Acceptor {
+public class NodeAcceptor extends Acceptor implements INodeFailureDetector.IOnNodeFailedCallback {
     
     private CountDownLatch _started = new CountDownLatch(1);
     private IECSClient _ecsClient;
@@ -175,6 +175,22 @@ public class NodeAcceptor extends Acceptor {
 
         }
         return null;
+    }
+
+    @Override
+    public void onNodeFailed(String nodeName) {
+        // Remove the node from our list of connections
+        synchronized (connectionsLock) {
+            for (int i = 0; i < this.connections.size(); i++) {
+                INodeConnection nc = (INodeConnection) this.connections.get(i);
+                if (nc.getNodeName().equals(nodeName)) {
+
+                    // stop() will internally remove this connection.
+                    this.connections.get(i).stop();
+                    return;
+                }
+            }
+        }
     }
 
     @Override
