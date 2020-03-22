@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 
@@ -99,7 +100,14 @@ public final class ServerCommManager implements IServerCommManager {
     @Override
     public KVMessage sendRequest(KVMessage message) 
             throws Deserializer.DeserializationException, IOException {
-        return sendRequest(message, 0);
+        return sendRequest(message, suitableForReplica(message) ?  new Random().nextInt(3) : 0);
+    }
+
+    private boolean suitableForReplica(KVMessage message) {
+        if (message == null)
+            throw new IllegalArgumentException("message is null");
+
+        return message.getStatus() == KVMessage.StatusType.GET;
     }
 
     @Override
