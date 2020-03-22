@@ -183,6 +183,8 @@ public class ECSClient implements IECSClient {
         // TODO: kill all servers
         try {
 
+            String primaryServerName = allServerInfo.get(0).getName();
+
             if (allServerInfo.get(0).getAvailability()) {
                 // Need to add the first server to collapse all of the data.
                 addNode("FIFO", 1);
@@ -193,18 +195,26 @@ public class ECSClient implements IECSClient {
             nodeAcceptor.stop();
             _nodeFailureDetector.stop();
 
-            List<ServerInfo> activeNodes = getActiveNodes();
+            List<String> stillActive = getActiveNodeNames();
 
-
-            for (int i = 0; i < allServerInfo.size(); i++) {
-                List<String> stillActive = getActiveNodeNames();
-                if (activeNodes.size() == 1)
-                    break;
-
-                removeNodes(stillActive);
+            if (stillActive.contains(primaryServerName)) {
+                stillActive.remove(primaryServerName);
             }
 
-            removeFinalNode();
+            removeNodes(stillActive);
+
+            // Confirm that the last node is server_1
+            stillActive = getActiveNodeNames();
+            if (stillActive.size() != 1) {
+                logger.error("Invalid number of active nodes!");
+            } else {
+                if (allServerInfo.get(0).getAvailability()) {
+                    logger.error("Final node is not the last one! The last still-alive node is " + stillActive.get(0));
+                } else {
+                    removeFinalNode();
+                }
+            }
+
 
             nodeAcceptor.broadcastKillMessage();
 
