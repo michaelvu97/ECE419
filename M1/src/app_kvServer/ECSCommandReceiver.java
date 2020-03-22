@@ -173,7 +173,7 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
             logger.error("Received invalid metadata from server", dse);
             return new KVAdminMessage(
                     KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_FAILURE,
-                    "Could not parse metadata payload".getBytes()
+                    "Could not parse meHashValuetadata payload".getBytes()
             );
         }
 
@@ -206,9 +206,16 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
                     _kvServer.transferDataToNewReplica(replica2);
                 }
             }
+
+            HashValue start =_metaDataManager.getMyMetaData().getHashRange().getStart();
+            HashValue end = _metaDataManager.getMetaData().getReplicaForHash(start,2).getHashRange().getEnd();
+            if(!end.equals(_metaDataManager.getMyMetaData().getHashRange().getStart())){
+                HashRange fullRange = new HashRange(start,end);
+                logger.info("STARTING BAD PART!");
+                _kvServer.refocus(fullRange);
+            }
         }
         
-
         logger.info("New metaData is: " + _metaDataManager.getMetaData());
         return new KVAdminMessage(KVAdminMessage.StatusType.UPDATE_METADATA_REQUEST_SUCCESS, null);
     }
