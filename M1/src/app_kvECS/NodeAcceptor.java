@@ -75,6 +75,18 @@ public class NodeAcceptor extends Acceptor implements INodeFailureDetector.IOnNo
         return killed;
     }
 
+    public boolean sendCloseMessage(String nodeName) {
+        synchronized(connectionsLock) {
+            INodeConnection nc = getConnectionWithName(nodeName);
+            if (nc == null) {
+                logger.error("Node with name " + nodeName + " not found");
+                return false;
+            }
+
+            return nc.sendCloseMessage();
+        }
+    }
+
     public List<String> broadcastKillMessage() {
         List<String> killed = new ArrayList<String>();
         synchronized(connectionsLock) {

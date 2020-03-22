@@ -80,6 +80,21 @@ public final class NodeConnection extends Connection implements INodeConnection 
     }
 
     @Override
+    public boolean sendCloseMessage() {
+        try {
+            KVAdminMessage messageToSend = new KVAdminMessage(
+                    KVAdminMessage.StatusType.CYS,
+                    null    
+            );
+            this.commChannel.sendBytes(messageToSend.serialize());
+        } catch (IOException ioe) {
+            _logger.error("Send close message failed I/O", ioe);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void sendMetadata(MetaDataSet mds) throws Exception {
         if (mds == null)
             throw new IllegalArgumentException("mds is null");

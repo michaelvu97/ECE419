@@ -11,6 +11,8 @@ public interface INodeConnection {
      */
     public void sendKillMessage() throws Exception;
 
+    public boolean sendCloseMessage();
+
     /**
      * Sends a metadata set to a node.
      */

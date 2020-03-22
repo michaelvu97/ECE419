@@ -33,4 +33,5 @@ hs_err_pid*
 /zookeeper-3.6.0/logs/*
 /zookeeper-3.6.0/bin/data
 /zookeeper-3.6.0/docs
+/M1/ecs_initial_node_name.txt
 /M1/.nfs*

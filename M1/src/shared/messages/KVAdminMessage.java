@@ -15,9 +15,7 @@ public class KVAdminMessage implements ISerializable {
         UPDATE_METADATA_REQUEST_SUCCESS,
         UPDATE_METADATA_REQUEST_FAILURE,
         KYS, /* Kills the KVServer */
-        GIMME_UR_STUFF, /* ECS -> KV, requests KV to lock and send all of its dataa*/
-        OKIE_DOKE_HERES_MY_STUFF, /* KV -> ECS, an entry */
-        THATS_THE_LAST_ONE;  /* KV -> ECS, no more entries to send */
+        CYS; /* Closes the KVServer */
 
         public byte toByte() {
             switch (this) {
@@ -35,12 +33,8 @@ public class KVAdminMessage implements ISerializable {
                     return 5;
                 case KYS:
                     return 6;
-                case GIMME_UR_STUFF:
+                case CYS:
                     return 7;
-                case OKIE_DOKE_HERES_MY_STUFF:
-                    return 8;
-                case THATS_THE_LAST_ONE:
-                    return 9;
                 default:                
                     throw new IllegalArgumentException("s out of range");
             }
@@ -63,11 +57,7 @@ public class KVAdminMessage implements ISerializable {
                 case 6:
                     return KYS;
                 case 7:
-                    return GIMME_UR_STUFF
-                case 8:
-                    return OKIE_DOKE_HERES_MY_STUFF
-                case 9:
-                    return THATS_THE_LAST_ONE
+                    return CYS;
                 default:                
                     throw new IllegalArgumentException("b out of range");
             }

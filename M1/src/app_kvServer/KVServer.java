@@ -379,6 +379,7 @@ public class KVServer implements IKVServer {
 		}
 
 		// TODO: clear cache?
+		serverStore.clearCache();
 	}
 
 	@Override

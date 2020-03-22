@@ -98,6 +98,8 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
                 return onTransferRequest(request);
             case KYS:
                 onKillNodeRequest();
+            case CYS:
+                onCloseNodeRequest();
             default:
                 throw new Exception("Invalid command from ECS: " + request.getStatus());
         }
@@ -108,6 +110,10 @@ public final class ECSCommandReceiver implements IECSCommandReceiver {
      */
     public void onKillNodeRequest() {
         _kvServer.kill(); // bye bye 
+    }
+
+    public void onCloseNodeRequest() {
+        _kvServer.close(); // bye bye (but graceful)
     }
 
     /**
