@@ -47,10 +47,6 @@ public class ECSClient implements IECSClient {
 
     private INodeFailureDetector _nodeFailureDetector;
 
-    // Name of the very first node to startup. This is required for persistence.
-    // May not be null after startup.
-    private String _initialNodeName = null;
-
     @Override  
     public List<ServerInfo> getAllServerInfo(){
         return allServerInfo;
@@ -99,23 +95,6 @@ public class ECSClient implements IECSClient {
         _username = username != null ? username : System.getProperty("user.name");
 
         setAllServers(_configFilePath);
-
-        _initialNodeName = loadInitialNodeName();
-        if (_initialNodeName == null)
-            _initialNodeName = allServerInfo.get(0).getName();
-        else {
-            // Verify that this node exists
-            boolean found = false;
-            for (ServerInfo s : allServerInfo) {
-                if (s.getName().equals(_initialNodeName))
-                    found = true;
-            }
-
-            if (!found) {
-                logger.error("Initial node name " + _initialNodeName + " is not included in the ecs config.");
-                _initialNodeName = allServerInfo.get(0).getName();
-            }
-        }
     }
 
     @Override
@@ -203,13 +182,21 @@ public class ECSClient implements IECSClient {
     public boolean shutdown() {
         // TODO: kill all servers
         try {
+
+            if (allServerInfo.get(0).getAvailability()) {
+                // Need to add the first server to collapse all of the data.
+                addNode(allServerInfo.get(0).getName(), "FIFO", 1);
+            }
+
             ecsSocket.close();
             logger.info("ECSClient socket is closed.");
             nodeAcceptor.stop();
             _nodeFailureDetector.stop();
 
             List<ServerInfo> activeNodes = getActiveNodes();
-            for (int i = 0; i < activeNodes.size() - 1; i++) {
+            for (int i = 1; i < activeNodes.size(); i++) {
+                if (activeNodes.get(i).getAvailability())
+                    continue;
                 removeNode(activeNodes.get(i).getName());
             }
 
@@ -241,24 +228,25 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public synchronized ECSNode addNode(String cacheStrategy, int cacheSize) {
+    public synchronized ECSNode addNode(String nodeName, String cacheStrategy, int cacheSize) {
         MetaDataSet oldMetaData = null;
         KVAdminMessage transferStatus = null;
 
         ServerInfo newServer = null;
+        for (ServerInfo s : allServerInfo) {
+            if (s.getName().equals(nodeName)) {
+                newServer = s;
+            }
+        }
+
+        if (newServer == null) {
+            logger.error("Could not find the specified node! " + nodeName);
+            return null;
+        }
+
         if (getActiveNodes().size() != 0) {
             // Old metadata existed.
             oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());    
-            newServer = getNextAvailableServer();
-        } else {
-            // This is the first server
-            for (ServerInfo s : allServerInfo) {
-                if (s.getName().equals(_initialNodeName)) {
-                    s.setAvailability(false);
-                    newServer = s;
-                    break;
-                }
-            }
         }
 
         ECSNode newNode = null;
@@ -381,8 +369,7 @@ public class ECSClient implements IECSClient {
 
         // call addNode count # of times.
         for (int i = 0; i < count; i++) {
-            
-            newNode = addNode(cacheStrategy, cacheSize);
+            newNode = addNode(getNextAvailableServer().getName(), cacheStrategy, cacheSize);
             
             if (newNode != null) {
                 newNodes.add(newNode);
@@ -420,6 +407,16 @@ public class ECSClient implements IECSClient {
         return result;
     }
 
+    private List<String> getActiveNodeNames() {
+        List<ServerInfo> active = getActiveNodes();
+        List<String> result = new ArrayList<String>();
+        for (ServerInfo s : active) {
+            result.add(s.getName());
+        }
+
+        return result;
+    }
+
     private void setServerAvailable(String serverName) {
         for (int i = 0; i < allServerInfo.size(); i++) {
             if (allServerInfo.get(i).getName().equals(serverName)) {
@@ -429,18 +426,7 @@ public class ECSClient implements IECSClient {
     }
 
     private synchronized void removeFinalNode() {
-        List<ServerInfo> activeNodes = getActiveNodes();
-        if (activeNodes.size() != 1) {
-            logger.error("removeFinalNode called when " + activeNodes.size() +
-                    " nodes are still active.");
-            return;
-        }
-
-        String lastNodeName = activeNodes.get(0).getName();
-
-        saveInitialNodeName(lastNodeName);
-
-        nodeAcceptor.sendCloseMessage(lastNodeName);
+        nodeAcceptor.sendCloseMessage(allServerInfo.get(0).getName());
     }
 
     @Override
@@ -573,45 +559,5 @@ public class ECSClient implements IECSClient {
     public static void main(String configFile, String username) {
         ECSClient client = new ECSClient(configFile, username);
         client.start();
-    }
-
-    private final static String SAVED_NODE_NAME_PATH = "./ecs_initial_node_name.txt";
-
-    private void saveInitialNodeName(String name) {
-        File dest = new File(SAVED_NODE_NAME_PATH);
-        try {
-            logger.info("Saving intial node name: " + name + " to " + dest.getCanonicalPath().toString());
-        } catch (IOException ioe) {
-            logger.error("IOException when logging", ioe);
-        }
-
-        dest.delete();
-        try {
-            dest.createNewFile();
-
-            FileWriter fw = new FileWriter(dest);
-            fw.write(name);
-            fw.close();
-        } catch (IOException ioe) {
-            logger.error("Could not create node name save file", ioe);
-            return;
-        }
-    }
-
-    // Returns the initial node name, or null if it does not exist.
-    // Does not check if it is valid with the given ecs.config.
-    private String loadInitialNodeName() {
-        File dest = new File(SAVED_NODE_NAME_PATH);
-        if (!dest.exists())
-            return null;
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(dest));
-            String name = br.readLine();
-            br.close();
-            return name;
-        } catch (Exception e) {
-            logger.warn("Could not load initial node name", e);
-            return null;
-        }
     }
 }
