@@ -47,6 +47,8 @@ public class ECSClient implements IECSClient {
 
     private INodeFailureDetector _nodeFailureDetector;
 
+    private boolean stopped = false;
+
     @Override  
     public List<ServerInfo> getAllServerInfo(){
         return allServerInfo;
@@ -179,8 +181,9 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public boolean shutdown() {
+    public synchronized boolean shutdown() {
         // TODO: kill all servers
+        stopped = true;
         try {
 
             String primaryServerName = allServerInfo.get(0).getName();
@@ -555,8 +558,10 @@ public class ECSClient implements IECSClient {
     @Override
     public synchronized void onNodeFailed(String nodeName) {
         logger.error("NODE FAILED: " + nodeName);
-        
-        // TODO: HANDLE ERRORS
+
+
+        if (stopped)
+            return;
 
         // Detect who will grow
         MetaDataSet oldMetaData = MetaDataSet.CreateFromServerInfo(getActiveNodes());
