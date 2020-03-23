@@ -39,7 +39,8 @@ public final class KVMessageImpl implements KVMessage {
     public String toString() {
         if (_value == null) {
             return getStatus().toString() + "<" + getKey() + ">";
-        } else if (getStatus() == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+        } else if (getStatus() == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE
+                || getStatus() == KVMessage.StatusType.SERVER_STOPPED) {
             return getStatus().toString() + "<" + getKey() + ",[server_metadata]>";
         } else {
             return getStatus().toString() + "<" + getKey() + "," + getValue() + ">";

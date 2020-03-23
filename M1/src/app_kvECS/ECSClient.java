@@ -567,21 +567,14 @@ public class ECSClient implements IECSClient {
         ECSNode nodeToDelete = getNodeByName(nodeName);
         allNodes.remove(nodeName);
 
-        // MetaData growboy = newMetaData.getServerForHash(
-        //     HashUtil.ComputeHash(
-        //         nodeToDelete.getNodeHost(),
-        //         nodeToDelete.getNodePort()
-        //     )
-        // );
-
-    // Inform nodeAcceptor that a connection has died.
+        // Inform nodeAcceptor that a connection has died.
         nodeAcceptor.onNodeFailed(nodeName);
 
         // Broadcast metadata update
         nodeAcceptor.broadcastMetadata(newMetaData);
 
-        // TODO: add a new node?
-        logger.error("ECSClient.onNodeFailed still does not spawn a new node to replace the failed one");
+        logger.info("Adding a noded to replace failed node");
+        addNode("FIFO", 1000);
     }
 
     public static void main(String configFile, String username) {
