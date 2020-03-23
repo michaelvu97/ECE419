@@ -235,7 +235,7 @@ public class StressTest implements Runnable {
         logger.info("running stress test");
 
         int[] numClients = {1, 10, 100};
-        int[] numNodes = {1, 10};
+        int[] numNodes = {1, 2, 10};
         String[] cacheStrat = {"FIFO", "LRU"};
         int cacheSize = 100;
 
