@@ -173,7 +173,7 @@ public class StressTest implements Runnable {
             }
         } catch (Exception e) {
             System.out.println("BAD THING HAPPEN, test results may be inaccurate");
-            System.out.println(e);
+            e.printStackTrace();
         } finally {
             try {
                 kvClient.getStore().disconnect();
