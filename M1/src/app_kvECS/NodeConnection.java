@@ -140,7 +140,7 @@ public final class NodeConnection extends Connection implements INodeConnection 
             byte[] responseBytes = this.commChannel.recvBytes();
             KVAdminMessage response = KVAdminMessage.Deserialize(responseBytes);
             if (response.getStatus() != KVAdminMessage.StatusType
-                        .DELETE_SUCCESS) {
+                        .DELETE_DATA_SUCC) {
                 _logger.warn("Send delete data failed on node");
                 throw new Exception("Send delete data failed on node");
             }
