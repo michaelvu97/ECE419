@@ -77,6 +77,7 @@ public final class NodeFailureDetector implements INodeFailureDetector {
     }
 
     public void stop() {
+        logger.info("Stopping NodeFailureDetector");
         _clusterWatcher.stop();
     }
 

@@ -201,60 +201,60 @@ public class M3IntegrationTesting extends TestCase {
 		assertTrue(ecsClient.shutdown());
 	}
 
-	// @Test
-	// public void testSendToKilledServerA() {
-	// 	IECSClient ecsClient = getECS();
-	// 	ecsClient.addNodes(4, "LRU", 10);
+	@Test
+	public void testSendToKilledServerA() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LRU", 10);
 
-	// 	KVStoreTest kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
-	// 	ecsClient.killNode("server_3");
+		ecsClient.killNode("server_3");
 
-	// 	for (String key : A_BUNCH_OF_KEYS) {
-	// 		put(kvs, key, key);
-	// 		assertTrue(get(kvs, key).equals(key));
-	// 	}
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+			assertTrue(get(kvs, key).equals(key));
+		}
 
-	// 	kvs.disconnect();
-	// 	assertTrue(ecsClient.shutdown());
-	// }
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
+	}
 
-	// @Test
-	// public void testSendToKilledServerB() {
-	// 	IECSClient ecsClient = getECS();
-	// 	ecsClient.addNodes(4, "LRU", 10);
+	@Test
+	public void testSendToKilledServerB() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LRU", 10);
 
-	// 	KVStoreTest kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
-	// 	ecsClient.removeNode("server_2");
-	// 	ecsClient.killNode("server_3");
+		ecsClient.removeNode("server_2");
+		ecsClient.killNode("server_3");
 
-	// 	for (String key : A_BUNCH_OF_KEYS) {
-	// 		put(kvs, key, key);
-	// 		assertTrue(get(kvs, key).equals(key));
-	// 	}
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+			assertTrue(get(kvs, key).equals(key));
+		}
 
-	// 	kvs.disconnect();
-	// 	assertTrue(ecsClient.shutdown());
-	// }
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
+	}
 
-	// @Test
-	// public void testSendToKilledServerC() {
-	// 	IECSClient ecsClient = getECS();
-	// 	ecsClient.addNodes(4, "LRU", 10);
+	@Test
+	public void testSendToKilledServerC() {
+		IECSClient ecsClient = getECS();
+		ecsClient.addNodes(4, "LRU", 10);
 
-	// 	KVStoreTest kvs = getKVS();
+		KVStoreTest kvs = getKVS();
 
-	// 	ecsClient.killNode("server_4");
+		ecsClient.killNode("server_4");
 
-	// 	for (String key : A_BUNCH_OF_KEYS) {
-	// 		put(kvs, key, key);
-	// 		assertTrue(get(kvs, key).equals(key));
-	// 	}
+		for (String key : A_BUNCH_OF_KEYS) {
+			put(kvs, key, key);
+			assertTrue(get(kvs, key).equals(key));
+		}
 
-	// 	kvs.disconnect();
-	// 	assertTrue(ecsClient.shutdown());
-	// }
+		kvs.disconnect();
+		assertTrue(ecsClient.shutdown());
+	}
 
 	@Test
 	public void testSendToKilledInitialServer() {
