@@ -1,6 +1,7 @@
 package stress_testing;
 
 import java.util.Random;
+import java.util.List;
 import java.util.ArrayList;
 
 
@@ -8,6 +9,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import logger.LogSetup;
 
+import app_kvECS.*;
 import app_kvClient.*;
 import app_kvServer.*;
 
@@ -31,7 +33,7 @@ public class StressTest implements Runnable {
 
     public StressTestResults _results = null;
 
-    private static int NUM_REQUESTS = 10000;
+    private static int NUM_REQUESTS = 1000;
 
     private static Random random = new Random();
 
@@ -183,9 +185,46 @@ public class StressTest implements Runnable {
         _results = results;
     }
 
+    private static IECSClient getECS() {
+        wipeZk();   
+        IECSClient ecs = new ECSClient("./src/app_kvECS/ecs.config", null);
+        try {
+            ecs.start();
+            return ecs;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void wipeZk() {
+        runScript("./src/testing/integration_wipe_zk.sh");
+    }
+
+
+    private static void runScript(String name) {
+        String cmd[] = {
+            name
+        };
+
+        try {
+            Process proc = Runtime.getRuntime().exec(cmd);
+            proc.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main (String[] args) {
         if (args.length != 2) {
             System.out.println("usage: <initial server host> <initial server port>");
+            return;
+        }
+
+        try {
+            new LogSetup("logs/stress-test.log", Level.ERROR);
+        } catch (Exception e) {
+            System.out.println("could not set up logging");
             return;
         }
 
@@ -194,40 +233,63 @@ public class StressTest implements Runnable {
 
         Logger logger = Logger.getRootLogger();
         logger.info("running stress test");
-        StressTest.printResultsHeader();
 
         int[] numClients = {1, 10, 100};
+        int[] numNodes = {1, 10};
+        String[] cacheStrat = {"FIFO", "LRU"};
+        int cacheSize = 100;
 
-        for (int numClient : numClients) {
+        List<String> results = new ArrayList<String>();
 
+        runScript("./src/testing/integration_startup.sh");
 
-            Thread[] threads = new Thread[numClient];
-            StressTest[] stressTests = new StressTest[numClient];
+        for (String cacheType : cacheStrat) {
+            for (int numNode : numNodes) {
 
-            long startTimeNano = System.nanoTime();
+                runScript("./clear_storage.sh");
 
-            for (int i = 0; i < numClient; i++) {
-                stressTests[i] = new StressTest(NUM_REQUESTS / numClient, 1);
-                threads[i] = new Thread(stressTests[i]);
-                threads[i].run();
-            }
+                IECSClient ecsClient = getECS();
+                ecsClient.addNodes(numNode, cacheType, cacheSize);
 
-            for (int i = 0; i < numClient; i++) {
-                try {
-                    threads[i].join();
-                } catch (Exception e) {
-                    System.out.println(e);
+                for (int numClient : numClients) {
+                    Thread[] threads = new Thread[numClient];
+                    StressTest[] stressTests = new StressTest[numClient];
+
+                    long startTimeNano = System.nanoTime();
+
+                    for (int i = 0; i < numClient; i++) {
+                        stressTests[i] = new StressTest(NUM_REQUESTS / numClient, 1);
+                        threads[i] = new Thread(stressTests[i]);
+                        threads[i].run();
+                    }
+
+                    for (int i = 0; i < numClient; i++) {
+                        try {
+                            threads[i].join();
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+
+                    long endTimeNano = System.nanoTime();
+
+                    double throughput = NUM_REQUESTS * 1.0 / (endTimeNano - startTimeNano);
+
+                    results.add(cacheType + "," + numNode + "," + numClient + "," + throughput);
+
+                    System.out.println(results.get(results.size() - 1));
                 }
+
+                ecsClient.shutdown();
             }
-
-            long endTimeNano = System.nanoTime();
-
-            double throughput = NUM_REQUESTS * 1.0 / (endTimeNano - startTimeNano);
-
-            System.out.println(numClient + "," + throughput);
         }
         System.out.println("all tests completed");
-        return;
+
+        for (String result : results) {
+            System.out.println(result);
+        }
+
+        runScript("./src/testing/integration_teardown.sh");
     }
 
 
